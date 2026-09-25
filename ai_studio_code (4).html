@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>بوابة الكويزات | تمريض دمنهور</title>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;600;800;900&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
+<script>
+  // تهيئة الإعدادات قبل التحميل لمنع الرمشة
+  (function() {
+    const savedTheme = localStorage.getItem('app_theme') || 'dark';
+    const savedColor = localStorage.getItem('app_color') || '139, 92, 246';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.documentElement.style.setProperty('--primary', savedColor);
+  })();
+</script>
+
+<style>
+  /* ================== CSS VARIABLES & THEMES ================== */
+  :root {
+    --bg-base: #030712; --bg-surface: #0f172a; --card-bg: rgba(255, 255, 255, 0.03); --card-hover: rgba(255, 255, 255, 0.06);
+    --border-color: rgba(255, 255, 255, 0.08); --text-main: #f8fafc; --text-sec: #94a3b8; --shadow-card: 0 10px 30px -10px rgba(0,0,0,0.5);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  [data-theme="dim"] { --bg-base: #0f172a; --bg-surface: #1e293b; --card-bg: rgba(255, 255, 255, 0.04); --card-hover: rgba(255, 255, 255, 0.08); --border-color: rgba(255, 255, 255, 0.1); --text-main: #f1f5f9; --text-sec: #cbd5e1; }
+  [data-theme="sepia"] { --bg-base: #f4ecd8; --bg-surface: #e9dec3; --card-bg: #fdf6e3; --card-hover: #ffffff; --border-color: #d5c4a1; --text-main: #433422; --text-sec: #5c4b37; --shadow-card: 0 8px 20px -5px rgba(0,0,0,0.1); }
+  [data-theme="light"] { --bg-base: #f8fafc; --bg-surface: #ffffff; --card-bg: #ffffff; --card-hover: #f1f5f9; --border-color: #e2e8f0; --text-main: #0f172a; --text-sec: #475569; --shadow-card: 0 10px 30px -10px rgba(0,0,0,0.08); }
+  [data-theme="ocean"] { --bg-base: #011627; --bg-surface: #0b2942; --card-bg: rgba(255, 255, 255, 0.03); --card-hover: rgba(255, 255, 255, 0.08); --border-color: rgba(255, 255, 255, 0.1); --text-main: #e2e8f0; --text-sec: #7dd3fc; }
+  [data-theme="midnight"] { --bg-base: #170f23; --bg-surface: #241b35; --card-bg: rgba(255, 255, 255, 0.03); --card-hover: rgba(255, 255, 255, 0.07); --border-color: rgba(255, 255, 255, 0.08); --text-main: #f3e8ff; --text-sec: #d8b4fe; }
+  [data-theme="forest"] { --bg-base: #051f14; --bg-surface: #0a2e20; --card-bg: rgba(255, 255, 255, 0.03); --card-hover: rgba(255, 255, 255, 0.07); --border-color: rgba(255, 255, 255, 0.1); --text-main: #ecfdf5; --text-sec: #6ee7b7; }
+  [data-theme="cyber"] { --bg-base: #0d0221; --bg-surface: #190933; --card-bg: rgba(255, 255, 255, 0.04); --card-hover: rgba(255, 255, 255, 0.09); --border-color: #261447; --text-main: #f8f9fa; --text-sec: #00f0ff; }
+
+  /* ================== GLOBAL ================== */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Tajawal', sans-serif; background-color: var(--bg-base); color: var(--text-main); min-height: 100vh; overflow-x: hidden; transition: background-color 0.4s, color 0.4s; }
+  h1, h2, h3, .font-heading { font-family: 'Alexandria', sans-serif; }
+
+  #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: rgb(var(--primary)); width: 0%; z-index: 9999; transition: width 0.1s; }
+
+  /* ================== SETTINGS DRAWER ================== */
+  #settings-drawer { position: fixed; top: 0; right: -350px; width: 340px; height: 100vh; background: var(--bg-surface); border-left: 1px solid var(--border-color); z-index: 2000; padding: 30px 20px 100px; box-shadow: -10px 0 30px rgba(0,0,0,0.2); transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1); overflow-y: auto; }
+  #settings-drawer::-webkit-scrollbar { width: 6px; } #settings-drawer::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+  #settings-drawer.open { right: 0; }
+  .drawer-close { position: absolute; top: 20px; left: 20px; background: var(--card-bg); border: 1px solid var(--border-color); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); }
+  .drawer-close:hover { background: rgba(var(--primary), 0.1); color: rgb(var(--primary)); }
+  .drawer-title { font-size: 20px; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+  .setting-label { display: block; font-size: 15px; font-weight: 700; color: var(--text-sec); margin-bottom: 15px; }
+  .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 30px; }
+  .btn-theme { padding: 15px 10px; border: 2px solid var(--border-color); background: var(--card-bg); border-radius: 14px; cursor: pointer; color: var(--text-main); font-family: 'Tajawal', sans-serif; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: var(--transition); }
+  .btn-theme:hover { border-color: rgba(var(--primary), 0.5); }
+  .btn-theme.active { border-color: rgb(var(--primary)); background: rgba(var(--primary), 0.1); }
+  .color-options { display: flex; gap: 15px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;}
+  .color-dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: var(--transition); }
+  .color-dot.active { border-color: var(--text-main); transform: scale(1.15); }
+
+  #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1999; opacity: 0; visibility: hidden; transition: var(--transition); }
+  #overlay.show { opacity: 1; visibility: visible; }
+
+  /* ================== NAVBAR ================== */
+  .navbar { position: sticky; top: 15px; z-index: 100; margin: 0 auto 40px; max-width: 90%; width: 1100px; background: rgba(var(--bg-surface), 0.7); backdrop-filter: blur(20px); border: 1px solid var(--border-color); padding: 12px 24px; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-card); }
+  .nav-brand { display: flex; align-items: center; gap: 12px; } .nav-logo { font-size: 24px; } .nav-title { font-size: 18px; font-weight: 800; color: var(--text-main); }
+  .btn-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-main); font-size: 18px; cursor: pointer; transition: var(--transition); }
+  .btn-icon:hover { background: rgba(var(--primary), 0.1); border-color: rgb(var(--primary)); transform: translateY(-2px); }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 0 20px 100px; position: relative; z-index: 1; }
+  .view { display: none; animation: fadeIn 0.5s forwards; } .view.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+  .btn-back { display: inline-flex; align-items: center; gap: 10px; background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px 20px; border-radius: 14px; color: var(--text-main); font-family: inherit; font-weight: 700; font-size: 15px; cursor: pointer; transition: var(--transition); margin-bottom: 25px; }
+  .btn-back:hover { background: rgba(var(--primary), 0.15); border-color: rgb(var(--primary)); transform: translateX(5px); }
+
+  /* ================== HERO & QUOTES ================== */
+  .hero { text-align: center; padding: 30px 0 50px; }
+  .hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 900; margin-bottom: 15px; }
+  .quote-box { display: inline-block; padding: 10px 20px; border-radius: 20px; background: rgba(var(--primary), 0.1); color: rgb(var(--primary)); font-size: 15px; font-weight: 700; margin-bottom: 40px; font-style: italic; }
+  
+  .stats-container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 40px;}
+  .stat-box { background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px 25px; border-radius: 16px; min-width: 150px; box-shadow: var(--shadow-card); }
+  .stat-num { font-size: 36px; font-weight: 900; color: rgb(var(--primary)); font-family: 'Alexandria', sans-serif;} .stat-label { font-size: 14px; color: var(--text-sec); font-weight: 700; }
+
+  /* ================== GRIDS & SEARCH ================== */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+  .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 30px 24px; cursor: pointer; transition: var(--transition); box-shadow: var(--shadow-card); }
+  .card:hover { background: var(--card-hover); border-color: rgb(var(--primary)); transform: translateY(-8px); box-shadow: 0 15px 35px rgba(var(--primary), 0.15); }
+  .card-icon { width: 70px; height: 70px; border-radius: 20px; background: rgba(var(--primary), 0.1); border: 1px solid rgba(var(--primary), 0.2); display: flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 20px; }
+  .card-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; } .card-desc { font-size: 14px; color: var(--text-sec); }
+
+  .search-box { position: relative; margin-bottom: 40px; display: flex; align-items: center;}
+  .search-input { width: 100%; padding: 20px 20px 20px 60px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; color: var(--text-main); font-size: 16px; font-family: inherit; transition: var(--transition); }
+  .search-input:focus { outline: none; border-color: rgb(var(--primary)); box-shadow: 0 0 0 4px rgba(var(--primary), 0.1); }
+  .search-icon { position: absolute; right: 20px; font-size: 20px; color: var(--text-sec); }
+  
+  /* Voice Search Button */
+  .mic-btn { position: absolute; left: 15px; background: rgba(var(--primary), 0.1); color: rgb(var(--primary)); border: none; border-radius: 12px; width: 40px; height: 40px; font-size: 18px; cursor: pointer; transition: var(--transition); display: flex; justify-content: center; align-items: center;}
+  .mic-btn:hover { background: rgb(var(--primary)); color: #fff; }
+  .mic-btn.listening { animation: pulseMic 1s infinite; background: #ef4444; color: #fff;}
+  @keyframes pulseMic { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+  /* ================== LISTS & FAVORITES ================== */
+  .list-item { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: var(--transition); text-decoration: none; color: inherit; position: relative;}
+  .list-item:hover { border-color: rgb(var(--primary)); transform: translateX(-5px); background: var(--card-hover); }
+  .item-main { display: flex; align-items: center; gap: 16px; }
+  .item-icon { font-size: 28px; background: rgba(var(--primary), 0.1); width: 55px; height: 55px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--text-main); font-weight: 900;}
+  .item-title { font-size: 18px; font-weight: 700; font-family: 'Alexandria', sans-serif;}
+  .badge-questions { display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 6px; background: rgba(var(--primary), 0.15); color: rgb(var(--primary)); font-size: 13px; font-weight: 700; }
+  
+  .fav-btn { font-size: 22px; cursor: pointer; transition: var(--transition); opacity: 0.5; background: none; border: none; outline: none; margin-left: 15px;}
+  .fav-btn.active { color: #f59e0b; opacity: 1; text-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+  .fav-btn:hover { transform: scale(1.2); opacity: 1; }
+  
+  .item-action { background: rgba(var(--primary), 0.1); color: rgb(var(--primary)); padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 14px; }
+  .list-item:hover .item-action { background: rgb(var(--primary)); color: #fff; }
+
+  /* ================== POMODORO WIDGET ================== */
+  #pomodoro-widget { position: fixed; bottom: 30px; left: 30px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: var(--shadow-card); width: 220px; z-index: 1000; overflow: hidden; transition: var(--transition); transform: translateY(0); }
+  #pomodoro-widget.collapsed { transform: translateY(calc(100% - 50px)); }
+  .pomo-header { background: rgba(var(--primary), 0.1); padding: 12px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); border-bottom: 1px solid var(--border-color);}
+  .pomo-body { padding: 20px; text-align: center; }
+  #pomo-time { font-family: 'Alexandria', sans-serif; font-size: 36px; font-weight: 900; color: rgb(var(--primary)); margin-bottom: 15px; }
+  .pomo-controls { display: flex; gap: 10px; justify-content: center; }
+  .pomo-btn { flex: 1; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 10px; cursor: pointer; font-size: 14px; transition: var(--transition);}
+  .pomo-btn:hover { background: rgba(var(--primary), 0.2); border-color: rgb(var(--primary)); }
+
+  /* Breadcrumbs & Toasts */
+  .breadcrumbs { display: flex; gap: 10px; font-size: 14px; color: var(--text-sec); margin-bottom: 20px; font-weight: 700;}
+  .bc-link { cursor: pointer; transition: 0.2s; } .bc-link:hover { color: rgb(var(--primary)); }
+  #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--bg-surface); color: var(--text-main); padding: 15px 30px; border-radius: 100px; font-weight: 700; font-size: 15px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: var(--transition); z-index: 3000; opacity: 0; }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; border-color: rgb(var(--primary)); }
+
+</style>
+</head>
+<body>
+
+  <div id="progress-bar"></div>
+  <div id="overlay" onclick="toggleSettings()"></div>
+
+  <!-- Settings Drawer -->
+  <div id="settings-drawer">
+    <div class="drawer-close" onclick="toggleSettings()">✖</div>
+    <h2 class="drawer-title font-heading">تخصيص الواجهة</h2>
+    
+    <span class="setting-label">اختر سمة مريحة لعينك (8 ثيمات):</span>
+    <div class="theme-grid">
+      <button class="btn-theme" id="btn-theme-dark" onclick="setTheme('dark')"><span>🌙</span> ليلي غامق</button>
+      <button class="btn-theme" id="btn-theme-dim" onclick="setTheme('dim')"><span>🌌</span> داكن مريح</button>
+      <button class="btn-theme" id="btn-theme-sepia" onclick="setTheme('sepia')"><span>📜</span> سيبيا للقراءة</button>
+      <button class="btn-theme" id="btn-theme-light" onclick="setTheme('light')"><span>☀️</span> نهاري فاتح</button>
+      <button class="btn-theme" id="btn-theme-ocean" onclick="setTheme('ocean')"><span>🌊</span> محيط عميق</button>
+      <button class="btn-theme" id="btn-theme-midnight" onclick="setTheme('midnight')"><span>🔮</span> منتصف الليل</button>
+      <button class="btn-theme" id="btn-theme-forest" onclick="setTheme('forest')"><span>🌲</span> غابة داكنة</button>
+      <button class="btn-theme" id="btn-theme-cyber" onclick="setTheme('cyber')"><span>🤖</span> سايبر بانك</button>
+    </div>
+
+    <span class="setting-label">لون التطبيق الأساسي:</span>
+    <div class="color-options">
+      <div class="color-dot" style="background:#8b5cf6" onclick="setColor('139, 92, 246')"></div>
+      <div class="color-dot" style="background:#3b82f6" onclick="setColor('59, 130, 246')"></div>
+      <div class="color-dot" style="background:#10b981" onclick="setColor('16, 185, 129')"></div>
+      <div class="color-dot" style="background:#ec4899" onclick="setColor('236, 72, 153')"></div>
+      <div class="color-dot" style="background:#f59e0b" onclick="setColor('245, 158, 11')"></div>
+      <div class="color-dot" style="background:#ef4444" onclick="setColor('239, 68, 68')"></div>
+    </div>
+  </div>
+
+  <!-- Pomodoro Widget -->
+  <div id="pomodoro-widget" class="collapsed">
+    <div class="pomo-header" onclick="document.getElementById('pomodoro-widget').classList.toggle('collapsed')">
+      <span>⏱️ مؤقت المذاكرة</span> <span>↕</span>
+    </div>
+    <div class="pomo-body">
+      <div id="pomo-time">25:00</div>
+      <div class="pomo-controls">
+        <button class="pomo-btn" onclick="startPomo()">▶ تشغيل</button>
+        <button class="pomo-btn" onclick="resetPomo()">🔄 إعادة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <div class="nav-logo">🎓</div>
+      <div class="nav-title">تمريض دمنهور</div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-icon" onclick="shareWebsite()" title="مشاركة">🔗</button>
+      <button class="btn-icon" onclick="toggleSettings()" title="الإعدادات">⚙️</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    <!-- View 1: Home -->
+    <div id="view-home" class="view active">
+      <section class="hero">
+        <h1 class="font-heading">بوابة المراجعة و<span style="color:rgb(var(--primary))">الكويزات</span></h1>
+        <div class="quote-box" id="daily-quote">"النجاح هو محصلة مجهودات صغيرة تتكرر يومياً."</div>
+        
+        <div class="stats-container">
+          <div class="stat-box"><div class="stat-num" id="count-subjects">0</div><div class="stat-label">مادة دراسية</div></div>
+          <div class="stat-box"><div class="stat-num" id="count-quizzes">0</div><div class="stat-label">كويز متاح</div></div>
+        </div>
+      </section>
+
+      <!-- قسم المفضلة سيظهر هنا إذا كان هناك مواد مفضلة -->
+      <div id="favorites-section" style="display:none; margin-bottom: 40px;">
+        <h2 class="font-heading" style="margin-bottom: 20px;">⭐ المواد المفضلة</h2>
+        <div class="grid" id="favorites-grid"></div>
+      </div>
+
+      <h2 class="font-heading" style="margin-bottom: 20px;">الأقسام الأكاديمية</h2>
+      <div class="grid">
+        <div class="card" onclick="openDept('obgyn')"><div class="card-icon">🤰</div><h2 class="card-title font-heading">النساء والتوليد</h2></div>
+        <div class="card" onclick="openDept('pediatrics')"><div class="card-icon">👶</div><h2 class="card-title font-heading">تمريض الأطفال</h2></div>
+        <div class="card" onclick="openDept('common_t1')"><div class="card-icon">📚</div><h2 class="card-title font-heading">مشترك (ترم 1)</h2></div>
+        <div class="card" onclick="openDept('common_t2')"><div class="card-icon">💡</div><h2 class="card-title font-heading">مشترك (ترم 2)</h2></div>
+      </div>
+    </div>
+
+    <!-- View 2: Subjects -->
+    <div id="view-subjects" class="view">
+      <div class="breadcrumbs">
+        <span class="bc-link" onclick="navigate('home')">الرئيسية</span> / <span id="txt-dept-name" style="color:var(--text-main)">القسم</span>
+      </div>
+      <button class="btn-back" onclick="navigate('home')"><span>→</span> العودة للأقسام</button>
+      <h1 class="font-heading" style="margin-bottom: 30px; font-size:32px;" id="title-dept">المواد</h1>
+      
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" class="search-input" placeholder="ابحث عن اسم المادة..." oninput="renderSubjects()">
+        <!-- Voice Search Button -->
+        <button class="mic-btn" id="mic-btn" onclick="startVoiceSearch()" title="بحث صوتي">🎙️</button>
+      </div>
+      
+      <div id="subjects-container"></div>
+    </div>
+
+    <!-- View 3: Lectures (Quizzes) -->
+    <div id="view-lectures" class="view">
+      <div class="breadcrumbs">
+        <span class="bc-link" onclick="navigate('home')">الرئيسية</span> / <span class="bc-link" onclick="navigate('subjects')" id="txt-dept-name-2">القسم</span> / <span id="txt-subj-name" style="color:var(--text-main)">المادة</span>
+      </div>
+      <button class="btn-back" onclick="navigate('subjects')"><span>→</span> العودة للمواد</button>
+      <h1 class="font-heading" style="margin-bottom: 30px; font-size:32px;" id="title-subj">الكويزات</h1>
+      <div id="lectures-container"></div>
+    </div>
+  </main>
+
+  <div id="toast">تم الإجراء بنجاح</div>
+
+<script>
+// ================= CORE STATE =================
+let db = [];
+let state = { view: 'home', deptId: null, subjectId: null };
+let favorites = JSON.parse(localStorage.getItem('app_favorites')) || [];
+
+const deptsMeta = {
+  'obgyn': { name: 'قسم النساء والتوليد', icon: '🤰' },
+  'pediatrics': { name: 'قسم تمريض الأطفال', icon: '👶' },
+  'common_t1': { name: 'مشترك (الفصل الأول)', icon: '📚' },
+  'common_t2': { name: 'مشترك (الفصل الثاني)', icon: '💡' }
+};
+
+const quotes = [
+  "النجاح هو محصلة مجهودات صغيرة تتكرر يومياً.",
+  "الطريق إلى التميز يبدأ بخطوة واحدة، فابدأ الآن.",
+  "مهنة التمريض هي فن وعلم وإنسانية، فكن فخوراً بما تدرس.",
+  "لا تتوقف عندما تتعب، بل توقف عندما تنتهي.",
+  "أفضل طريقة للتنبؤ بمستقبلك هي أن تصنعه بنفسك."
+];
+
+// ================= INIT =================
+window.onload = async () => {
+  document.getElementById('daily-quote').innerText = quotes[Math.floor(Math.random() * quotes.length)];
+  syncActiveSettingsUI();
+  await loadData();
+  renderFavoritesHome();
+  
+  window.addEventListener('scroll', () => {
+    let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+    let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    document.getElementById('progress-bar').style.width = (winScroll / height) * 100 + "%";
+  });
+};
+
+async function loadData() {
+  try {
+    const res = await fetch('subjects.json?' + Date.now());
+    db = await res.json();
+    let totalSubj = db.length;
+    let totalQuiz = db.reduce((acc, s) => acc + (s.lectures ? s.lectures.length : 0), 0);
+    animateValue("count-subjects", 0, totalSubj, 1000);
+    animateValue("count-quizzes", 0, totalQuiz, 1500);
+  } catch(e) { console.error("Error loading JSON"); }
+}
+
+function animateValue(id, start, end, duration) {
+  let obj = document.getElementById(id);
+  if(!obj) return;
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    obj.innerHTML = Math.floor(progress * (end - start) + start);
+    if (progress < 1) window.requestAnimationFrame(step);
+  };
+  window.requestAnimationFrame(step);
+}
+
+// ================= SETTINGS & TOOLS =================
+function toggleSettings() { document.getElementById('settings-drawer').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
+function setTheme(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('app_theme', t); syncActiveSettingsUI(); showToast('تم تغيير المظهر 🎨'); }
+function setColor(c) { document.documentElement.style.setProperty('--primary', c); localStorage.setItem('app_color', c); syncActiveSettingsUI(); }
+function syncActiveSettingsUI() {
+  const t = localStorage.getItem('app_theme') || 'dark'; const c = localStorage.getItem('app_color') || '139, 92, 246';
+  document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
+  if(document.getElementById(`btn-theme-${t}`)) document.getElementById(`btn-theme-${t}`).classList.add('active');
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  Array.from(document.querySelectorAll('.color-dot')).forEach(dot => { if(dot.getAttribute('onclick').includes(c)) dot.classList.add('active'); });
+}
+function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+function shareWebsite() { navigator.clipboard.writeText(window.location.href); showToast('🔗 تم نسخ رابط الموقع بنجاح!'); }
+
+// ================= NAVIGATION =================
+function navigate(vName) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + vName).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'}); state.view = vName;
+  if(vName === 'home') renderFavoritesHome();
+}
+
+function openDept(id) {
+  state.deptId = id; const meta = deptsMeta[id];
+  document.getElementById('txt-dept-name').innerText = meta.name; document.getElementById('txt-dept-name-2').innerText = meta.name;
+  document.getElementById('title-dept').innerText = meta.icon + " " + meta.name;
+  document.getElementById('search-input').value = '';
+  renderSubjects(); navigate('subjects');
+}
+
+// ================= FAVORITES SYSTEM =================
+function toggleFavorite(e, subjId) {
+  e.preventDefault(); e.stopPropagation();
+  const idx = favorites.indexOf(subjId);
+  if(idx > -1) { favorites.splice(idx, 1); showToast('تم الإزالة من المفضلة 🗑️'); }
+  else { favorites.push(subjId); showToast('تمت الإضافة للمفضلة ⭐'); }
+  localStorage.setItem('app_favorites', JSON.stringify(favorites));
+  if(state.view === 'subjects') renderSubjects();
+  if(state.view === 'home') renderFavoritesHome();
+}
+
+function renderFavoritesHome() {
+  const section = document.getElementById('favorites-section');
+  const grid = document.getElementById('favorites-grid');
+  if(favorites.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  
+  const favItems = db.filter(s => favorites.includes(s.id));
+  grid.innerHTML = favItems.map(s => `
+    <div class="card" onclick="openSubjectDirect('${s.id}', '${s.department}')" style="padding: 20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="card-icon" style="width:50px; height:50px; font-size:24px; margin:0;">${s.emoji || '⭐'}</div>
+        <button class="fav-btn active" onclick="toggleFavorite(event, '${s.id}')">★</button>
+      </div>
+      <h3 style="margin-top:15px; font-size:16px;">${s.nameAr}</h3>
+    </div>
+  `).join('');
+}
+
+function openSubjectDirect(subjId, deptId) {
+  state.deptId = deptId;
+  const meta = deptsMeta[deptId];
+  document.getElementById('txt-dept-name-2').innerText = meta.name;
+  openSubject(subjId);
+}
+
+// ================= RENDER LOGIC =================
+function renderSubjects() {
+  const container = document.getElementById('subjects-container');
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const filtered = db.filter(s => s.department === state.deptId && (s.name + s.nameAr).toLowerCase().includes(q));
+  
+  if(!filtered.length) { container.innerHTML = `<div style="text-align:center; padding:50px 0; color:var(--text-sec)">لا توجد نتائج.</div>`; return; }
+  
+  container.innerHTML = filtered.map(s => {
+    const isFav = favorites.includes(s.id);
+    return `
+    <div class="list-item" onclick="openSubject('${s.id}')">
+      <div class="item-main">
+        <div class="item-icon">${s.emoji || '📚'}</div>
+        <div>
+          <div class="item-title">${s.nameAr || s.name}</div>
+          <div class="badge-questions">عدد الكويزات: ${s.lectures ? s.lectures.length : 0}</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center;">
+        <div class="item-action">دخول ←</div>
+        <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${s.id}')" title="أضف للمفضلة">${isFav ? '★' : '☆'}</button>
+      </div>
+    </div>
+    `
+  }).join('');
+}
+
+function openSubject(id) {
+  state.subjectId = id; const subject = db.find(x => x.id === id);
+  document.getElementById('txt-subj-name').innerText = subject.nameAr;
+  document.getElementById('title-subj').innerText = subject.emoji + " " + subject.nameAr;
+  const container = document.getElementById('lectures-container');
+  
+  if(!subject.lectures || subject.lectures.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:50px 0; color:var(--text-sec)">🚧 جاري إضافة الكويزات.</div>`;
+  } else {
+    container.innerHTML = subject.lectures.map((quiz, idx) => {
+      const qText = quiz.questions > 0 ? `📝 يحتوي على ${quiz.questions} سؤال` : `⚡ اختبار إلكتروني عام`;
+      return `
+      <a class="list-item" href="${quiz.file}" target="_blank">
+        <div class="item-main">
+          <div class="item-icon" style="font-size:20px;">${idx + 1}</div>
+          <div><div class="item-title">${quiz.nameAr || quiz.name}</div><div class="badge-questions">${qText}</div></div>
+        </div>
+        <div class="item-action">بدء الحل ←</div>
+      </a>`;
+    }).join('');
+  }
+  navigate('lectures');
+}
+
+// ================= POMODORO TIMER =================
+let pomoInterval;
+let pomoTime = 25 * 60; // 25 mins
+let pomoRunning = false;
+
+function updatePomoDisplay() {
+  const m = Math.floor(pomoTime / 60).toString().padStart(2, '0');
+  const s = (pomoTime % 60).toString().padStart(2, '0');
+  document.getElementById('pomo-time').innerText = `${m}:${s}`;
+}
+
+function startPomo() {
+  if(pomoRunning) return;
+  pomoRunning = true;
+  pomoInterval = setInterval(() => {
+    if(pomoTime > 0) { pomoTime--; updatePomoDisplay(); }
+    else { clearInterval(pomoInterval); pomoRunning = false; showToast('⏰ انتهى وقت المذاكرة! خذ استراحة.'); }
+  }, 1000);
+}
+
+function resetPomo() {
+  clearInterval(pomoInterval);
+  pomoRunning = false; pomoTime = 25 * 60; updatePomoDisplay();
+}
+
+// ================= VOICE SEARCH =================
+function startVoiceSearch() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition) { showToast('المتصفح لا يدعم البحث الصوتي 😔'); return; }
+  
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'ar-EG';
+  const micBtn = document.getElementById('mic-btn');
+  const searchInput = document.getElementById('search-input');
+
+  recognition.onstart = function() { micBtn.classList.add('listening'); searchInput.placeholder = "تحدث الآن..."; };
+  recognition.onspeechend = function() { recognition.stop(); micBtn.classList.remove('listening'); searchInput.placeholder = "ابحث عن اسم المادة..."; };
+  recognition.onerror = function() { micBtn.classList.remove('listening'); showToast('حدث خطأ في المايكروفون'); searchInput.placeholder = "ابحث عن اسم المادة...";};
+  
+  recognition.onresult = function(event) {
+    const transcript = event.results[0][0].transcript;
+    searchInput.value = transcript;
+    renderSubjects(); // تحديث النتائج فوراً
+    showToast('تم التقاط الصوت بنجاح 🎙️');
+  };
+  
+  recognition.start();
+}
+</script>
+</body>
+</html>
