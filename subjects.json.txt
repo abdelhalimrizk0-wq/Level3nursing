@@ -1,0 +1,182 @@
+[
+  {
+    "id": "obgyn-theory",
+    "name": "Maternity Nursing (Theory)",
+    "nameAr": "تمريض أمراض النساء والتوليد نظري",
+    "emoji": "🤰",
+    "color": "#ec4899",
+    "department": "obgyn",
+    "lectures": []
+  },
+  {
+    "id": "reproductive-health",
+    "name": "Reproductive Health",
+    "nameAr": "الصحة الإنجابية",
+    "emoji": "🧬",
+    "color": "#f43f5e",
+    "department": "obgyn",
+    "lectures": []
+  },
+  {
+    "id": "obgyn-medicine",
+    "name": "Obstetrics & Gynecology Medicine",
+    "nameAr": "طب أمراض النساء والتوليد",
+    "emoji": "🩺",
+    "color": "#fb7185",
+    "department": "obgyn",
+    "lectures": []
+  },
+  {
+    "id": "critical-care-2-theory",
+    "name": "Critical Care 2 (Theory)",
+    "nameAr": "تمريض العناية الحرجة (٢) نظري",
+    "emoji": "🫀",
+    "color": "#ef4444",
+    "department": "obgyn",
+    "lectures": []
+  },
+  {
+    "id": "obgyn-practical",
+    "name": "Maternity Nursing (Practical)",
+    "nameAr": "تمريض أمراض النساء والتوليد عملي",
+    "emoji": "🏥",
+    "color": "#db2777",
+    "department": "obgyn",
+    "lectures": []
+  },
+  {
+    "id": "critical-care-2-practical",
+    "name": "Critical Care 2 (Practical)",
+    "nameAr": "تمريض العناية الحرجة (٢) عملي",
+    "emoji": "💉",
+    "color": "#dc2626",
+    "department": "obgyn",
+    "lectures": []
+  },
+  {
+    "id": "health-promotion-obgyn",
+    "name": "Health Promotion in OBGYN",
+    "nameAr": "التعزيز الصحي في النساء والتوليد",
+    "emoji": "🌟",
+    "color": "#fca5a5",
+    "department": "obgyn",
+    "lectures": []
+  },
+  {
+    "id": "pediatric-theory",
+    "name": "Pediatric Nursing (Theory)",
+    "nameAr": "تمريض الأطفال نظري",
+    "emoji": "👶",
+    "color": "#3b82f6",
+    "department": "pediatrics",
+    "lectures": []
+  },
+  {
+    "id": "pediatric-surgery",
+    "name": "Pediatric Surgery",
+    "nameAr": "جراحة الأطفال",
+    "emoji": "🪛",
+    "color": "#0ea5e9",
+    "department": "pediatrics",
+    "lectures": []
+  },
+  {
+    "id": "pediatric-medicine",
+    "name": "Pediatric Medicine",
+    "nameAr": "طب الأطفال",
+    "emoji": "🧸",
+    "color": "#60a5fa",
+    "department": "pediatrics",
+    "lectures": []
+  },
+  {
+    "id": "comprehensive-nursing",
+    "name": "Comprehensive Nursing Care",
+    "nameAr": "الرعاية التمريضية الشاملة",
+    "emoji": "🛡️",
+    "color": "#2563eb",
+    "department": "pediatrics",
+    "lectures": []
+  },
+  {
+    "id": "pediatric-practical",
+    "name": "Pediatric Nursing (Practical)",
+    "nameAr": "تمريض الأطفال عملي",
+    "emoji": "🩺",
+    "color": "#0284c7",
+    "department": "pediatrics",
+    "lectures": []
+  },
+  {
+    "id": "developmental-psychology",
+    "name": "Developmental Psychology",
+    "nameAr": "علم نفس النمو",
+    "emoji": "🧠",
+    "color": "#8b5cf6",
+    "department": "pediatrics",
+    "lectures": []
+  },
+  {
+    "id": "health-promotion-peds",
+    "name": "Health Promotion in Pediatrics",
+    "nameAr": "التعزيز الصحي في الأطفال",
+    "emoji": "🌱",
+    "color": "#14b8a6",
+    "department": "pediatrics",
+    "lectures": []
+  },
+  {
+    "id": "forensic-toxicology",
+    "name": "Forensic Medicine & Toxicology",
+    "nameAr": "طب شرعي وسموم",
+    "emoji": "⚖️",
+    "color": "#6366f1",
+    "department": "common_t1",
+    "lectures": []
+  },
+  {
+    "id": "family-health",
+    "name": "Family Health",
+    "nameAr": "صحة الأسرة",
+    "emoji": "👨‍👩‍👧‍👦",
+    "color": "#10b981",
+    "department": "common_t1",
+    "lectures": []
+  },
+  {
+    "id": "ebp",
+    "name": "Evidence Based Practice",
+    "nameAr": "الممارسة التمريضية القائمة على الأدلة",
+    "emoji": "📊",
+    "color": "#8b5cf6",
+    "department": "common_t1",
+    "lectures": []
+  },
+  {
+    "id": "nursing-research",
+    "name": "Scientific Research in Nursing",
+    "nameAr": "البحث العلمي في التمريض",
+    "emoji": "🔬",
+    "color": "#f59e0b",
+    "department": "common_t2",
+    "lectures": []
+  },
+  {
+    "id": "sociology",
+    "name": "Sociology",
+    "nameAr": "علم الاجتماع",
+    "emoji": "👥",
+    "color": "#d946ef",
+    "department": "common_t2",
+    "lectures": []
+  },
+  {
+    "id": "community-issues",
+    "name": "Community Issues",
+    "nameAr": "قضايا مجتمعية",
+    "emoji": "🌍",
+    "color": "#059669",
+    "department": "common_t2",
+    "lectures": []
+  }
+]

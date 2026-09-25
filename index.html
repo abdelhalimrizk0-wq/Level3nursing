@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>بوابة الكويزات | تمريض دمنهور</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Alexandria:wght@400;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #09090b;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    
+    /* Gradients for departments */
+    --grad-obgyn: linear-gradient(135deg, #ec4899, #8b5cf6);
+    --grad-peds: linear-gradient(135deg, #3b82f6, #06b6d4);
+    --grad-t1: linear-gradient(135deg, #10b981, #3b82f6);
+    --grad-t2: linear-gradient(135deg, #f59e0b, #ef4444);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background-color: var(--bg);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Creative Background Blobs */
+  .bg-shape {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: -1;
+    opacity: 0.5;
+    animation: float 15s infinite alternate ease-in-out;
+  }
+  .bg-shape.pink { top: -10%; left: -10%; width: 40vw; height: 40vw; background: rgba(236, 72, 153, 0.15); }
+  .bg-shape.blue { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: rgba(59, 130, 246, 0.15); }
+  .bg-shape.purple { top: 40%; left: 50%; width: 30vw; height: 30vw; background: rgba(139, 92, 246, 0.15); transform: translate(-50%, -50%); }
+
+  @keyframes float {
+    0% { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.1) translate(20px, -20px); }
+  }
+
+  .wrap { position: relative; z-index: 1; }
+
+  /* ── HEADER ── */
+  header {
+    padding: 20px 40px;
+    background: rgba(9, 9, 11, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--card-border);
+    position: sticky; top:0; z-index:100;
+    display: flex; align-items:center; justify-content: center; gap:14px;
+  }
+
+  .logo-icon {
+    font-size: 24px;
+    animation: pulse 2s infinite;
+  }
+
+  .logo-name {
+    font-family: 'Alexandria', sans-serif;
+    font-size: 22px; font-weight: 900;
+    background: linear-gradient(90deg, #fff, #a5b4fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    max-width: 900px; margin: 0 auto;
+    padding: 80px 30px 50px;
+    text-align: center;
+    animation: fadeUp 0.8s ease backwards;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    padding: 8px 24px;
+    font-size: 14px; font-weight: 700;
+    margin-bottom: 24px;
+    backdrop-filter: blur(10px);
+  }
+
+  .hero h1 {
+    font-family: 'Alexandria', sans-serif;
+    font-size: clamp(32px, 6vw, 60px);
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 span {
+    background: var(--grad-obgyn);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    color: var(--text-muted);
+    font-size: 18px;
+    margin-bottom: 40px;
+  }
+
+  /* ── GRIDS & CARDS (Glassmorphism) ── */
+  .section {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 30px 80px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .dept-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dept-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: var(--grad);
+    opacity: 0.5;
+    transition: opacity 0.3s;
+  }
+
+  .dept-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  }
+  .dept-card:hover::before { opacity: 1; }
+
+  .dept-icon {
+    width: 80px; height: 80px;
+    margin: 0 auto 20px;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    background: var(--grad);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  }
+
+  .dept-title { font-family: 'Alexandria', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 8px;}
+  .dept-desc { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+
+  /* ── SUBJECT CARDS ── */
+  .subj-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex; flex-direction: column; gap: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .subj-card:hover {
+    border-color: rgba(255,255,255,0.3);
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .subj-header { display: flex; align-items: center; gap: 12px; }
+  .subj-emoji { font-size: 32px; }
+  .subj-name { font-size: 18px; font-weight: 700; }
+  .subj-meta { font-size: 13px; color: var(--text-muted); }
+  
+  /* ── SEARCH ── */
+  .search-box {
+    margin-bottom: 40px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--card-border);
+    padding: 18px 24px;
+    border-radius: 16px;
+    color: #fff;
+    font-family: 'Cairo', sans-serif;
+    font-size: 16px;
+    transition: 0.3s;
+  }
+  .search-box input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    background: rgba(255,255,255,0.06);
+  }
+
+  /* ── BUTTONS & UTILS ── */
+  .btn-back {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--card-border);
+    padding: 10px 20px;
+    border-radius: 12px;
+    color: #fff;
+    font-family: inherit; font-size: 15px;
+    cursor: pointer;
+    margin-bottom: 30px;
+    transition: 0.2s;
+  }
+  .btn-back:hover { background: rgba(255,255,255,0.1); }
+
+  .page-title {
+    font-family: 'Alexandria', sans-serif;
+    font-size: 32px; font-weight: 900;
+    margin-bottom: 30px;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+  .empty-state span { font-size: 50px; display: block; margin-bottom: 15px; }
+
+  /* ── LECTURES LIST ── */
+  .lec-item {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    text-decoration: none; color: inherit;
+    transition: 0.3s;
+  }
+  .lec-item:hover {
+    background: rgba(255,255,255,0.08);
+    transform: translateX(-5px);
+    border-color: #ec4899;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  footer {
+    text-align: center; padding: 30px;
+    border-top: 1px solid var(--card-border);
+    color: var(--text-muted); font-size: 14px;
+  }
+</style>
+</head>
+<body>
+  
+<!-- Creative Background -->
+<div class="bg-shape pink"></div>
+<div class="bg-shape blue"></div>
+<div class="bg-shape purple"></div>
+
+<div class="wrap">
+  <header>
+    <div class="logo-icon">✨</div>
+    <div class="logo-name">تمريض دمنهور</div>
+  </header>
+
+  <!-- HOME: DEPARTMENTS -->
+  <div id="page-depts">
+    <div class="hero">
+      <div class="hero-badge">المستوى الثالث - 2025/2026 🎯</div>
+      <h1>مرحباً بك في <span>بوابة الكويزات</span></h1>
+      <p>اختر القسم الأكاديمي للبدء في المراجعة وحل الكويزات الخاصة بموادك.</p>
+    </div>
+
+    <div class="section">
+      <div class="grid">
+        <div class="dept-card" style="--grad: var(--grad-obgyn);" onclick="openDepartment('obgyn')">
+          <div class="dept-icon">🤰</div>
+          <div class="dept-title">قسم النساء والتوليد</div>
+          <div class="dept-desc">مواد التخصص للمجموعة الأولى</div>
+        </div>
+
+        <div class="dept-card" style="--grad: var(--grad-peds);" onclick="openDepartment('pediatrics')">
+          <div class="dept-icon">👶</div>
+          <div class="dept-title">قسم تمريض الأطفال</div>
+          <div class="dept-desc">مواد التخصص للمجموعة الثانية</div>
+        </div>
+
+        <div class="dept-card" style="--grad: var(--grad-t1);" onclick="openDepartment('common_t1')">
+          <div class="dept-icon">📚</div>
+          <div class="dept-title">مشترك (ترم أول)</div>
+          <div class="dept-desc">المواد المشتركة للفصل الدراسي الأول</div>
+        </div>
+
+        <div class="dept-card" style="--grad: var(--grad-t2);" onclick="openDepartment('common_t2')">
+          <div class="dept-icon">💡</div>
+          <div class="dept-title">مشترك (ترم ثاني)</div>
+          <div class="dept-desc">المواد المشتركة للفصل الدراسي الثاني</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBJECTS PAGE -->
+  <div id="page-subjects" style="display:none;">
+    <div class="section" style="padding-top: 60px;">
+      <button class="btn-back" onclick="goBackToDepts()">← رجوع للأقسام</button>
+      <div class="page-title" id="dept-header"></div>
+      
+      <div class="search-box">
+        <input type="text" id="search" placeholder="ابحث عن اسم المادة هنا..." oninput="filterSubjects()" />
+      </div>
+
+      <div class="grid" id="subjects-grid"></div>
+    </div>
+  </div>
+
+  <!-- LECTURES PAGE -->
+  <div id="page-lectures" style="display:none;">
+    <div class="section" style="padding-top: 60px;">
+      <button class="btn-back" onclick="goBackToSubjects()">← رجوع للمواد</button>
+      <div class="page-title" id="lec-header"></div>
+      <div id="lec-list"></div>
+    </div>
+  </div>
+
+  <footer>صُنع بإبداع ❤️ لمساعدتك في دراستك بواسطة عبدالحليم رزق</footer>
+</div>
+
+<script>
+let allSubjects = [];
+let currentDeptId = null;
+let currentSubject = null;
+
+const departmentsInfo = {
+  'obgyn': { name: 'قسم النساء والتوليد', emoji: '🤰' },
+  'pediatrics': { name: 'قسم تمريض الأطفال', emoji: '👶' },
+  'common_t1': { name: 'مشترك (الفصل الدراسي الأول)', emoji: '📚' },
+  'common_t2': { name: 'مشترك (الفصل الدراسي الثاني)', emoji: '💡' }
+};
+
+// ── LOAD DATA ──
+async function loadSubjects() {
+  try {
+    const res = await fetch('subjects.json?' + Date.now());
+    allSubjects = await res.json();
+  } catch(e) {
+    console.error("Error loading subjects:", e);
+  }
+}
+
+// ── NAVIGATION LOGIC ──
+function goBackToDepts() {
+  currentDeptId = null;
+  document.getElementById('page-depts').style.display = 'block';
+  document.getElementById('page-subjects').style.display = 'none';
+  document.getElementById('page-lectures').style.display = 'none';
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function openDepartment(deptId) {
+  currentDeptId = deptId;
+  const info = departmentsInfo[deptId];
+  
+  document.getElementById('page-depts').style.display = 'none';
+  document.getElementById('page-subjects').style.display = 'block';
+  document.getElementById('search').value = ''; 
+  
+  document.getElementById('dept-header').innerHTML = `${info.emoji} ${info.name}`;
+
+  filterSubjects();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function filterSubjects() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  
+  const filtered = allSubjects.filter(s =>
+    s.department === currentDeptId &&
+    (s.name + s.nameAr).toLowerCase().includes(q)
+  );
+  
+  renderSubjectsGrid(filtered);
+}
+
+function renderSubjectsGrid(list) {
+  const grid = document.getElementById('subjects-grid');
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <span>📭</span>
+      <p>لا توجد مواد مطابقة لبحثك.</p>
+    </div>`;
+    return;
+  }
+  
+  grid.innerHTML = list.map(s => `
+    <div class="subj-card" onclick="openSubject('${s.id}')">
+      <div class="subj-header">
+        <div class="subj-emoji">${s.emoji}</div>
+        <div class="subj-name">${s.nameAr || s.name}</div>
+      </div>
+      <div class="subj-meta">📄 ${s.lectures.length} كويز متاح</div>
+    </div>
+  `).join('');
+}
+
+function openSubject(id) {
+  const s = allSubjects.find(x => x.id === id);
+  if (!s) return;
+  currentSubject = s;
+
+  document.getElementById('page-subjects').style.display = 'none';
+  document.getElementById('page-lectures').style.display = 'block';
+
+  document.getElementById('lec-header').innerHTML = `${s.emoji} ${s.nameAr || s.name}`;
+
+  const list = document.getElementById('lec-list');
+  if (!s.lectures.length) {
+    list.innerHTML = `<div class="empty-state">
+      <span>🚧</span>
+      <p>لم يتم إضافة كويزات لهذه المادة بعد. سيتم إضافتها قريباً!</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = s.lectures.map((l, i) => `
+    <a class="lec-item" href="${l.file}" target="_blank" rel="noopener">
+      <div>
+        <h3 style="font-size:16px; margin-bottom:5px;">${l.nameAr || l.name}</h3>
+        <span style="font-size:13px; color:var(--text-muted);">${l.questions ? l.questions + ' سؤال' : 'اضغط لفتح الكويز'}</span>
+      </div>
+      <div style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 8px; font-size:14px; font-weight:bold;">
+        ابدأ ←
+      </div>
+    </a>
+  `).join('');
+
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function goBackToSubjects() {
+  currentSubject = null;
+  document.getElementById('page-lectures').style.display = 'none';
+  document.getElementById('page-subjects').style.display = 'block';
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// ── INIT ──
+loadSubjects();
+</script>
+</body>
+</html>
