@@ -1,0 +1,915 @@
+[
+  {
+    "id": "adult-nursing-2-theory",
+    "name": "Adult Nursing II (Theory)",
+    "nameAr": "تمريض البالغين II (نظري)",
+    "emoji": "🛏️",
+    "color": "#3b82f6",
+    "department": "adult",
+    "lectures": [
+      {
+    "name": "perioperative part 1",
+    "file": "quizzes/perioperative part 1.html",
+    "questions": 0
+  },
+  {
+    "name": "perioperative part 2",
+    "file": "quizzes/perioperative part 2.html",
+    "questions": 0
+  },
+  {
+    "name": "Renal faliure part 1",
+    "file": "quizzes/Renal faliure part 1.html",
+    "questions": 0
+  },
+  {
+    "name": "Dialysis quiz",
+    "file": "quizzes/Dialysis quiz.html",
+    "questions": 0
+  },
+  {
+    "name": "Musculoskeletal Injuries",
+    "file": "quizzes/Musculoskeletal Injuries.html",
+    "questions": 0
+  },
+  {
+    "name": "Lumber Disc Herniation",
+    "file": "quizzes/Lumber Disc Herniation.html",
+    "questions": 0
+  },
+  {
+    "name": "Intracranial Surgery (ICS) Quiz",
+    "file": "quizzes/Intracranial Surgery (ICS) Quiz.html",
+    "questions": 0
+  },
+  {
+    "name": "Total Hip Replacement",
+    "file": "quizzes/Total Hip Replacement.html",
+    "questions": 0
+  },
+  {
+    "name": "Pneumonia",
+    "file": "quizzes/Pneumonia.html",
+    "questions": 0
+  },
+  {
+    "name": "Chronic Obstructive Pulmonary Disease (COPD)",
+    "file": "quizzes/Chronic Obstructive Pulmonary Disease (COPD).html",
+    "questions": 0
+  },
+  {
+    "name": "Burns",
+    "file": "quizzes/Burns.html",
+    "questions": 0
+  },
+  {
+    "name": "Dialysis, Musculoskeletal & Lumbar Herniation شامل",
+    "file": "quizzes/Dialysis, Musculoskeletal & Lumbar Herniation شامل.html",
+    "questions": 0
+  },
+      
+  {
+    "name": "فاينال ادلت نظري 25-26",
+    "file": "quizzes/فاينال ادلت نظري 25-26.html",
+    "questions": 0
+  },
+  {
+    "name": "فانال وميد تيرم ادلت نظري 24-25",
+    "file": "quizzes/فانال وميد تيرم ادلت نظري 24-25.html",
+    "questions": 0
+  }
+    ]
+  },
+  {
+    "id": "pathology-adult",
+    "name": "Pathology",
+    "nameAr": "علم الباثولوجي",
+    "emoji": "🔬",
+    "color": "#ef4444",
+    "department": "adult",
+    "lectures": [
+       {
+    "name": "جميع كويزات باثولوجي",
+    "file": "quizzes/جميع كويزات باثولوجي.html",
+    "questions": 0
+  },
+  {
+    "name": "Pathology Final Revision",
+    "file": "quizzes/Pathology Final Revision.html",
+    "questions": 0
+  },
+       {
+    "name": "Pathology Sheet Exam",
+    "file": "quizzes/Pathology Sheet Exam.html",
+    "questions": 0
+  },
+        {
+    "name": "فاينال باثولوجي 24-25",
+    "file": "quizzes/فاينال باثولوجي 24-25.html",
+    "questions": 0
+  }
+    ]
+  },
+  {
+    "id": "nutrition-adult",
+    "name": "Applied Nutrition",
+    "nameAr": "التغذية التطبيقية",
+    "emoji": "🍎",
+    "color": "#10b981",
+    "department": "adult",
+    "lectures": [
+        {
+    "name": "Clinical Nutrition",
+    "file": "quizzes/Clinical Nutrition.html",
+    "questions": 0
+  },
+  {
+    "name": "Healthy Eating & Balanced Diet",
+    "file": "quizzes/Healthy Eating & Balanced Diet.html",
+    "questions": 0
+  },
+  {
+    "name": "Macronutrients",
+    "file": "quizzes/Macronutrients.html",
+    "questions": 0
+  },
+  {
+    "name": "Malnutrition",
+    "file": "quizzes/Malnutrition.html",
+    "questions": 0
+  },
+  {
+    "name": "Micronutrients Vitamins and Minerals",
+    "file": "quizzes/Micronutrients Vitamins and Minerals.html",
+    "questions": 0
+  },
+  {
+    "name": "Nutrition Across the Life Cycle",
+    "file": "quizzes/Nutrition Across the Life Cycle.html",
+    "questions": 0
+  },
+  {
+    "name": "Nutritional Assessment",
+    "file": "quizzes/Nutritional Assessment.html",
+    "questions": 0
+  },
+  {
+    "name": "Therapeutic Nutrition For Chronic Diseases",
+    "file": "quizzes/Therapeutic Nutrition For Chronic Diseases.html",
+    "questions": 0
+     }
+    ]
+  },
+  {
+    "id": "microbiology-adult",
+    "name": "Microbiology",
+    "nameAr": "الميكروبيولوجي",
+    "emoji": "🦠",
+    "color": "#8b5cf6",
+    "department": "adult",
+    "lectures": [
+        {
+    "name": "جميع كويزات ميكروبيولوجي",
+    "file": "quizzes/جميع كويزات ميكروبيولوجي.html",
+    "questions": 0
+  }
+    ]
+  },
+  {
+    "id": "adult-nursing-2-practical",
+    "name": "Adult Nursing II (Practical)",
+    "nameAr": "تمريض البالغين II (عملي)",
+    "emoji": "🩺",
+    "color": "#0ea5e9",
+    "department": "adult",
+    "lectures": [
+       {
+    "name": "Orthopedic Quizzes",
+    "file": "quizzes/Orthopedic Quizzes.html",
+    "questions": 0
+  },
+        {
+    "name": "Urology Quizzes",
+    "file": "quizzes/Urology Exams.html",
+    "questions": 0
+  },
+      {
+    "name": "Neurology Quizzes",
+    "file": "quizzes/Neurology Quizzes.html",
+    "questions": 0
+  }
+    ]
+  },
+  {
+    "id": "emergency-nursing-theory",
+    "name": "Emergency Nursing (Theory)",
+    "nameAr": "تمريض الطوارئ نظري",
+    "emoji": "🚑",
+    "color": "#ef4444",
+    "department": "emergency",
+    "lectures": [ 
+      {
+        "name": "stroke quiz",
+        "file": "quizzes/stroke quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "triage quiz",
+        "file": "quizzes/triage quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Diabetic emergency quiz",
+        "file": "quizzes/Diabetic emergency quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Spinal Cord Injury Quiz.",
+        "file": "quizzes/Spinal Cord Injury Quiz..html",
+        "questions": 0
+      },
+      {
+        "name": "acute git bleeding quiz",
+        "file": "quizzes/acute git bleeding quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Overdose quiz",
+        "file": "quizzes/Overdose quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Acute Coronary Syndrome Quiz",
+        "file": "quizzes/Acute Coronary Syndrome Quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Cardiac Dysrhythmias Exam",
+        "file": "quizzes/Cardiac Dysrhythmias Exam.html",
+        "questions": 0
+      },
+      {
+        "name": "acute git bleeding",
+        "file": "quizzes/acute git bleeding.html",
+        "questions": 0
+      },
+      {
+        "name": "Head Injury quiz",
+        "file": "quizzes/Head Injury quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Respiratory Emergency quiz",
+        "file": "quizzes/Respiratory Emergency quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Status Epilepticus quiz",
+        "file": "quizzes/Status Epilepticus quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "فاينال طوارئ نظري 2024",
+        "file": "quizzes/فاينال طوارئ نظري 2024.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 230 طوارئ نظري",
+        "file": "quizzes/شامل 230 طوارئ نظري.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "critical-care-1-theory",
+    "name": "Critical Care 1 (Theory)",
+    "nameAr": "تمريض العناية الحرجة (1) ن",
+    "emoji": "🫀",
+    "color": "#f43f5e",
+    "department": "emergency",
+    "lectures": [
+      {
+        "name": "Acute Kidney Injury",
+        "file": "quizzes/Acute Kidney Injury.html",
+        "questions": 0
+      },
+      {
+        "name": "Delirium in ICU",
+        "file": "quizzes/Delirium in ICU.html",
+        "questions": 0
+      },
+      {
+        "name": "Acute Respiratory Failure",
+        "file": "quizzes/Acute Respiratory Failure.html",
+        "questions": 0
+      },
+      {
+        "name": "Family's Experience with Critical Illness",
+        "file": "quizzes/Family's Experience with Critical Illness.html",
+        "questions": 0
+      },
+      {
+        "name": "Fluids and Electrolytes Lecture",
+        "file": "quizzes/Fluids and Electrolytes Lecture.html",
+        "questions": 0
+      },
+      {
+        "name": "Intensive Care Unit Acquired Weakness (ICUAW)",
+        "file": "quizzes/Intensive Care Unit Acquired Weakness (ICUAW).html",
+        "questions": 0
+      },
+      {
+        "name": "Mechanical Ventilation & Nursing Care",
+        "file": "quizzes/Mechanical Ventilation & Nursing Care.html",
+        "questions": 0
+      },
+      {
+        "name": "Intra-abdominal compartment syndrome",
+        "file": "quizzes/Intra-abdominal compartment syndrome.html",
+        "questions": 0
+      },
+      {
+        "name": "Pain in Critical Care",
+        "file": "quizzes/Pain in Critical Care.html",
+        "questions": 0
+      },
+      {
+        "name": "Sleep Disorder in ICU",
+        "file": "quizzes/Sleep Disorder in ICU.html",
+        "questions": 0
+      },
+      {
+        "name": "ميد تيرم عناية نظري",
+        "file": "quizzes/ميد تيرم عناية نظري.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 200 عنايه",
+        "file": "quizzes/شامل 200 عنايه.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 120 عنايه",
+        "file": "quizzes/شامل 120 عنايه.html",
+        "questions": 0
+      },
+      {
+        "name": "فاينال عناية 2024",
+        "file": "quizzes/فاينال عناية 2024.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "emergency-medicine",
+    "name": "Emergency Medicine",
+    "nameAr": "طب الطوارئ",
+    "emoji": "⚕️",
+    "color": "#10b981",
+    "department": "emergency",
+    "lectures": [
+      {
+    "name": "Emergency Medicine Quizzes",
+    "file": "quizzes/Emergency Medicine Quizzes.html",
+    "questions": 0
+  },
+      {
+    "name": "شامل 100 طب طوارئ",
+    "file": "quizzes/شامل 100 طب طوارئ.html",
+    "questions": 0
+  }
+    ]
+  },
+  {
+    "id": "critical-medicine",
+    "name": "Critical Medicine",
+    "nameAr": "الطب الحرج",
+    "emoji": "🩺",
+    "color": "#3b82f6",
+    "department": "emergency",
+    "lectures": [
+        {
+    "name": "كويز علي كل محاضره طب حرج",
+    "file": "quizzes/كويز علي كل محاضره طب حرج.html",
+    "questions": 0
+      },
+      {
+        "name": "ميد طب حرج",
+        "file": "quizzes/ميد طب حرج.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 200 طب حرج",
+        "file": "quizzes/شامل 200 طب حرج.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "emergency-nursing-practical",
+    "name": "Emergency Nursing (Practical)",
+    "nameAr": "تمريض الطوارئ عملي",
+    "emoji": "🏥",
+    "color": "#f59e0b",
+    "department": "emergency",
+    "lectures": [
+      {
+        "name": "cardic monitoring",
+        "file": "quizzes/cardic monitoring.html",
+        "questions": 0
+      },
+      {
+        "name": "crash cart",
+        "file": "quizzes/crash cart.html",
+        "questions": 0
+      },
+      {
+        "name": "Emergency OSCE",
+        "file": "quizzes/Emergency OSCE.html",
+        "questions": 0
+      },
+      {
+        "name": "ميد طوارئ عملي",
+        "file": "quizzes/ميد طوارئ عملي.html",
+        "questions": 0
+      },
+      {
+        "name": "cervical coller",
+        "file": "quizzes/cervical coller.html",
+        "questions": 0
+      },
+      {
+        "name": "chest tube",
+        "file": "quizzes/chest tube.html",
+        "questions": 0
+      },
+      {
+        "name": "dc",
+        "file": "quizzes/dc.html",
+        "questions": 0
+      },
+      {
+        "name": "ECG",
+        "file": "quizzes/ECG.html",
+        "questions": 0
+      },
+      {
+        "name": "Emergency Drug",
+        "file": "quizzes/Emergency Drug.html",
+        "questions": 0
+      },
+      {
+        "name": "inhalition therapy",
+        "file": "quizzes/inhalition therapy.html",
+        "questions": 0
+      },
+      {
+        "name": "log rolling",
+        "file": "quizzes/log rolling.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل طوارئ عملي 120",
+        "file": "quizzes/شامل طوارئ عملي 120.html",
+        "questions": 0
+      },
+      {
+        "name": "فاينال طوارئ 2024",
+        "file": "quizzes/فاينال طوارئ 2024.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "critical-care-1-practical",
+    "name": "Critical Care 1 (Practical)",
+    "nameAr": "تمريض العناية الحرجة (1) ع",
+    "emoji": "💉",
+    "color": "#8b5cf6",
+    "department": "emergency",
+    "lectures": [
+      {
+        "name": "cvc insertion",
+        "file": "quizzes/cvc insertion.html",
+        "questions": 0
+      },
+      {
+        "name": "Endotracheal Intubation",
+        "file": "quizzes/Endotracheal Intubation.html",
+        "questions": 0
+      },
+      {
+        "name": "cvc Drawing ",
+        "file": "quizzes/cvc Drawing .html",
+        "questions": 0
+      },
+      {
+        "name": "cvc Dressing ",
+        "file": "quizzes/cvc Dressing .html",
+        "questions": 0
+      },
+      {
+        "name": "cvc Removal",
+        "file": "quizzes/cvc Removal.html",
+        "questions": 0
+      },
+      {
+        "name": "o2 therapy",
+        "file": "quizzes/o2 therapy.html",
+        "questions": 0
+      },
+      {
+        "name": "suction",
+        "file": "quizzes/suction.html",
+        "questions": 0
+      },
+      {
+        "name": "cvp measure ",
+        "file": "quizzes/cvp measure .html",
+        "questions": 0
+      },
+      {
+        "name": "NGF",
+        "file": "quizzes/NGF.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 124 عنايه عملي",
+        "file": "quizzes/شامل 124 عنايه عملي.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "emergency-first-aid",
+    "name": "Emergency First Aid",
+    "nameAr": "اسعاف الطوارئ",
+    "emoji": "🩹",
+    "color": "#ec4899",
+    "department": "emergency",
+    "lectures": [
+      {
+        "name": "Introduction to First Aid",
+        "file": "quizzes/Introduction to First Aid.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Wounds & Bleeding",
+        "file": "quizzes/First Aid in Wounds & Bleeding.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Seizures",
+        "file": "quizzes/First Aid in Seizures.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Poisoning",
+        "file": "quizzes/First Aid in Poisoning.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Fractures",
+        "file": "quizzes/First Aid in Fractures.html",
+        "questions": 0
+      },
+      {
+        "name": "First aid in Eye injury",
+        "file": "quizzes/First aid in Eye injury.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Drowning",
+        "file": "quizzes/First Aid in Drowning.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Breathing Emergencies",
+        "file": "quizzes/First Aid in Breathing Emergencies.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Burns",
+        "file": "quizzes/First Aid in Burns.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Cardiac Emergencies",
+        "file": "quizzes/First Aid in Cardiac Emergencies.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 120 اسعاف طوارئ",
+        "file": "quizzes/شامل 120 اسعاف طوارئ.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "health-education-t1",
+    "name": "Health Education in Nursing",
+    "nameAr": "التثقيف الصحي في التمريض",
+    "emoji": "🗣️",
+    "color": "#10b981",
+    "department": "common_t1",
+    "lectures": [
+        {
+    "name": "Introduction to Health Education",
+    "file": "quizzes/Introduction to Health Education.html",
+    "questions": 0
+  },
+  {
+    "name": "Health Educator Fundamentals",
+    "file": "quizzes/Health Educator Fundamentals.html",
+    "questions": 0
+  },
+  {
+    "name": "Health and Human Behaviour",
+    "file": "quizzes/Health and Human Behaviour.html",
+    "questions": 0
+  },
+  {
+    "name": "Health Education Process",
+    "file": "quizzes/Health Education Process.html",
+    "questions": 0
+  },
+  {
+    "name": "1. Assessment Phase",
+    "file": "quizzes/1. Assessment Phase.html",
+    "questions": 0
+  },
+  {
+    "name": "2. Planning Phase",
+    "file": "quizzes/2. Planning Phase.html",
+    "questions": 0
+  },
+  {
+    "name": "3. Implementation phase",
+    "file": "quizzes/3. Implementation phase.html",
+    "questions": 0
+  },
+  {
+    "name": "4. Evaluation Phase",
+    "file": "quizzes/4. Evaluation Phase.html",
+    "questions": 0
+  },
+  {
+    "name": "Instructional Media",
+    "file": "quizzes/Instructional Media.html",
+    "questions": 0
+  },
+  {
+    "name": "Ethical Issues in Health Education",
+    "file": "quizzes/Ethical Issues in Health Education.html",
+    "questions": 0
+  },
+  {
+    "name": "شامل 120 تثقيف صحي",
+    "file": "quizzes/شامل 120 تثقيف صحي.html",
+    "questions": 0
+  },
+  {
+    "name": "فاينال تثقيف 2024",
+    "file": "quizzes/فاينال تثقيف 2024.html",
+    "questions": 0
+  },
+  {
+    "name": "محاكاة فاينال تثقيف",
+    "file": "quizzes/محاكاة فاينال تثقيف.html",
+    "questions": 0
+  }
+    ]
+  },
+  {
+    "id": "ethics-t1",
+    "name": "Professional Ethics and Legislation",
+    "nameAr": "أخلاقيات المهنة والتشريعات",
+    "emoji": "⚖️",
+    "color": "#8b5cf6",
+    "department": "common_t1",
+    "lectures": [
+       {
+    "name": "Ethics Overview and Concepts",
+    "file": "quizzes/Ethics Overview and Concepts.html",
+    "questions": 0
+  },
+  {
+    "name": "Ethical Principles and Concepts in Nursing Practice",
+    "file": "quizzes/Ethical Principles and Concepts in Nursing Practice.html",
+    "questions": 0
+  },
+  {
+    "name": "ETHICAL DECISION MAKING",
+    "file": "quizzes/ETHICAL DECISION MAKING.html",
+    "questions": 0
+  },
+  {
+    "name": "Unethical & Illegal Aspects in Nursing Practice",
+    "file": "quizzes/Unethical & Illegal Aspects in Nursing Practice.html",
+    "questions": 0
+  },
+  {
+    "name": "Code of Ethics in Nursing",
+    "file": "quizzes/Code of Ethics in Nursing.html",
+    "questions": 0
+  },
+  {
+    "name": "Professional Boundaries in Nursing Practice",
+    "file": "quizzes/Professional Boundaries in Nursing Practice.html",
+    "questions": 0
+  },
+  {
+    "name": "Ethical Dilemma in Nursing",
+    "file": "quizzes/Ethical Dilemma in Nursing.html",
+    "questions": 0
+  },
+  {
+    "name": "CULTURAL DIVERSITY",
+    "file": "quizzes/CULTURAL DIVERSITY.html",
+    "questions": 0
+  },
+  {
+    "name": "شامل 120 اخلاقيات",
+    "file": "quizzes/شامل 120 اخلاقيات.html",
+    "questions": 0
+  },
+  {
+    "name": "فاينال اخلاقيات 2024",
+    "file": "quizzes/فاينال اخلاقيات 2024.html",
+    "questions": 0
+  }
+    ]
+  },
+  {
+    "id": "teaching-skills-t1",
+    "name": "Teaching Skills and Strategies in Nursing",
+    "nameAr": "مهارات واستراتيجيات التدريس في التمريض",
+    "emoji": "🏫",
+    "color": "#f59e0b",
+    "department": "common_t1",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "english-3-t1",
+    "name": "English Language 3",
+    "nameAr": "لغة إنجليزية (3)",
+    "emoji": "🇬🇧",
+    "color": "#3b82f6",
+    "department": "common_t1",
+    "lectures": [
+       {
+    "name": "كويز انجليزي ",
+    "file": "quizzes/كويز انجليزي .html",
+    "questions": 0
+  },
+  {
+    "name": "شامل 156 انجليزي",
+    "file": "quizzes/شامل 156 انجليزي.html",
+    "questions": 0
+  }
+    ]
+  },
+  {
+    "id": "quality-t2",
+    "name": "Quality & Safety",
+    "nameAr": "أساسيات الجودة والامان في الرعاية الصحية",
+    "emoji": "🛡️",
+    "color": "#f59e0b",
+    "department": "common_t2",
+    "lectures": [
+      {
+    "name": "Lecture 1 Concepts Of Quality",
+    "file": "quizzes/Lecture 1 Concepts Of Quality.html",
+    "questions": 0
+  },
+  {
+    "name": "Lecture 2 Quality Evolution",
+    "file": "quizzes/Lecture 2 Quality Evolution.html",
+    "questions": 0
+  },
+  {
+    "name": "Lecture 3 Tools For Quality Improvement",
+    "file": "quizzes/Lecture 3 Tools For Quality Improvement.html",
+    "questions": 0
+  },
+  {
+    "name": "Lecture 4 Quality Teams",
+    "file": "quizzes/Lecture 4 Quality Teams.html",
+    "questions": 0
+  },
+  {
+    "name": "Lecture 5 Nursing Audit",
+    "file": "quizzes/Lecture 5 Nursing Audit.html",
+    "questions": 0
+  },
+  {
+    "name": "Lecture 6 Health Care Standards",
+    "file": "quizzes/Lecture 6 Health Care Standards.html",
+    "questions": 0
+  },
+  {
+    "name": "Lecture 7 Customer Focus Management",
+    "file": "quizzes/Lecture 7 Customer Focus Management.html",
+    "questions": 0
+  },
+  {
+    "name": "Lecture 8 Patient Safety and Safety Culture",
+    "file": "quizzes/Lecture 8 Patient Safety and Safety Culture.html",
+    "questions": 0
+  },
+        {
+    "name": "شامل 80 جودة",
+    "file": "quizzes/شامل 80 جودة.html",
+    "questions": 0
+  }
+    ]
+  },
+  {
+    "id": "it-theory-t2",
+    "name": "IT in Nursing (Theory)",
+    "nameAr": "تكنولوجيا المعلومات في التمريض نظري",
+    "emoji": "💻",
+    "color": "#6366f1",
+    "department": "common_t2",
+    "lectures": [
+       {
+    "name": "Computer Technology in Nursing",
+    "file": "quizzes/Computer Technology in Nursing.html",
+    "questions": 0
+  },
+  {
+    "name": "Hospital Information System (HIS)",
+    "file": "quizzes/Hospital Information System (HIS).html",
+    "questions": 0
+  },
+  {
+    "name": "Electronic Health Record (EHR)",
+    "file": "quizzes/Electronic Health Record (EHR).html",
+    "questions": 0
+  },
+  {
+    "name": "Nursing Information System",
+    "file": "quizzes/Nursing Information System.html",
+    "questions": 0
+  },
+  {
+    "name": "IT Implementation Requirements",
+    "file": "quizzes/IT Implementation Requirements.html",
+    "questions": 0
+  },
+       {
+    "name": "Data Security and Ethics",
+    "file": "quizzes/Data Security and Ethics.html",
+    "questions": 0
+  },
+        {
+    "name": "Due Care",
+    "file": "quizzes/Due Care.html",
+    "questions": 0
+  },
+  {
+    "name": "Artificial Intelligence in Nursing and Healthcare",
+    "file": "quizzes/Artificial Intelligence in Nursing and Healthcare.html",
+    "questions": 0
+  },
+  {
+    "name": "Tele-Health, Tele-Medicine & Tele-Nursing",
+    "file": "quizzes/Tele-Health, Tele-Medicine & Tele-Nursing.html",
+    "questions": 0
+  },
+      {
+    "name": "شامل 100 سؤال تكنولوجيا",
+    "file": "quizzes/شامل 100 سؤال تكنولوجيا.html",
+    "questions": 0
+  }
+    ]
+  },
+  {
+    "id": "it-practical-t2",
+    "name": "IT in Nursing (Practical)",
+    "nameAr": "تكنولوجيا المعلومات في التمريض عملي",
+    "emoji": "⌨️",
+    "color": "#ec4899",
+    "department": "common_t2",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "english-4-t2",
+    "name": "English Language 4",
+    "nameAr": "اللغة الانجليزية (4)",
+    "emoji": "🇬🇧",
+    "color": "#14b8a6",
+    "department": "common_t2",
+    "lectures": [
+        {
+    "name": "English Question Bank",
+    "file": "quizzes/English Question Bank.html",
+    "questions": 0
+  }
+    ]
+  }
+]
