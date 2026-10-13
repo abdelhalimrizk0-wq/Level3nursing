@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة اختبارات أمراض النساء | Gynecology Quiz Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', 'Noto Sans', sans-serif; }
+        .ltr-text { direction: ltr; font-family: 'Noto Sans', sans-serif; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen transition-colors duration-300">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3" onclick="showHome()" style="cursor: pointer;">
+                    <i class="fas fa-stethoscope text-blue-600 text-2xl"></i>
+                    <h1 class="text-xl font-bold text-slate-800 hidden sm:block">عبدالحليم <span class="text-blue-600">رزق</span></h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                    <button onclick="showHome()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-semibold text-sm">
+                        <i class="fas fa-home ms-2"></i> القائمة الرئيسية
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6" id="app-container">
+        <!-- Views will be injected here -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
+            <p>تم بواسطة عبدالحليم رزق</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA STORE ---
+        const quizzes = {
+            "displacement": {
+                title: "Displacement of the Uterus And Genital Prolapse",
+                author: "عبدالحليم رزق",
+                icon: "fa-person-dress",
+                color: "text-emerald-600",
+                bg: "bg-emerald-50",
+                data: [
+  { id: 1, question: "Which symptom occurs when the uterus contracts vigorously to push menstrual blood against gravity in retroversion flexion?", options: ["Spasmodic dysmenorrhea", "Congestive dysmenorrhea", "Polymenorrhea", "Menorrhagia"], correct: 0, rationale: "Spasmodic dysmenorrhea in retroversion flexion occurs because the uterus must contract vigorously to push menstrual blood against gravity." },
+  { id: 2, question: "First degree uterine prolapse is characterized by the entire uterus exiting the vaginal opening entirely.", options: ["True", "False"], correct: 1, rationale: "First degree uterine prolapse involves the cervix descending into the upper vagina but not protruding outside the vaginal opening. Fourth degree is complete procidentia." },
+  { id: 3, question: "Which condition is a recognized cause of fixed retroversion flexion of the uterus?", options: ["Uterine subinvolution", "Endometriosis", "Genital prolapse", "Cervical incompetence"], correct: 1, rationale: "Fixed retroversion flexion occurs due to pelvic adhesions as seen in endometriosis, chronic pelvic inflammatory disease, and pelvic peritonitis." },
+  { id: 4, question: "Which symptom is a characteristic presentation of second degree chronic uterine inversion?", options: ["Massive acute hemorrhage", "Profound unexplainable shock", "Severe postcoital bleeding", "Complete vaginal occupation"], correct: 2, rationale: "Severe postcoital bleeding is noted in the second degree, whereas in the third degree, the vagina is almost totally occupied making intercourse impractical." },
+  { id: 5, question: "Estrogen replacement therapy after menopause can help prevent or postpone genital prolapse.", options: ["True", "False"], correct: 0, rationale: "Estrogen replacement therapy prevents the atrophy of the fasciomuscular support of the uterus and vagina, helping to postpone prolapse." },
+  { id: 6, question: "Which surgical procedure is recommended for a young patient with third degree uterine prolapse?", options: ["Anterior colporrhaphy", "Poster colporrhaphy", "Vaginal hysterectomy", "Sacrospinous fixation"], correct: 3, rationale: "For third and fourth degree uterine prolapse, hysterectomy is performed in older age, while sacrospinous fixation is the preferred surgical option for younger patients." },
+  { id: 7, question: "In which stage of uterine prolapse does the cervix protrude outside the vaginal opening while the uterus remains partially inside?", options: ["First degree", "Second degree", "Third degree", "Fourth degree"], correct: 2, rationale: "In the third degree of severe uterine prolapse, the cervix and part of the uterus protrude outside the vaginal opening." },
+  { id: 8, question: "A fundal submucous fibroid can initiate the process of chronic uterine inversion.", options: ["True", "False"], correct: 0, rationale: "Uterine contractions attempt to expel a fundal submucous fibroid or sarcomatous polyp, which can pull the fundus down and start the inversion process." },
+  { id: 9, question: "Which degree of retroversion flexion is characterized by the fundus being deep in the true pelvis behind the cervix and below the level of the external os?", options: ["First degree", "Second degree", "Third degree", "Fourth degree"], correct: 2, rationale: "In the third degree of retroversion flexion, the fundus sits deep in the true pelvis directly behind the cervix and below the external os level." },
+  { id: 10, question: "What is the normal anatomical position of the external os of the uterus in the pelvic cavity?", options: ["Near the symphysis pubis", "At the ischial spine level", "Below the levator ani muscle", "Near the sacral promontory"], correct: 1, rationale: "In its normal central position in the pelvic cavity, the external os of the uterus lies directly at the level of the ischial spine." },
+  { id: 11, question: "Urethrocele is a prolapse of the upper two thirds of the anterior vaginal wall.", options: ["True", "False"], correct: 1, rationale: "Urethrocele is a prolapse of the lower third of the anterior vaginal wall, while cystocele involves the prolapse of the upper two thirds." },
+  { id: 12, question: "What is the most appropriate initial action when acute uterine inversion occurs with profound shock?", options: ["Perform manual replacement of the uterus", "Elevate the foot of the hospital bed", "Administer uterotonic medications intravenously", "Extract the placenta manually without delay"], correct: 1, rationale: "The immediate measure is to combat shock, which begins with elevating the foot of the bed. Manipulative replacement should never be attempted before shock correction." },
+  { id: 13, question: "Which term describes the descent of the vault of the vagina following an abdominal hysterectomy?", options: ["Complete procidentia", "Vaginal vault prolapse", "Severe enterocele", "Advanced urethrocele"], correct: 1, rationale: "Vaginal vault prolapse is defined as a prolapse of the vault of the vagina specifically after an abdominal or vaginal hysterectomy." },
+  { id: 14, question: "The normal angle between the axis of the uterus and that of the vagina is exactly ninety degrees.", options: ["True", "False"], correct: 0, rationale: "Anteversion means the whole uterus bends forwards over the vagina, forming an angle of roughly 90 degrees between their respective axes." },
+  { id: 15, question: "Which sleeping position is recommended during the puerperium to prevent retroversion flexion of the uterus?", options: ["Supine position", "Prone position", "Lithotomy position", "Fowler position"], correct: 1, rationale: "During the puerperium, women are advised to avoid the supine position and best sleep in the prone position or exaggerated left lateral position to prevent backward displacement." },
+  { id: 16, question: "What is the most likely cause of difficult evacuation of feces in a patient with genital prolapse?", options: ["Presence of a cystocele", "Presence of a rectocele", "Presence of an enterocele", "Presence of a urethrocele"], correct: 1, rationale: "A rectocele involves the prolapse of the lower part of the posterior vaginal wall, which can structurally block and interfere with normal bowel movements." },
+  { id: 17, question: "Ultrasonography is used to confirm the backward displacement of the uterus and measure its size.", options: ["True", "False"], correct: 0, rationale: "Ultrasonography successfully confirms the backwards displacement of the uterus, accurately measures its size, and identifies any associated pelvic pathology." },
+  { id: 18, question: "Which type of pessary is typically indicated for the treatment of retroversion flexion?", options: ["Ring pessary", "Cube pessary", "Gellhorn pessary", "Smith Hodge pessary"], correct: 3, rationale: "The Smith Hodge pessary is a smoothly angulated plastic device specifically designed and used for the structural treatment of retroversion flexion." },
+  { id: 19, question: "Chronic uterine inversion is exclusively found in pregnant women during the active phase of labor.", options: ["True", "False"], correct: 1, rationale: "Chronic uterine inversion generally occurs in non pregnant females and is classified obstetrically as an inversion occurring one month or more postpartum." },
+  { id: 20, question: "What timeframe characterizes a subacute inversion of the uterus?", options: ["Less than one day", "One to four weeks", "More than four weeks", "During active labor"], correct: 1, rationale: "Subacute inversions are classified as occurring more than 24 hours but less than four full weeks postpartum." },
+  { id: 21, question: "Which component of the endopelvic fascia is specifically responsible for supporting the bladder and cervix?", options: ["Pubourethral fascia", "Pubocervical fascia", "Rectovaginal fascia", "Uterosacral fascia"], correct: 1, rationale: "The pubocervical fascia supports the bladder and cervix, whereas the pubourethral fascia stabilizes the urethra itself." },
+  { id: 22, question: "A short umbilical cord is a recognized risk factor for acute uterine inversion during labor.", options: ["True", "False"], correct: 0, rationale: "A short umbilical cord, along with rapid labor and aggressive fundal pressure, is listed among the primary risk factors for uterine inversion." },
+  { id: 23, question: "Which structure provides the primary lateral support for the uterus and vagina?", options: ["Uterosacral ligament", "Round ligament", "Cardinal ligament", "Ovarian ligament"], correct: 2, rationale: "The cardinal ligaments provide the major lateral support for the structural integrity of the uterus and vagina." },
+  { id: 24, question: "Which factor is classified as a precipitating cause for the onset of genital prolapse?", options: ["Congenital defect of ligaments", "Early bearing down in labor", "Chronic severe constipation", "Passage of a large fetus"], correct: 2, rationale: "Chronic severe constipation steadily increases intra abdominal pressure, acting as a precipitating factor for genital prolapse. The other listed options are predisposing factors." },
+  { id: 25, question: "The urogenital diaphragm serves as the primary support for all of the main pelvic organs.", options: ["True", "False"], correct: 1, rationale: "The levator ani muscles act as the pelvic diaphragm supporting all the pelvic organs, while the urogenital diaphragm functions as the perineal muscle." },
+  { id: 26, question: "Which clinical finding best differentiates a rectocele from an enterocele during physical examination?", options: ["Visible bulge on straining", "Mass in the anterior wall", "Finger passage in the rectum", "Gurgling sensation on pressure"], correct: 2, rationale: "A rectal examination reveals that the examiner's finger can pass easily into the rectocele, a unique sign used to accurately differentiate a rectocele from an enterocele." },
+  { id: 27, question: "Why is the manual removal of the placenta contraindicated before replacing an inverted uterus?", options: ["It increases the risk of severe blood loss", "It causes immediate severe uterine rupture", "It prevents future natural uterine contractions", "It blocks the cervical canal entirely"], correct: 0, rationale: "Removing the placenta before successfully replacing the inverted uterus dramatically increases blood loss, which can rapidly become severe and fatal." },
+  { id: 28, question: "The majority of retroversion flexion cases require surgical intervention by the third month of pregnancy.", options: ["True", "False"], correct: 1, rationale: "Most cases of retroversion flexion correct themselves entirely spontaneously at the end of the third month of pregnancy." },
+  { id: 29, question: "Which condition involves the prolapse of the posterior fornix and the upper part of the posterior vaginal wall?", options: ["Rectocele", "Cystocele", "Enterocele", "Urethrocele"], correct: 2, rationale: "Enterocele is characterized as a prolapse of the posterior fornix and the upper part of the posterior vaginal wall, directly associated with a herniation of the Douglas pouch." },
+  { id: 30, question: "Which surgical action is primarily performed to correct a fixed retroversion flexion of the uterus?", options: ["Uterosacral ligaments are lengthened", "Cardinal ligaments are completely removed", "Round ligaments are surgically shortened", "Pubocervical ligaments are securely detached"], correct: 2, rationale: "During the surgical procedure for fixed retroversion flexion, the uterus is brought forward and the round ligaments are surgically shortened to maintain its new position." }
+]
+            },
+            "fistula": {
+                title: "Genital Injury and Fistula",
+                author: "عبدالحليم رزق",
+                icon: "fa-user-injured",
+                color: "text-blue-600",
+                bg: "bg-blue-50",
+                data: [
+  { id: 1, question: "After how many weeks does the slough separate to form an obstetric vesicovaginal fistula following prolonged labor?", options: ["One to two weeks", "Three to four weeks", "Five to six weeks", "Seven to eight weeks"], correct: 0, rationale: "Following prolonged labor causing ischemia, the compressed tissue forms a slough that typically separates after 1-2 weeks, resulting in a vesicovaginal fistula." },
+  { id: 2, question: "Which anatomical structure is torn in a second degree perineal laceration while leaving the anal sphincter completely intact?", options: ["Muscles of the perineal body", "Mucosa of the rectum", "Skin of the fourchette", "External sphincter of the rectum"], correct: 0, rationale: "Second degree lacerations extend through the muscles of the perineal body but do not involve the anal sphincter." },
+  { id: 3, question: "Applying very warm clothes around the vaginal opening helps facilitate dilation by increasing blood supply.", options: ["True", "False"], correct: 0, rationale: "Using very warm clothes around the vaginal opening is recommended to increase blood supply to the area and facilitate dilation." },
+  { id: 4, question: "Where are cervical lacerations most commonly found during childbirth injuries?", options: ["On the sides near the uterine artery branches", "On the anterior lip near the bladder reflection", "On the posterior lip near the rectovaginal septum", "On the internal os near the lower uterine segment"], correct: 0, rationale: "Cervical lacerations are usually found on the sides of the cervix near branches of the uterine artery." },
+  { id: 5, question: "Which combination of structures is involved in the formation of a ureterocervical fistula?", options: ["The ureter and the cervix", "The urethra and the cervix", "The bladder and the uterus", "The ureter and the vagina"], correct: 0, rationale: "According to the anatomical classification, a ureterocervical fistula connects the ureter and the cervix." },
+  { id: 6, question: "Postoperative nursing care for a patient with a fistula requires the urinary catheter to remain inserted for up to fifteen days.", options: ["True", "False"], correct: 0, rationale: "Specific postoperative care protocols mandate that the urinary catheter must be kept inserted for 10 to 15 days." },
+  { id: 7, question: "What causes the deposition of greenish or gray phosphate crystals on the surface of the vagina in patients with a vesicovaginal fistula?", options: ["Bacterial activity on urea producing an alkaline environment", "Fungal overgrowth resulting in highly acidic vaginal secretions", "Cellular necrosis from prolonged ischemic tissue compression", "Chemical irritation from synthetic postoperative suture materials"], correct: 0, rationale: "Bacterial activity on urea results in alkaline media that deposits greenish or gray phosphate crystals on the surface of the vagina and vulva." },
+  { id: 8, question: "Which factor related to the labor team increases the risk of genital injury during delivery?", options: ["Over flexion of knees and over abduction of thighs", "Instructing the mother to avoid bearing down prematurely", "Administering light anesthesia during head delivery", "Maintaining flexion of the head under the symphysis"], correct: 0, rationale: "Over flexion of knees and over abduction of thighs in lithotomy position is a labor team-related predisposing factor for genital injury." },
+  { id: 9, question: "Patients recovering from fistula repair surgery are advised to use highly scented douches to mask unpleasant odors.", options: ["True", "False"], correct: 1, rationale: "Postoperative instructions explicitly state that patients should avoid scented tampons and douches." },
+  { id: 10, question: "Which degree of perineal laceration exposes the lumen of the rectum by extending completely through its mucosa?", options: ["Fourth degree", "Third degree", "Second degree", "First degree"], correct: 0, rationale: "Fourth degree lacerations involve the entire perineum, rectal sphincter, and extend through the rectum's mucosa to expose its lumen." },
+  { id: 11, question: "How long does true incontinence typically take to develop in cases of ureterovaginal fistula not immediately recognized?", options: ["One to three weeks", "Four to six weeks", "Twelve to twenty hours", "Two to four days"], correct: 0, rationale: "True incontinence from a ureterovaginal fistula usually takes one to three weeks to develop." },
+  { id: 12, question: "Injuries to the broad and uterosacral ligaments frequently lead to descent or prolapse of the uterus.", options: ["True", "False"], correct: 0, rationale: "Injuries to the round, broad, and uterosacral ligaments can compromise uterine support, resulting in descent or prolapse of the uterus." },
+  { id: 13, question: "Which form of radiation exposure is identified as a potential cause for the development of a vesicovaginal fistula?", options: ["Wrongly applied radium", "Routine pelvic ultrasound", "Standard diagnostic radiography", "Magnetic resonance imaging"], correct: 0, rationale: "Excessive irradiation or wrongly applied radium is listed as a potential acquired cause of vesicovaginal fistula." },
+  { id: 14, question: "How should the fetal head ideally be delivered to minimize the risk of maternal perineal tears?", options: ["In between active uterine contractions", "Exactly at the peak of a contraction", "Immediately after artificial membrane rupture", "Rapidly before maternal pushing efforts begin"], correct: 0, rationale: "Proper attention to the delivery of the head dictates that it must be delivered in between uterine contractions to prevent tears." },
+  { id: 15, question: "Superficial vaginal lacerations that are not bleeding heavily do not generally require surgical repair.", options: ["True", "False"], correct: 0, rationale: "Treatment protocols state that if a laceration is superficial and not bleeding, repair is not indicated." },
+  { id: 16, question: "Why is a urinary catheter commonly placed when packing a severe vaginal laceration?", options: ["The packing causes pressure on the urethra and interferes with voiding", "The packing requires continuous irrigation of the bladder cavity", "The catheter prevents secondary infection of the vaginal wound", "The catheter directly promotes rapid healing of the torn mucosa"], correct: 0, rationale: "A Foley catheter may be placed at the same time because vaginal packing causes pressure on the urethra and can interfere with normal voiding." },
+  { id: 17, question: "What is the recommended conservative treatment duration for continuous bladder drainage to heal a small vesicovaginal fistula?", options: ["Three weeks", "One week", "Five weeks", "Six weeks"], correct: 0, rationale: "Continuous drainage of the bladder by a catheter for 3 weeks often heals a small fistula spontaneously." },
+  { id: 18, question: "A rectovaginal fistula creates an abnormal pathological communication between the rectum and the anterior vaginal wall.", options: ["True", "False"], correct: 1, rationale: "A rectovaginal fistula is an abnormal communication between the rectum and the posterior (not anterior) vaginal wall." },
+  { id: 19, question: "What is the correct sequence of steps for repairing first and second degree perineal lacerations?", options: ["Vaginal mucosa then perineal muscles then skin", "Skin then perineal muscles then vaginal mucosa", "Perineal muscles then skin then vaginal mucosa", "Vaginal mucosa then skin then perineal muscles"], correct: 0, rationale: "The repair steps order is: 1- Repair the vaginal mucosa, 2- Repair the perineal muscles, 3- Repair the skin." },
+  { id: 20, question: "Which finding is most characteristic of a rectovaginal fistula?", options: ["Passing feces from the vagina", "Severe flank and suprapubic pain", "Greenish phosphate crystal deposits", "Constant dribbling of sterile urine"], correct: 0, rationale: "Signs and symptoms of a rectovaginal fistula include passing feces and flatus from the vagina." },
+  { id: 21, question: "Congenital anomalies are the most frequent reason for the development of genital tract fistulas in women.", options: ["True", "False"], correct: 1, rationale: "Congenital causes are rarely found. Obstetric trauma constitutes the commonest type of vesicovaginal fistula." },
+  { id: 22, question: "Which complication is directly associated with the application of forceps when the cervix is incompletely dilated?", options: ["Cervical laceration", "Vesicouterine fistula", "Fourth degree perineal tear", "Complete uterine rupture"], correct: 0, rationale: "Application of forceps with the cervix incompletely dilated is explicitly listed as a primary cause of cervical lacerations." },
+  { id: 23, question: "What immediate action should be taken if a ureter is accidentally crushed and clamped during an operation?", options: ["Remove the clamp at once and look for peristalsis", "Immediately resect and implant the ureter into the bladder", "Perform an immediate end anastomosis of the ureter", "Leave the clamp in place and consult a specialist"], correct: 0, rationale: "When the ureter has been crushed and clamped, the clamp should be removed at once, and the surgeon should look for wave of peristalsis." },
+  { id: 24, question: "The nursing evaluation phase requires comparing the expected outcome with the actual outcome to determine if the goal is achieved.", options: ["True", "False"], correct: 0, rationale: "In the Evaluation step, the expected outcome should be compared with the actual outcome to evaluate which goal is achieved." },
+  { id: 25, question: "Which fetal factor significantly increases the likelihood of the mother sustaining a genital injury during childbirth?", options: ["Multiple pregnancy", "Premature rupture of membranes", "Reduced amniotic fluid volume", "Transverse lie without labor"], correct: 0, rationale: "Large baby and multiple pregnancy are explicitly listed under the predisposing factors related to the fetus." },
+  { id: 26, question: "Which of the following conditions is a recognized long term complication of a repaired vaginal laceration?", options: ["Dyspareunia", "Rectal prolapse", "Urinary retention", "Stress incontinence"], correct: 0, rationale: "Complications of vaginal lacerations include stenosis of the vagina, formation of a tender scar, and dyspareunia." },
+  { id: 27, question: "A vesicocervical fistula represents an abnormal connection between the urinary bladder and the cervix.", options: ["True", "False"], correct: 0, rationale: "According to the fistula classification table, a vesicocervical fistula connects the bladder and the cervix." },
+  { id: 28, question: "What physical examination finding distinguishes a bilateral ureterovaginal fistula from a unilateral lesion?", options: ["The patient does not pass urine through the urethra at all", "The patient experiences severe bilateral flank pain", "The patient develops massive abdominal fluid accumulation", "The patient shows immediate signs of systemic sepsis"], correct: 0, rationale: "If there is a bilateral fistula, the patient does not pass urine through the urethra. In a unilateral lesion, the bladder still fills up and urine passes normally alongside the incontinence." },
+  { id: 29, question: "A specific preoperative preparation for fistula surgery includes shaving the pubic area and administering an enema.", options: ["True", "False"], correct: 0, rationale: "Specific preoperative preparation for a fistula patient includes shaving the pubic area, administering an enema, and giving prophylactic antibiotics." },
+  { id: 30, question: "How should a large vesicovaginal fistula caused by direct operative injury be surgically repaired?", options: ["By placing two layers of stitches on the bladder muscle immediately", "By placing a single layer of stitches on the vaginal mucosa exclusively", "By utilizing a surgical mesh to bridge the structural tissue defect", "By delaying the surgical closure for a period of three full weeks"], correct: 0, rationale: "For large fistulas in case of direct operative injury, the wound should be repaired immediately by two layers of stitch on the bladder muscle." }
+]
+            },
+            "intro_gyne": {
+                title: "Introduction to Gynecology and Gynecological Nursing",
+                author: "عبدالحليم رزق",
+                icon: "fa-book-medical",
+                color: "text-purple-600",
+                bg: "bg-purple-50",
+                data: [
+  { id: 1, question: "Which timeframe accurately confirms the permanent cessation of menstruation marking the onset of menopause?", options: ["Six consecutive months", "Twelve consecutive months", "Eighteen consecutive months", "Twenty four consecutive months"], correct: 1, rationale: "Menopause is officially recognized after twelve consecutive months of amenorrhea." },
+  { id: 2, question: "Culdoscopy is typically performed under general anesthesia to ensure complete patient sedation.", options: ["True", "False"], correct: 1, rationale: "Culdoscopy is performed under local anesthesia, not general anesthesia." },
+  { id: 3, question: "What is the recommended timeframe for a patient to avoid vaginal douching and sexual intercourse prior to a Pap smear procedure?", options: ["Twelve hours", "Twenty four hours", "Forty eight hours", "Seventy two hours"], correct: 2, rationale: "The woman is instructed to avoid vaginal douching, sexual intercourse, and vaginal medications for the following 48 hours before the procedure." },
+  { id: 4, question: "Which pelvic condition is impossible to identify using a standard hysterosalpingogram procedure?", options: ["Uterine cavity irregularity", "Fallopian tube blockage", "Pelvic adhesions", "Uterine cavity shape"], correct: 2, rationale: "This specific test cannot identify the existence of pelvic adhesions." },
+  { id: 5, question: "What substance is applied to the cervix during a colposcopy to stain unhealthy squamous epithelium white?", options: ["Iodine solution", "Acetic acid", "Contrast medium", "Blue dye"], correct: 1, rationale: "The examiner applies acetic acid to the cervix which stains unhealthy cells with a white color." },
+  { id: 6, question: "Superficial dyspareunia describes pain felt at the cervix and the vault of the vagina.", options: ["True", "False"], correct: 1, rationale: "Superficial dyspareunia is pain felt at or near the entrance of the vagina. Deep dyspareunia involves the cervix or vault." },
+  { id: 7, question: "Where is the primary surgical incision typically made during a diagnostic laparoscopy?", options: ["Suprapubic area", "Umbilical area", "Inguinal area", "Subcostal area"], correct: 1, rationale: "Laparoscopy is performed for direct examination of the intraabdominal cavity through an umbilical and paraumbilical incision." },
+  { id: 8, question: "What is a primary therapeutic indication for the application of vaginal packing?", options: ["Diagnosing cervical erosion", "Healing ulcerated prolapsed uterus", "Preventing vaginal dryness", "Treating bacterial vaginosis"], correct: 1, rationale: "Vaginal packing is indicated to reduce edema and aid in the healing of an ulcerated prolapsed uterus." },
+  { id: 9, question: "Which medical term describes irregular uterine bleeding that occurs between regular menstrual periods?", options: ["Amenorrhea", "Menorrhagia", "Metrorrhagia", "Dysmenorrhea"], correct: 2, rationale: "Metrorrhagia is uterine bleeding between regular menstrual periods or after menopause." },
+  { id: 10, question: "Frequent vaginal douching increases the probability of developing bacterial vaginosis by five times.", options: ["True", "False"], correct: 0, rationale: "Women who douche often are five times more likely to develop bacterial vaginosis than women who do not douche." },
+  { id: 11, question: "When is the optimal time to perform cervical cauterization to promote effective tissue healing?", options: ["During the menstrual period", "In the premenstrual period", "In the postmenstrual period", "During the ovulation phase"], correct: 2, rationale: "It should be performed in the post menstrual period to give a good chance for healing before the next period." },
+  { id: 12, question: "What specific bladder state is required when an ultrasound examination is performed transvaginally?", options: ["Partially full bladder", "Completely full bladder", "Completely empty bladder", "Overdistended bladder"], correct: 2, rationale: "The examination may be made transeabdominally through a full bladder, or transvaginally when the bladder is empty." },
+  { id: 13, question: "Secondary bleeding is a recognized potential complication following a cervical cauterization procedure.", options: ["True", "False"], correct: 0, rationale: "Complications of cauterization include ascending infection and secondary bleeding." },
+  { id: 14, question: "Which muscles experience recurrent involuntary spasms causing interference with coitus in vaginismus?", options: ["Rectus abdominis and oblique muscles", "Pubococcygeus and levator ani muscles", "Bulbospongiosus and ischiocavernosus muscles", "Iliopsoas and quadratus lumborum muscles"], correct: 1, rationale: "Vaginismus is the recurrent involuntary spasm of the pubococcygeus and levator ani muscles." },
+  { id: 15, question: "Which specific anatomical location must the pessary rest against first during a supporting insertion procedure?", options: ["Anterior vaginal fornix", "Posterior vaginal fornix", "Lateral vaginal wall", "Cervical os opening"], correct: 1, rationale: "The pessary is compressed between the fingers before being inserted and positioned, to rest first in the posterior vaginal fornix then in the anterior fornix." },
+  { id: 16, question: "At what exact point in the menstrual cycle should a hysterosalpingogram ideally be scheduled?", options: ["One to three days after the first day", "Seven to ten days after the first day", "Fourteen to sixteen days after the first day", "Twenty to twenty four days after the first day"], correct: 1, rationale: "The time for this test ranges from seven to ten days after the first day of the menstrual period." },
+  { id: 17, question: "The ideal time for applying vaginal creams is in the morning immediately after awakening.", options: ["True", "False"], correct: 1, rationale: "The ideal time for doing these treatments is at the end of the day at bed time after a bath or shower." },
+  { id: 18, question: "How many consecutive years of unprotected intercourse must pass without achieving pregnancy to diagnose infertility?", options: ["One to two years", "Two to three years", "Three to four years", "Four to five years"], correct: 0, rationale: "Infertility is the inability of couples to achieve pregnancy after one to two years of unprotected intercourse." },
+  { id: 19, question: "Which underlying condition causes pruritis vulvae that presents without any associated vaginal discharge?", options: ["Trichomonas vaginalis infection", "Candida albicans infection", "Chronic epithelial atrophy", "Bacterial vaginosis infection"], correct: 2, rationale: "Chronic epithelial atrophy in post menopausal women causes pruritis without vaginal discharge, unlike Trichomonas or Candida." },
+  { id: 20, question: "During a colposcopy procedure iodine solution is used to stain healthy squamous epithelium dark brown.", options: ["True", "False"], correct: 0, rationale: "The cervix is then painted with iodine solution which stains the healthy squamous epithelium very dark brown." },
+  { id: 21, question: "What is the absolute maximum duration that vaginal packing should remain inside the patient?", options: ["Twelve hours", "Twenty four hours", "Thirty six hours", "Forty eight hours"], correct: 3, rationale: "The time of removal is after 12 or 24 hours, and not more than 48 hours." },
+  { id: 22, question: "What exact substance is injected into the uterine cavity to verify the patency of the fallopian tubes during culdoscopy?", options: ["Normal saline", "Acetic acid", "Blue dye", "Iodine solution"], correct: 2, rationale: "Blue dye is injected into the uterine cavity to check patency of tubes during a culdoscopy." },
+  { id: 23, question: "Which condition represents a pathological cause rather than a physiological cause of amenorrhea?", options: ["Uncomplicated pregnancy", "Active lactation", "Natural menopause", "Hormonal disturbance"], correct: 3, rationale: "Hormonal disturbance and congenital absence of the uterus are pathological causes. Pregnancy, lactation, and menopause are physiological." },
+  { id: 24, question: "A woman utilizing a supporting pessary must return every six months to check for vaginal wall ulceration.", options: ["True", "False"], correct: 0, rationale: "The woman must be convinced of the necessity to return at least every 6 months to check that no ulceration or necrosis has occurred." },
+  { id: 25, question: "Which bodily action most commonly triggers an episode of stress urinary incontinence in affected women?", options: ["Sleeping quietly", "Walking slowly", "Coughing suddenly", "Sitting upright"], correct: 2, rationale: "Stress urinary incontinence happens as a result of a sudden increase in intraabdominal pressure such as coughing, sneezing or laughing." },
+  { id: 26, question: "How often is a Pap smear recommended for a twenty five year old woman according to standard guidelines?", options: ["Every single year", "Every two years", "Every three years", "Every five years"], correct: 2, rationale: "For women aged 21 to 29 years, the Pap smear frequency is every 3 years." },
+  { id: 27, question: "Complications are significantly less frequent with operative laparoscopy than with purely diagnostic laparoscopy.", options: ["True", "False"], correct: 1, rationale: "Complications are more frequent with operative laparoscopy than with purely diagnostic laparoscopy." },
+  { id: 28, question: "When does cervical mucus physiologically become thinner and more profuse during the normal menstrual cycle?", options: ["In the first half of the cycle", "In the exact middle of the cycle", "In the second half of the cycle", "During the actual bleeding phase"], correct: 0, rationale: "Under hormonal influence, in the first half of the cycle, the mucus becomes thinner and more profuse." },
+  { id: 29, question: "Patients are advised to restrict sexual intercourse for precisely fifteen days following a cervical cauterization procedure.", options: ["True", "False"], correct: 0, rationale: "Instructions after the procedure include that sexual intercourse should be restricted for 15 days." },
+  { id: 30, question: "Patients must stop taking all prescribed antibiotics exactly two days before undergoing a routine Pap smear.", options: ["True", "False"], correct: 1, rationale: "Patients are instructed to stop antibiotics 7 to 10 days before the procedure, not two days." }
+]
+            },
+            "menopause": {
+                title: "Menopause",
+                author: "عبدالحليم رزق",
+                icon: "fa-heart-pulse",
+                color: "text-rose-600",
+                bg: "bg-rose-50",
+                data: [
+  { id: 1, question: "Vasomotor symptoms affect approximately seventy percent of perimenopausal women.", options: ["True", "False"], correct: 0, rationale: "Vasomotor symptoms are the most common symptoms, affecting approximately 70% of perimenopausal women." },
+  { id: 2, question: "Which hormonal profile is characteristic of the postmenopausal state?", options: ["High luteinizing hormone and low follicle stimulating hormone", "High follicle stimulating hormone and high luteinizing hormone", "Low follicle stimulating hormone and inhibited luteinizing hormone", "Low luteinizing hormone and high follicle stimulating hormone"], correct: 1, rationale: "During menopause, there is an inadequate response to the effects of follicle stimulating hormone, and both follicle stimulating hormone and luteinizing hormone go uninhibited, remaining at high levels." },
+  { id: 3, question: "Which specific dietary supplements are highly recommended for menopausal women?", options: ["Iron and vitamin C", "Calcium and vitamin D", "Magnesium and vitamin B", "Potassium and vitamin A"], correct: 1, rationale: "The nursing role emphasizes eating a varied diet and making sure to get enough calcium and vitamin D, which may require taking supplements." },
+  { id: 4, question: "Premature menopause is defined as the cessation of menstruation before the age of forty years.", options: ["True", "False"], correct: 0, rationale: "Premature menopause or premature ovarian failure is defined as the occurrence of menopause before the age of 40 years." },
+  { id: 5, question: "Which clinical scenario strictly requires the use of unopposed estrogen therapy?", options: ["Women with intact reproductive organs", "Women who underwent surgical uterus removal", "Women with a history of breast malignancies", "Women experiencing severe cardiovascular issues"], correct: 1, rationale: "Estrogen alone is used exclusively in women with a hysterectomy. Women with an intact uterus require combined therapy to prevent uterine carcinoma." },
+  { id: 6, question: "What is a documented limitation of using ginseng during the menopausal transition?", options: ["It significantly increases the risk of endometrial cancer", "It completely fails to provide relief from hot flushes", "It severely disrupts regular nighttime sleep patterns", "It noticeably decreases the overall cellular immune response"], correct: 1, rationale: "While ginseng relieves stress and helps increase immunity, it is noted that it does not help in getting relief from hot flashes." },
+  { id: 7, question: "The maximum number of ovarian follicles is reached during the twentieth week of fetal development.", options: ["True", "False"], correct: 0, rationale: "The ovary possesses a maximum number of 7 million ovarian follicles at 20 weeks of fetal life, which subsequently undergo exhaustion." },
+  { id: 8, question: "How does estrogen deficiency negatively alter the vaginal environment after menopause?", options: ["It increases vaginal acidity and completely prevents tract infections", "It decreases vaginal acidity and significantly increases infection risk", "It promotes the rapid growth of protective vaginal lactobacilli", "It stimulates excessive continuous vaginal fluid secretion"], correct: 1, rationale: "Estrogen deficiency causes decreased vaginal acidity, meaning a higher hydrogen potential, which increases the risk for genitourinary tract infections." },
+  { id: 9, question: "Tibolone is a synthetic hormone that significantly increases the risk of developing breast cancer.", options: ["True", "False"], correct: 1, rationale: "Tibolone is a synthetic estrogen that reduces various menopausal symptoms and specifically prevents bone loss with absolutely no risk for breast cancer." },
+  { id: 10, question: "Which underlying condition is most closely associated with the onset of delayed menopause?", options: ["Severe infections like mumps", "Autoimmune endocrine diseases", "Uterine carcinoma or ovarian tumors", "Galactose toxicity to ovarian tissue"], correct: 2, rationale: "Delayed menopause, which occurs after the age of 55, may be due to pathological factors such as an ovarian tumor or uterine carcinoma." },
+  { id: 11, question: "Which term describes the entire transitional phase from the reproductive to the nonreproductive state?", options: ["Premenopause", "Climacteric", "Postmenopause", "Perimenopause"], correct: 1, rationale: "Climacteric is the phase in the aging of women marking the overall transition from the reproductive to the nonproductive state." },
+  { id: 12, question: "What is the typical duration of a single hot flush episode during the perimenopausal period?", options: ["Between ten and twenty seconds", "Between thirty seconds and five minutes", "Between ten and fifteen minutes", "Between thirty and sixty minutes"], correct: 1, rationale: "Vasomotor symptoms, including hot flushes characterized by a subjective sensation of hotness, typically last for thirty seconds to five minutes." },
+  { id: 13, question: "Which medication is clinically utilized to treat both vasomotor symptoms and elevated blood pressure?", options: ["Ospemifene", "Venlafaxine", "Clonidine", "Calcitonin"], correct: 2, rationale: "Clonidine is a medicine effective in treating hot flushes and night sweat symptoms in postmenopausal women, and it is also used as an antihypertensive medication." },
+  { id: 14, question: "What is a major risk associated with hormone replacement therapy lasting beyond five years?", options: ["Severe progressive bone demineralization", "Deep vein blood clots in the legs", "Rapid systemic connective tissue atrophy", "Unpredictable sudden early menopause"], correct: 1, rationale: "When taken for more than five years, hormone therapy significantly increases the risks of breast cancer, blood clots in the legs and lungs, heart attack, and stroke." },
+  { id: 15, question: "Estrogen deficiency after menopause leads to a protective increase in high density lipoproteins.", options: ["True", "False"], correct: 1, rationale: "Estrogen normally protects women by increasing the ratio of high density lipoproteins to low density lipoproteins. Therefore, an estrogen deficiency results in a detrimental decrease in high density lipoproteins." },
+  { id: 16, question: "What is the primary source of the small amounts of estrogen produced after natural menopause occurs?", options: ["Reactivation of remaining primary ovarian follicles", "Conversion of testosterone released by the adrenal glands", "Synthesis by the specialized anterior pituitary gland cells", "Secretion from the rapidly degenerating corpus luteum"], correct: 1, rationale: "Following menopause, small amounts of estrogen may still be produced via conversion from testosterone released by the adrenal glands." },
+  { id: 17, question: "Hormone replacement therapy is highly recommended for the direct prevention of cardiovascular diseases.", options: ["True", "False"], correct: 1, rationale: "Hormonal therapy is explicitly not indicated for the treatment or prevention of cardiovascular diseases." },
+  { id: 18, question: "Which specific finding is typically expected when performing laboratory tests to confirm menopause?", options: ["Elevated serum estradiol levels", "Decreased thyroid stimulating hormone", "Increased follicle stimulating hormone", "Reduced estrone to estradiol ratio"], correct: 2, rationale: "Laboratory tests confirming menopause indicate an increase in follicle stimulating hormone, which rises after menopause and remains high." },
+  { id: 19, question: "Which factor is recognized as a direct cause of secondary premature ovarian failure?", options: ["Autoimmune thyroid disease", "Severe active mumps infection", "Inherited genetic galactosemia", "Natural gradual follicular exhaustion"], correct: 1, rationale: "Secondary menopause can occur due to the destruction of ovaries post malignancy or from severe infections such as tuberculosis and mumps." },
+  { id: 20, question: "A bone mineral density test should be routinely scheduled every six months for postmenopausal women.", options: ["True", "False"], correct: 1, rationale: "Routine checks include a bone mineral density test every year, whereas serum calcium is checked every six months." },
+  { id: 21, question: "Which clinical finding is exclusively classified as an intermediate effect of estrogen deficiency?", options: ["Subjective sensation of upper body hotness", "Increased overall skeletal bone fragility", "Noticeable systemic connective tissue atrophy", "Pathologically high total blood cholesterol"], correct: 2, rationale: "Connective tissue atrophy, along with genitourinary changes, breast tissue atrophy, and sexual dysfunctions, represents an intermediate effect of estrogen deficiency." },
+  { id: 22, question: "What is the primary therapeutic purpose of using valerian roots during the menopausal transition?", options: ["Reversing moderate vaginal dryness", "Acting as a natural calming tranquillizer", "Providing highly effective safe phytoestrogens", "Increasing overall systemic cellular immunity"], correct: 1, rationale: "Valerian roots are basically used as tranquillizers and actively help in sleeping during the menopausal transition." },
+  { id: 23, question: "Osteopenia is considered an irreversible condition that inevitably leads to permanent bone deterioration.", options: ["True", "False"], correct: 1, rationale: "Osteopenia is defined as a low bone mineral density which is a reversible condition, unlike osteoporosis which is irreversible." },
+  { id: 24, question: "Which oral medication is specifically indicated for severe vulvovaginal atrophy when local therapies are contraindicated?", options: ["Paroxetine", "Ospemifene", "Clonidine", "Calcitonin"], correct: 1, rationale: "Oral ospemifene is a medication specifically used for moderate to severe symptomatic vulvovaginal atrophy in postmenopausal women who are not candidates for local therapy." },
+  { id: 25, question: "How frequently should a postmenopausal woman undergo routine cervical smear screening?", options: ["Every single year", "Every two years", "Every three years", "Every five years"], correct: 2, rationale: "Routine medical checkups for menopausal women dictate that a cervical smear should be obtained every three years." },
+  { id: 26, question: "The perimenopausal transition officially concludes exactly six months after the last menstrual period.", options: ["True", "False"], correct: 1, rationale: "The perimenopausal period ends exactly twelve months after the last menstrual period, not six months." },
+  { id: 27, question: "How do vasomotor symptoms typically conclude immediately after the initial sensation of heat?", options: ["With a prolonged period of deep unarousable sleep", "With noticeable diaphoresis and a distinct coldness sensation", "With a sudden dangerous spike in arterial blood pressure", "With intense widespread skeletal muscle cramping and pain"], correct: 1, rationale: "A hot flush is characterized by a subjective sensation of hotness of the upper body and reliably ends with diaphoresis and a coldness sensation." },
+  { id: 28, question: "Why is progestin strictly combined with estrogen for menopausal women who still possess an intact uterus?", options: ["It completely eliminates all remaining severe vasomotor symptoms", "It directly prevents dangerous uterine hyperplasia and carcinoma", "It stimulates the rapid active growth of remaining primary follicles", "It significantly enhances the cellular absorption of dietary calcium"], correct: 1, rationale: "Combined estrogen and progestin therapy is utilized in women with an intact uterus to avoid the distinct risk of uterine hyper-proliferation, hyperplasia, and subsequent uterine carcinoma." },
+  { id: 29, question: "A history of regular smoking can significantly influence the actual onset time of natural menopause.", options: ["True", "False"], correct: 0, rationale: "A smoking history is listed prominently as one of the major factors that can influence the time of onset of menopause." },
+  { id: 30, question: "Which two main structural features integrate to accurately determine overall skeletal bone strength?", options: ["Bone density and bone quality", "Bone length and bone flexibility", "Bone mass and bone marrow volume", "Bone thickness and bone vascularity"], correct: 0, rationale: "Bone strength directly reflects the integration of two main structural features: bone density and bone quality." }
+]
+            },
+            "menstrual": {
+                title: "Menstrual Disorders",
+                author: "عبدالحليم رزق",
+                icon: "fa-droplet",
+                color: "text-amber-600",
+                bg: "bg-amber-50",
+                data: [
+  { id: 1, question: "Which term describes menstrual cycles that occur at intervals longer than thirty five days?", options: ["Oligomenorrhea", "Polymenorrhea", "Hypomenorrhea", "Menostaxis"], correct: 0, rationale: "Oligomenorrhea means normal periods at longer intervals where the menstrual cycle length is more than 35 days." },
+  { id: 2, question: "At what age is the absence of menstruation considered primary amenorrhea if secondary sexual characteristics are absent?", options: ["Fourteen years", "Fifteen years", "Sixteen years", "Seventeen years"], correct: 0, rationale: "Primary amenorrhea is defined as the absence of menstruation until age 14 in the absence of secondary sexual characteristics, or age 16 in their presence." },
+  { id: 3, question: "Which neurotransmitter deficiency is theoretically linked to the development of premenstrual syndrome?", options: ["Serotonin", "Dopamine", "Acetylcholine", "Glutamate"], correct: 0, rationale: "Low serotonin levels in the brain are considered a possible cause of premenstrual syndrome." },
+  { id: 4, question: "When does the pain associated with congestive dysmenorrhea typically begin?", options: ["Several days before the onset of menstruation", "Immediately at the onset of menstrual flow", "During the last two days of the menstrual cycle", "Immediately after the menstrual flow ceases"], correct: 0, rationale: "In congestive dysmenorrhea, pain starts several days before menstruation and is relieved by the onset of the flow." },
+  { id: 5, question: "Which condition involves a period of amenorrhea followed by prolonged heavy bleeding due to an unruptured follicle?", options: ["Metropathia hemorrhagica", "Dysfunctional uterine bleeding", "Heavy menstrual bleeding", "Polymenorrhea"], correct: 0, rationale: "Metropathia hemorrhagica is characterized by a period of amenorrhea followed by prolonged heavy bleeding caused by extended estrogen production from an unruptured Graafian follicle." },
+  { id: 6, question: "What is the average amount of blood lost during a normal menstrual cycle?", options: ["Fifty milliliters", "Thirty milliliters", "Eighty milliliters", "One hundred milliliters"], correct: 0, rationale: "The amount of blood loss ranges between 30 to 80 milliliters, with an average of 50 milliliters." },
+  { id: 7, question: "Which finding upon vaginal examination indicates the presence of a transverse vaginal septum rather than an imperforate hymen?", options: ["Absence of bulging with straining", "Presence of a bluish distended membrane", "Positive impulse upon coughing", "Inability to pass a uterine sound"], correct: 0, rationale: "With a transverse vaginal septum, the normal hymen is present and usually does not bulge with straining, whereas an imperforate hymen bulges and increases with cough." },
+  { id: 8, question: "Which substance in the menstrual blood causes uterine ischemia and angina like pain in primary dysmenorrhea?", options: ["Prostaglandins", "Leukotrienes", "Histamines", "Bradykinins"], correct: 0, rationale: "Increased prostaglandins in the menstrual blood act as potent uterotonic agents, causing uterine angina and ischemia." },
+  { id: 9, question: "Which type of pituitary tumor is the most common cause of pathological amenorrhea?", options: ["Prolactinoma", "Somatotropinoma", "Corticotropinoma", "Thyrotropinoma"], correct: 0, rationale: "The commonest form of pituitary disease seen in association with amenorrhea is a pituitary adenoma, most commonly a prolactinoma." },
+  { id: 10, question: "Which local uterine factor accounts for approximately thirty percent of heavy menstrual bleeding cases?", options: ["Fibroids", "Polyps", "Ovarian tumors", "Endometrial malignancy"], correct: 0, rationale: "Fibroids are a common local cause of heavy menstrual bleeding, accounting for approximately 30 percent of cases." },
+  { id: 11, question: "Which term refers to a regular menstrual period with normal flow but prolonged duration?", options: ["Menostaxis", "Metrorrhagia", "Polymenorrhea", "Hypomenorrhea"], correct: 0, rationale: "Menostaxis means a regular period with normal flow but prolonged duration due to irregular response to hormones." },
+  { id: 12, question: "Which enzyme is naturally present in menstrual blood to prevent it from clotting?", options: ["Fibrinolysin", "Thrombin", "Plasminogen", "Streptokinase"], correct: 0, rationale: "The presence of the enzyme fibrinolysin in menstrual blood prevents it from clotting." },
+  { id: 13, question: "Which psychiatric disorder associated with disturbed body image commonly causes functional hypothalamic amenorrhea?", options: ["Anorexia nervosa", "Bipolar disorder", "Schizophrenia", "Major depression"], correct: 0, rationale: "Anorexia nervosa is a psychiatric disorder prevalent in specific groups that causes amenorrhea due to loss of appetite and disturbed body image." },
+  { id: 14, question: "Which medical treatment is specifically indicated to inhibit ovulation and corpus luteum formation in spasmodic dysmenorrhea?", options: ["Oral contraceptive pills", "Calcium channel blockers", "Beta adrenergic stimulants", "Prostaglandin synthetase inhibitors"], correct: 0, rationale: "Combined oral contraceptive pills are used as a hormonal treatment to inhibit ovulation and corpus luteum formation in dysmenorrhea." },
+  { id: 15, question: "Which condition is characterized by menstruation occurring at regular intervals of less than three weeks?", options: ["Polymenorrhea", "Oligomenorrhea", "Metrorrhagia", "Menostaxis"], correct: 0, rationale: "Polymenorrhea means short menstrual cycles occurring at regular intervals of 2 weeks but less than 3 weeks." },
+  { id: 16, question: "Which of the following is considered a normal physiological cause of amenorrhea?", options: ["Lactation", "Ovarian tumors", "Pituitary adenomas", "Vaginal aplasia"], correct: 0, rationale: "Physiological amenorrhea naturally occurs before puberty, during pregnancy, after menopause, and during lactation." },
+  { id: 17, question: "In which demographic is primary dysmenorrhea most prevalent?", options: ["Nulliparous women between fifteen and twenty five years", "Multiparous women over thirty years", "Menopausal women experiencing hot flashes", "Prepubertal girls under twelve years"], correct: 0, rationale: "Primary spasmodic dysmenorrhea is most prevalent in virgins and nulliparous women between 15 and 25 years of age." },
+  { id: 18, question: "Which condition causes amenorrhea due to gonadal dysgenesis?", options: ["Turner syndrome", "Asherman syndrome", "Sheehan syndrome", "Kallmann syndrome"], correct: 0, rationale: "Turner syndrome is an example of gonadal dysgenesis, resulting in ovarian hypofunction and subsequent amenorrhea." },
+  { id: 19, question: "Which physical symptom is commonly associated with premenstrual syndrome?", options: ["Breast tension", "Visual disturbances", "Chronic cough", "Joint hypermobility"], correct: 0, rationale: "Physical symptoms of PMS include breast tension, headache, bloatedness, weight gain, and edema." },
+  { id: 20, question: "Which symptom is highly characteristic of uterine malignancy such as endometrial carcinoma?", options: ["Metrorrhagia", "Hypomenorrhea", "Oligomenorrhea", "Cryptomenorrhea"], correct: 0, rationale: "Metrorrhagia involves irregular or unusual bleeding and is a common symptom of uterine malignancies like endometrial carcinoma." },
+  { id: 21, question: "What is considered the most important congenital cause of cryptomenorrhea?", options: ["Imperforate hymen", "Cervical atresia", "Vaginal aplasia", "Uterine hypoplasia"], correct: 0, rationale: "An imperforate hymen is considered the most important congenital cause of cryptomenorrhea or false amenorrhea." },
+  { id: 22, question: "Which inflammatory condition is a recognized cause of congestive dysmenorrhea?", options: ["Parametritis", "Endocarditis", "Appendicitis", "Cholecystitis"], correct: 0, rationale: "Inflammatory conditions in the pelvis such as chronic cervicitis, pelvic inflammatory disease, and parametritis cause congestive dysmenorrhea." },
+  { id: 23, question: "What is the primary surgical management for an imperforate hymen causing false amenorrhea?", options: ["Cruciate incision", "Complete hysterectomy", "Endometrial ablation", "Vaginal reconstruction"], correct: 0, rationale: "The treatment for an imperforate hymen involves a partial hymenectomy where a cruciate incision is given over the hymen to drain the collected blood." },
+  { id: 24, question: "What objective blood loss volume defines heavy menstrual bleeding in an otherwise normal cycle?", options: ["Greater than eighty milliliters", "Greater than fifty milliliters", "Greater than thirty milliliters", "Greater than one hundred milliliters"], correct: 0, rationale: "The objective definition of heavy menstrual bleeding is a blood loss of greater than 80 milliliters in an otherwise normal menstrual cycle." },
+  { id: 25, question: "Which class of medication is helpful in treating the bloating and breast tenderness associated with premenstrual syndrome?", options: ["Diuretics", "Antipsychotics", "Beta blockers", "Anticoagulants"], correct: 0, rationale: "Diuretics may be helpful in the treatment of bloating and breast tenderness during premenstrual syndrome." },
+  { id: 26, question: "Which substance acts as a potent uterotonic and vasoconstrictor causing uterine ischemia during painful menstruation?", options: ["Endothelin", "Prolactin", "Aldosterone", "Cortisol"], correct: 0, rationale: "Increased endothelin in the menstrual flow acts as a potent uterotonic and vasoconstrictor substance causing uterine ischemia." },
+  { id: 27, question: "Which imaging modality is most appropriate to order if a pituitary tumor is suspected as the cause of amenorrhea?", options: ["Computed tomography scan", "Pelvic ultrasonography", "Intravenous pyelography", "Abdominal radiography"], correct: 0, rationale: "A computed tomography scan of the head is investigated if a pituitary tumor is suspected to be the cause of amenorrhea." },
+  { id: 28, question: "Which condition is defined as abnormal uterine bleeding for which organic causes cannot be found?", options: ["Dysfunctional uterine bleeding", "Metropathia hemorrhagica", "Polycystic ovarian syndrome", "Congestive dysmenorrhea"], correct: 0, rationale: "Dysfunctional uterine bleeding describes the occurrence of abnormal uterine bleeding for which organic causes cannot be found." },
+  { id: 29, question: "Which physical finding might indicate androgen excess secondary to an ovarian tumor in an amenorrheic patient?", options: ["Facial hair", "Bradycardia", "Hypothermia", "Reduced subcutaneous fat"], correct: 0, rationale: "Facial hair and acne might be evidence of androgen excess secondary to an ovarian or adrenal tumor." },
+  { id: 30, question: "Which system directly regulates the length of the normal menstrual cycle?", options: ["Hypothalamic pituitary ovarian axis", "Renin angiotensin aldosterone system", "Sympathetic nervous system", "Enteric nervous system"], correct: 0, rationale: "The cycle length is under the direct control of the hypothalamic pituitary ovarian axis." },
+  { id: 31, question: "Amenorrhea is considered a specific disease rather than a symptom of an underlying condition.", options: ["True", "False"], correct: 1, rationale: "Amenorrhea means the absence of menstruation and is considered a symptom, not a disease." },
+  { id: 32, question: "The pain associated with congestive dysmenorrhea is typically relieved by the onset of menstrual flow.", options: ["True", "False"], correct: 0, rationale: "In congestive dysmenorrhea, pain starts days before menses and is usually relieved by the onset of the flow." },
+  { id: 33, question: "Spasmodic dysmenorrhea usually begins during the very first menstrual cycle at menarche.", options: ["True", "False"], correct: 1, rationale: "It usually starts a few years after menarche, as early menstrual cycles are anovular and painless." },
+  { id: 34, question: "A patient with cryptomenorrhea will experience cyclical menstrual pain despite the visible absence of menstrual bleeding.", options: ["True", "False"], correct: 0, rationale: "Cryptomenorrhea is a condition where menstruation occurs but is trapped behind an obstruction, leading to cyclical pain without visible bleeding." },
+  { id: 35, question: "Most women who experience heavy menstrual bleeding actively seek medical help for their symptoms.", options: ["True", "False"], correct: 1, rationale: "Although one third of women complain of heavy periods, most do not actively seek medical help." },
+  { id: 36, question: "The symptoms of premenstrual syndrome occur exclusively during the follicular phase of the menstrual cycle.", options: ["True", "False"], correct: 1, rationale: "Premenstrual syndrome symptoms occur in the luteal phase of the cycle and resolve by the onset of menstruation." },
+  { id: 37, question: "Athletic amenorrhea results from stress inhibiting the release of gonadotropin releasing hormone from the hypothalamus.", options: ["True", "False"], correct: 0, rationale: "In athletes, stress from strenuous exercise inhibits the release of gonadotropin releasing hormone, ultimately causing amenorrhea." },
+  { id: 38, question: "Prostaglandin E is primarily responsible for increasing the sensitivity of nerve endings during spasmodic dysmenorrhea.", options: ["True", "False"], correct: 0, rationale: "Prostaglandin E increases the sensitivity of nerve endings, while prostaglandin F2a is a potent uterotonic agent." },
+  { id: 39, question: "Hypomenorrhea represents a complete cessation of menstruation for more than three consecutive cycle intervals.", options: ["True", "False"], correct: 1, rationale: "Hypomenorrhea means a decrease in the amount of menstrual flow or shorter duration, whereas secondary amenorrhea is the cessation for more than three cycles." },
+  { id: 40, question: "Mullerian agenesis is an ovarian cause of true primary amenorrhea.", options: ["True", "False"], correct: 1, rationale: "Mullerian agenesis is a congenital uterine cause of amenorrhea, not an ovarian cause." }
+]
+            },
+            "neoplasia": {
+                title: "Neoplasia",
+                author: "عبدالحليم رزق",
+                icon: "fa-ribbon",
+                color: "text-cyan-600",
+                bg: "bg-cyan-50",
+                data: [
+  { id: 1, question: "Patients undergoing radiotherapy should aggressively use irritant soaps to keep the skin completely clean.", options: ["True", "False"], correct: 1, rationale: "Nursing care during radiotherapy specifically involves teaching the woman to assess her skin and to avoid irritant soaps and ointments." },
+  { id: 2, question: "According to the global ranking of female reproductive tract neoplasms, which condition holds the second position?", options: ["Ovarian reproductive neoplasm", "Cervical reproductive neoplasm", "Uterine reproductive neoplasm", "Vaginal reproductive neoplasm"], correct: 2, rationale: "According to the WHO 2020 ranking, uterine neoplasm ranks second, right after breast neoplasm." },
+  { id: 3, question: "Which specific category of genes encourages normal cell division and maintains appropriate bodily structures?", options: ["Tumor suppressor genes", "Normal proto oncogenes", "Cellular repair genes", "Apoptosis regulator genes"], correct: 1, rationale: "Proto-oncogenes encourage cell division in their normal forms to coordinate regulated growth." },
+  { id: 4, question: "Uterine fibroids typically grow rapidly and enlarge significantly after the onset of clinical menopause.", options: ["True", "False"], correct: 1, rationale: "Uterine fibroids are stimulated by estrogen and generally tend to shrink after menopause, not enlarge." },
+  { id: 5, question: "Which surgical treatment involves removing the cervix and the upper part of the vagina while specifically preserving the uterus?", options: ["Simple hysterectomy procedure", "Radical trachelectomy surgery", "Total pelvic exenteration", "Radical vulvectomy operation"], correct: 1, rationale: "Radical trachelectomy involves removing only the cervix and the upper part of the vagina, sparing the uterus." },
+  { id: 6, question: "What precise percentage of cancer cases worldwide are directly related to infectious diseases?", options: ["Five percent of cases", "Ten percent of cases", "Eighteen percent of cases", "Thirty percent of cases"], correct: 2, rationale: "Worldwide, approximately 18% of cancers are related to infectious diseases such as viruses, bacteria, and parasites." },
+  { id: 7, question: "Maternal ingestion of diethylstilbestrol during pregnancy strongly predisposes the offspring to vaginal cell adenocarcinoma.", options: ["True", "False"], correct: 0, rationale: "Vaginal adenosis due to maternal ingestion of synthetic estrogen during pregnancy predisposes the offspring to cell adenocarcinoma." },
+  { id: 8, question: "Which abnormal pattern of cellular growth frequently precedes neoplasia but does not always inevitably progress to cancer?", options: ["Severe structural anaplasia", "Cellular tissue metaplasia", "Invasive glandular carcinoma", "Malignant connective sarcoma"], correct: 1, rationale: "Prior to neoplasia, cells often undergo metaplasia or dysplasia, but these do not always progress to neoplasia." },
+  { id: 9, question: "What is the specific median age recorded for the common occurrence of postmenopausal endometrial cancer?", options: ["Forty five years", "Fifty two years", "Sixty one years", "Seventy five years"], correct: 2, rationale: "Endometrial cancer is mainly a disease of postmenopausal women, with a median age of 61 years." },
+  { id: 10, question: "Mutated tumor suppressor genes eliminate the critical cellular inhibition that normally prevents excessive tissue growth.", options: ["True", "False"], correct: 0, rationale: "Mutations in tumor-suppressor genes inactivate these genes, thereby eliminating the inhibition of cell division and allowing excessive growth." },
+  { id: 11, question: "Which specific dietary modification is strongly recommended for a woman actively undergoing scheduled radiotherapy sessions?", options: ["Low daily protein diet", "High daily protein diet", "Strict clear liquid diet", "High daily sodium diet"], correct: 1, rationale: "During radiotherapy, women are advised to maintain good nutrition by taking a high protein diet." },
+  { id: 12, question: "Which precise medical term describes the final end product of an abnormal and completely uncontrolled cell growth process?", options: ["Cellular tissue dysplasia", "Abnormal tissue neoplasm", "Benign cellular metaplasia", "Glandular tissue hyperplasia"], correct: 1, rationale: "A neoplasm is defined as the end product of neoplasia, presenting as an abnormal mass of tissue." },
+  { id: 13, question: "Women living with human immunodeficiency virus should consistently undergo cervical screening every three years starting at age twenty five.", options: ["True", "False"], correct: 0, rationale: "The global preventive strategy mandates that women living with HIV should be screened every 3 years starting at age 25." },
+  { id: 14, question: "Which common environmental risk factor category contributes to the highest observed percentage of overall cancer deaths?", options: ["Chronic viral infections", "Severe radiation exposure", "Poor diet and obesity", "Chemical tissue pollutants"], correct: 2, rationale: "Diet and obesity contribute to 30-35% of cancer deaths, which is the highest range compared to tobacco or infections." },
+  { id: 15, question: "Which specific symptom occurs late in invasive cervical cancer indicating the direct involvement of other deep pelvic structures?", options: ["Heavy superficial contact bleeding", "Thick malodorous purulent discharge", "Clear continuous mucoid discharge", "Severe lower abdominal pain"], correct: 3, rationale: "Pain occurs late in invasive cervical cancer due to parametritis or pyometria, which manifests as lower abdominal pain." },
+  { id: 16, question: "Vaginal neoplasm ranks first among all genital malignancies and accounts for the vast majority of observed gynecologic cancers.", options: ["True", "False"], correct: 1, rationale: "Vaginal neoplasm ranks 5th among genital malignancies and accounts for only 1-2% of gynecologic malignancies." },
+  { id: 17, question: "At what specific age group do the incidence rates of invasive cervical cancer sharply rise and finally peak?", options: ["Fifteen to nineteen years", "Twenty to twenty four years", "Thirty to thirty four years", "Forty to forty four years"], correct: 2, rationale: "Incidence rates of cervical cancer rise starting from age 15-19, but they peak in the 30-34 age group." },
+  { id: 18, question: "Which medical therapy is considered highly effective in aggressively relieving the severe localized pain related to uterine fibroids?", options: ["Oral systemic antibiotic medications", "Nonsteroidal antiinflammatory pain drugs", "Selective serotonin reuptake inhibitors", "Intravenous synthetic corticosteroid agents"], correct: 1, rationale: "Nonsteroidal anti-inflammatory drugs are medically effective in relieving pain specifically related to uterine fibroids." },
+  { id: 19, question: "Benign tumors typically grow rapidly by heavily infiltrating and completely destroying the surrounding healthy body tissues.", options: ["True", "False"], correct: 1, rationale: "Benign tumors grow slowly by expansion and do not infiltrate or destroy the surrounding healthy tissues." },
+  { id: 20, question: "Which diagnostic clinical test involves the introduction of a standard uterine sound followed by significant bleeding upon removal?", options: ["Schiller topical iodine test", "Standard superficial acetic acid", "Clinical uterine sound test", "Cervical guided punch biopsy"], correct: 2, rationale: "Clark's or sound test involves the introduction of a uterine sound, which is followed by bleeding upon its removal in case of carcinoma." },
+  { id: 21, question: "What is a major defining characteristic of malignant neoplasms specifically regarding their general mode of cellular growth?", options: ["Grow slowly by tissue expansion", "Infiltrate surrounding normal tissues", "Remain strictly isolated and encapsulated", "Differentiate perfectly into normal cells"], correct: 1, rationale: "Malignant neoplasms grow at the periphery and send out processes that aggressively infiltrate and destroy the surrounding tissue." },
+  { id: 22, question: "Repeated physical injuries to the same tissues might promote excessive cellular proliferation and subsequently increase cancerous mutation odds.", options: ["True", "False"], correct: 0, rationale: "Repeated injuries to the same tissues might promote excessive cell proliferation, which could then increase the odds of a cancerous mutation." },
+  { id: 23, question: "Which specific medical treatment is commonly utilized as a direct hormonal therapy for advanced endometrial carcinoma?", options: ["High daily dose progesterone", "Low daily dose estrogen", "Synthetic intravenous male testosterone", "Natural human chorionic gonadotropin"], correct: 0, rationale: "High dose progesterone is most commonly used as hormonal therapy for endometrial carcinoma to reduce mitotic activity." },
+  { id: 24, question: "Which presenting clinical symptom is highly characteristic and frequently observed in early stage vaginal neoplasm?", options: ["Acute total intestinal obstruction", "Severe chronic lower back pain", "Painless unexpected postcoital bleeding", "Complete uncontrolled fecal incontinence"], correct: 2, rationale: "Painless vaginal bleeding, especially post-coital, is a characteristic sign of early vaginal neoplasm." },
+  { id: 25, question: "Total parenteral nutrition is strictly contraindicated for hospitalized women who become severely ill during intensive chemotherapy sessions.", options: ["True", "False"], correct: 1, rationale: "If a woman is ill enough to be hospitalized during chemotherapy, total parenteral nutrition is actually needed, not contraindicated." },
+  { id: 26, question: "According to standard cytological analysis methods, how are newly discovered reproductive neoplasms primarily classified?", options: ["Benign and malignant tumor forms", "Well and mal differentiated cells", "Carcinoma and sarcoma tissue types", "Primary and secondary metastatic tumors"], correct: 1, rationale: "Cytologically, neoplasms are classified as either well differentiated or mal differentiated." },
+  { id: 27, question: "Which specific surgical approach is effectively utilized for treating multifocal preinvasive carcinoma isolated in the vagina?", options: ["Simple conservative breast lumpectomy", "Local superficial tissue excision", "Total surgical vaginal vaginectomy", "Radical deep abdominal hysterectomy"], correct: 2, rationale: "Vaginectomy is utilized in the surgical treatment of multifocal pre-invasive carcinoma of the vagina." },
+  { id: 28, question: "Preinvasive cervical cancer consistently presents with intense severe abdominal pain and heavy foul smelling purulent discharge.", options: ["True", "False"], correct: 1, rationale: "Preinvasive cervical cancer is characteristically asymptomatic." },
+  { id: 29, question: "What naturally occurring physiological life event fundamentally tends to rapidly shrink existing uterine fibroid tissues?", options: ["First early trimester of pregnancy", "Onset of natural clinical menopause", "Routine monthly menstruation cycle phase", "Normal cyclic monthly ovulation period"], correct: 1, rationale: "Uterine fibroids tend to shrink naturally after menopause due to the decline in estrogen levels." },
+  { id: 30, question: "Why are routine blood studies primarily monitored in women actively receiving systemic radiotherapy for internal neoplasia?", options: ["Monitor circulating red blood cells", "Monitor defensive white blood cells", "Assess overall blood platelet aggregation", "Evaluate systemic blood plasma viscosity"], correct: 1, rationale: "Blood studies are strictly required during radiotherapy to properly monitor white blood cell counts and prevent severe infections." }
+]
+            },
+            "prepost": {
+                title: "Pre and Postoperative Care",
+                author: "عبدالحليم رزق",
+                icon: "fa-procedures",
+                color: "text-indigo-600",
+                bg: "bg-indigo-50",
+                data: [
+  { id: 1, question: "Which surgical procedure involves examining the inner lining of the uterus using a narrow telescope?", options: ["Hysteroscopy procedure", "Cystoscopy procedure", "Laparoscopy procedure", "Dilatation procedure"], correct: 0, rationale: "Hysteroscopy is carried out using a narrow telescope inserted through the cervix to examine the inside of the uterus." },
+  { id: 2, question: "Deep vein thrombosis is classified as a complication that occurs strictly within the first twenty four hours after gynecological surgery.", options: ["True", "False"], correct: 1, rationale: "Deep vein thrombosis is listed under complications that occur after twenty four hours following the surgical operation." },
+  { id: 3, question: "On which day during the postoperative recovery phase should alternate sutures for an abdominal incision typically be removed?", options: ["The seventh postoperative day", "The third postoperative day", "The fifth postoperative day", "The tenth postoperative day"], correct: 0, rationale: "Sutures are typically removed when healing has occurred with alternate sutures usually removed on the seventh day." },
+  { id: 4, question: "Which postoperative complication is most likely to manifest during the first twenty four hours following a gynecological operation?", options: ["Uterine surgical perforation", "Deep incisional infection", "Postoperative paralytic ileus", "Vaginal structural fistula"], correct: 0, rationale: "Uterine perforation is categorized as a common complication occurring within the first twenty four hours after gynecological operations." },
+  { id: 5, question: "Nail polish and make up must be removed prior to surgery to allow accurate observation of cyanosis in the patient.", options: ["True", "False"], correct: 0, rationale: "During surgery numerous areas must be carefully observed for cyanosis including the face lips and nail beds which cosmetics can hide." },
+  { id: 6, question: "What is the primary anatomical purpose of inserting a vaginal gauze pack immediately after vaginal surgery?", options: ["To exert structural pressure", "To administer precise medication", "To prevent local infection", "To provide cellular hydration"], correct: 0, rationale: "A vaginal gauze pack must be kept in place to exert pressure on the sutures within the vaginal cavity." },
+  { id: 7, question: "Which surgical operation specifically involves removing the uterine body while intentionally leaving the cervix in its place?", options: ["Subtotal abdominal hysterectomy", "Total abdominal hysterectomy", "Radical vaginal hysterectomy", "Bilateral ovarian cystectomy"], correct: 0, rationale: "A subtotal hysterectomy removes the uterus but leaves the cervix in place and is sometimes called a partial hysterectomy." },
+  { id: 8, question: "Internal vaginal sutures typically dissolve themselves and fall out completely around the second day postoperatively.", options: ["True", "False"], correct: 1, rationale: "Internal vaginal sutures usually dissolve themselves and fall out around the ninth or tenth day postoperatively." },
+  { id: 9, question: "The presence of concentrated urine collected in the catheter bag immediately following surgery most likely indicates which physiological state?", options: ["Systemic tissue dehydration", "Surgical bladder damage", "Urethral stricture formation", "Acute renal failure"], correct: 0, rationale: "Concentrated urine noted postoperatively may indicate dehydration which should be closely monitored." },
+  { id: 10, question: "Which clinical outcome is a direct intended effect of administering preoperative medication on the morning of surgery?", options: ["Enhancing anesthesia effectiveness", "Increasing cardiac circulation", "Stimulating gastrointestinal tract", "Elevating internal temperature"], correct: 0, rationale: "Administering preoperative medication enhances the effectiveness of anesthesia produces anti anxiety effects and decreases nausea." },
+  { id: 11, question: "A chest radiographic examination is performed prior to surgery only if there is an indication of potential respiratory problems.", options: ["True", "False"], correct: 0, rationale: "A chest x-ray is not mandatory for everyone it is performed specifically if there is any indication of possible chest problems." },
+  { id: 12, question: "During the immediate postoperative period within the first twenty four hours what is the recommended physical position for the patient?", options: ["Flat position with the foot elevated", "Upright sitting position with support", "Right lateral recumbent position", "Prone position with the head lowered"], correct: 0, rationale: "The correct immediate postoperative position is to put the woman on a flat position with the foot of the bed elevated." },
+  { id: 13, question: "Under normal circumstances how long is the vaginal gauze pack usually left in place following a vaginal surgical operation?", options: ["Twelve to twenty four hours", "Two to four continuous hours", "Forty to forty eight hours", "Seventy to ninety six hours"], correct: 0, rationale: "If present the vaginal gauze pack is usually removed twelve to twenty four hours after the surgical operation." },
+  { id: 14, question: "Routine perineal care using a mild antiseptic solution should be carried out exactly one time each day after surgery.", options: ["True", "False"], correct: 1, rationale: "Perineal care must be carried out using an antiseptic solution three times a day to keep the perineum clean and dry." },
+  { id: 15, question: "Which specific postoperative complication is clinically classified as occurring after the first twenty four hours following a gynecological operation?", options: ["Postoperative paralytic ileus", "Uterine surgical perforation", "Urinary retention syndrome", "Bladder wall perforation"], correct: 0, rationale: "Paralytic ileus is classified under common complications that occur after twenty four hours following gynecological operations." },
+  { id: 16, question: "According to standard unit policy what is the required minimum fasting duration for women immediately prior to gynecological surgery?", options: ["At least five hours", "At least two hours", "At least ten hours", "At least twelve hours"], correct: 0, rationale: "The women should be fasting for at least five hours prior to surgery depending on the policy of the unit." },
+  { id: 17, question: "The physical pressure on the bladder and urethra caused by the vaginal pack often makes it difficult for the patient to void urine.", options: ["True", "False"], correct: 0, rationale: "Pressure on the bladder and urethra due to the vaginal pack frequently makes it difficult for the woman to naturally void urine." },
+  { id: 18, question: "How frequently should the vital signs of the patient be checked during the first hour immediately following abdominal surgery?", options: ["Every fifteen consecutive minutes", "Every thirty consecutive minutes", "Every forty five consecutive minutes", "Every sixty consecutive minutes"], correct: 0, rationale: "Vital signs should be checked every fifteen minutes during the first hour every thirty minutes in the second hour and then every four hours." },
+  { id: 19, question: "Which surgical intervention specifically focuses on removing a cyst from the female reproductive glands?", options: ["Ovarian cystectomy", "Cervical curettage", "Vaginal hysterectomy", "Bilateral salpingectomy"], correct: 0, rationale: "Ovarian cystectomy is defined as the surgical removal of a cyst directly from the ovary." },
+  { id: 20, question: "Postoperative constipation can be treated with glycerin suppositories if a spontaneous bowel action has not occurred by the third day.", options: ["True", "False"], correct: 0, rationale: "If spontaneous bowel action has not occurred by the third to fifth postoperative day glycerin suppositories may be required." },
+  { id: 21, question: "When performing vulval hygiene on a patient following vaginal drainage in which specific direction should the swabbing occur?", options: ["From the front to the back", "From the back to the front", "From the left side to the right", "From the right side to the left"], correct: 0, rationale: "Warm water sometimes with a mild antiseptic is poured over the vulva which must be swabbed from front to back." },
+  { id: 22, question: "Which specific finding in the catheter drainage bag might strongly indicate structural damage to the bladder during the surgical procedure?", options: ["Visible blood presence", "High urine concentration", "Thick cloudy sediment", "Large protein fragments"], correct: 0, rationale: "Haematuria visible as blood in the urine may indicate damage to the bladder or ureters during surgery." },
+  { id: 23, question: "A mid stream urine specimen is routinely collected to primarily exclude the presence of a severe respiratory tract infection prior to surgery.", options: ["True", "False"], correct: 1, rationale: "A mid stream specimen is collected and examined microscopically to exclude a urinary tract infection not a respiratory infection." },
+  { id: 24, question: "Which factor does not typically influence the total number of days a patient spends in the hospital postoperatively?", options: ["The location of the hospital", "The age of the patient", "The patient home conditions", "The specific surgical operation"], correct: 0, rationale: "Hospital discharge depends on factors like the woman's age general health particular operation and home conditions not the hospital location." },
+  { id: 25, question: "Why is it absolutely essential to record the exact day of the last menstrual cycle during comprehensive preoperative history taking?", options: ["To avoid operating during early pregnancy", "To schedule the timing of catheterization", "To prevent excessive surgical hemorrhage", "To calculate the appropriate anesthesia"], correct: 0, rationale: "Menstrual history must be carefully recorded to prevent surgery from being performed on a woman in the early stage of pregnancy." },
+  { id: 26, question: "The intravenous infusion site should be fixed with a clear adhesive material to allow for easy inspection of potential inflammation.", options: ["True", "False"], correct: 0, rationale: "The site must be fixed with clear adhesive to visually allow inspection and checking for signs of inflammation or edema." },
+  { id: 27, question: "On which postoperative day are the remaining physical attachments like surgical drains and urinary catheters usually removed from the patient?", options: ["The second postoperative day", "The first postoperative day", "The fourth postoperative day", "The sixth postoperative day"], correct: 0, rationale: "Progress continues and any remaining attachments are usually removed on the second day." },
+  { id: 28, question: "What primary intervention is typically administered on the morning before surgery to successfully cleanse the colon of fecal material?", options: ["Administering a cleansing enema", "Providing continuous intravenous fluids", "Giving oral electrolyte solutions", "Injecting strong prophylactic antibiotics"], correct: 0, rationale: "An enema is administered the morning before surgery to cleanse the colon of fecal material reducing wound contamination possibility." },
+  { id: 29, question: "Vaginal surgical operations generally require significantly larger and more complex abdominal incisions compared to traditional abdominal surgeries.", options: ["True", "False"], correct: 1, rationale: "Vaginal surgery actually reduces the need for abdominal incisions entirely because access is via the lower genital tract." },
+  { id: 30, question: "Which distinct preoperative physical examination involves a specific and thorough assessment of the vulva vagina cervix and uterus?", options: ["Obstetrical physical examination", "Cardiac physical examination", "Respiratory physical examination", "Neurological physical examination"], correct: 0, rationale: "The obstetrical examination focuses specifically on the assessment and examination of the vulva vagina cervix and uterus." }
+]
+            },
+            "std": {
+                title: "Sexually Transmitted Disease",
+                author: "عبدالحليم رزق",
+                icon: "fa-shield-virus",
+                color: "text-slate-600",
+                bg: "bg-slate-100",
+                data: [
+  { id: 1, question: "At what cellular count does an infected individual formally transition to the acquired immunodeficiency syndrome stage?", options: ["Below four hundred cells", "Below three hundred cells", "Below two hundred cells", "Below one hundred cells"], correct: 2, rationale: "The disease reaches the formal syndrome stage when the CD4 T cell count falls below two hundred cells per microliter." },
+  { id: 2, question: "High risk types of the human papillomavirus are primarily responsible for causing noncancerous visible genital warts.", options: ["True", "False"], correct: 1, rationale: "High risk types are generally associated with cancerous changes in the cervix, while noncancerous visible genital warts are typically managed by ablation or freezing and do not directly stem from the highest risk types." },
+  { id: 3, question: "Which clinical manifestation is a hallmark sign of the primary stage of a Treponema pallidum infection?", options: ["Generalized trunk rash", "Painless genital ulcer", "Permanent alopecia development", "Neurologic tissue destruction"], correct: 1, rationale: "The initial primary stage of syphilis is characterized by a painless ulcer that typically disappears within one to six weeks without intervention." },
+  { id: 4, question: "Which specific physical finding is classically associated with a Trichomonas vaginalis infection during a visual examination?", options: ["Macular strawberry cervix", "Homogeneous white discharge", "Painful vesicular clusters", "Painless indurated chancres"], correct: 0, rationale: "Colpitis macularis, commonly described as a strawberry look on the cervix, is a classic visual sign of this protozoan infection." },
+  { id: 5, question: "The vast majority of women infected with Neisseria gonorrhea present with severe and immediate symptomatic complaints.", options: ["True", "False"], correct: 1, rationale: "Between fifty and ninety percent of women infected with the gonorrhea bacteria are totally symptom free." },
+  { id: 6, question: "Which diagnostic assessment is typically positive when evaluating a patient suspected of having a Gardnerella vaginalis overgrowth?", options: ["Viral cell culture", "Serological blood test", "Amine whiff test", "Polymerase chain reaction"], correct: 2, rationale: "Bacterial vaginosis is characterized by a positive amine whiff test which detects the signature fishy odor commonly noticed after intercourse." },
+  { id: 7, question: "According to global health estimates, which age group experiences the highest prevalence of sexually transmitted diseases?", options: ["Fifteen to forty nine years", "Twenty to fifty five years", "Twenty five to sixty years", "Thirty to sixty five years"], correct: 0, rationale: "The prevalence of these diseases is highest among individuals aged between fifteen and forty nine years." },
+  { id: 8, question: "Life threatening cardiovascular and neurological complications are characteristic of the tertiary phase of a Treponema pallidum infection.", options: ["True", "False"], correct: 0, rationale: "The late or tertiary stage can lead to severe life threatening heart disease and central nervous system destruction if the infection is left untreated." },
+  { id: 9, question: "How is the vaginal discharge associated with a Candida albicans overgrowth most accurately described?", options: ["Thin homogeneous white fluid", "Heavy frothy green fluid", "Thick white curdled fluid", "Mucopurulent yellow bloody fluid"], correct: 2, rationale: "A fungal yeast infection typically produces a thick white discharge that strongly resembles cottage cheese or curd." },
+  { id: 10, question: "Which complication is frequently observed in infants born to mothers with an untreated Chlamydia trachomatis infection?", options: ["Cardiac structural anomalies", "Purulent eye conjunctivitis", "Middle ear inflammation", "Oral cavity yeast patches"], correct: 2, rationale: "Infants born to infected mothers are particularly at risk for developing otitis media and suffering from low birth weight." },
+  { id: 11, question: "Most human papillomavirus infections are asymptomatic and naturally clear from the body within two years.", options: ["True", "False"], correct: 0, rationale: "The vast majority of these viral infections do not cause symptoms and are efficiently cleared by the host immune system within a two year window." },
+  { id: 12, question: "How do recurrent episodes of genital herpes simplex virus compare to the initial primary outbreak?", options: ["They manifest with greater severity", "They persist for longer durations", "They present with milder symptoms", "They lack any physical lesions"], correct: 2, rationale: "Recurrent infectious episodes are generally much milder and significantly shorter in duration than the primary initial episode." },
+  { id: 13, question: "Which of the following conditions is classified as an incurable but clinically manageable viral sexually transmitted infection?", options: ["Treponema pallidum infection", "Neisseria gonorrhea infection", "Trichomonas vaginalis infection", "Human papillomavirus infection"], correct: 3, rationale: "While bacterial and protozoan infections are fully curable, viral infections like the human papillomavirus remain incurable but treatable." },
+  { id: 14, question: "Patients diagnosed with a Trichomonas vaginalis infection should abstain from sexual intercourse until both they and their partners are fully cured.", options: ["True", "False"], correct: 0, rationale: "Successful eradication requires simultaneously treating both sexual partners and avoiding intercourse until the infection is completely cleared." },
+  { id: 15, question: "Which symptom profile is most characteristic of the acute retroviral syndrome stage occurring shortly after an initial immunodeficiency virus exposure?", options: ["Rapid cognitive decline", "Influenza like illness", "Severe opportunistic pneumonia", "Widespread visible genital warts"], correct: 1, rationale: "The initial period following infection, typically two to four weeks after exposure, is often characterized by an illness resembling influenza." },
+  { id: 16, question: "What is the primary neonatal complication associated with maternal transmission of Neisseria gonorrhea during delivery?", options: ["Congenital physical anomalies", "Ophthalmia neonatorum infection", "Significant intrauterine growth restriction", "Severe recurrent pulmonary pneumonia"], correct: 1, rationale: "Infants exposed to this bacterial pathogen during childbirth are at incredibly high risk of developing severe neonatal eye infections known as ophthalmia neonatorum." },
+  { id: 17, question: "The organism responsible for vulvovaginal candidiasis is considered a foreign pathogen that is never found in a healthy vaginal environment.", options: ["True", "False"], correct: 1, rationale: "The responsible fungus is actually a normal habitant of the vagina and only becomes pathologic when the natural vaginal environment becomes altered." },
+  { id: 18, question: "Why is a Chlamydia trachomatis infection frequently referred to as a silent disease among the female population?", options: ["The bacteria lacks genetic material", "The diagnostic tests remain negative", "The clinical symptoms are often absent", "The transmission rates are exceptionally low"], correct: 2, rationale: "The infection is sometimes called silent because between fifty and seventy percent of cases are completely asymptomatic." },
+  { id: 19, question: "Which microorganism is severely depleted and replaced by anaerobic bacteria during an episode of bacterial vaginosis?", options: ["Protective lactobacilli strains", "Normal dermal staphylococci", "Naturally occurring yeast cells", "Beneficial enteric streptococci"], correct: 0, rationale: "The condition is characterized by an alteration in vaginal flora where healthy lactobacilli are drastically reduced and replaced by high concentrations of anaerobic bacteria." },
+  { id: 20, question: "The secondary stage of a Treponema pallidum infection frequently involves a systemic rash spreading across the trunk palms and soles.", options: ["True", "False"], correct: 0, rationale: "Secondary stage manifestations typically appear two to six months after exposure and distinctly include a flulike illness coupled with a rash on the palms and soles." },
+  { id: 21, question: "Which strategy is listed among the major recommendations by global health authorities to prevent the spread of sexually transmitted diseases?", options: ["Mandatory monthly serological testing", "Pre exposure vaccination protocols", "Immediate surgical lesion removal", "Universal daily antibiotic prophylaxis"], correct: 1, rationale: "Global health guidelines strongly emphasize pre exposure vaccination for vaccine preventable sexually transmitted infections as a core prevention strategy." },
+  { id: 22, question: "Which condition might a newborn infant develop as a direct result of an intrapartum exposure to a maternal fungal yeast infection?", options: ["Severe hearing loss", "Oral thrush plaques", "Visual impairment diseases", "Structural cardiac defects"], correct: 1, rationale: "Intrapartum transmission of a candida fungal infection can lead to the development of thrush in the oral cavity of the newborn infant." },
+  { id: 23, question: "The human immunodeficiency virus cannot pass from an infected mother to her developing fetus during the pregnancy term.", options: ["True", "False"], correct: 1, rationale: "The retrovirus has a well documented mode of transmission from mother to fetus during pregnancy, labor, and the subsequent postpartum period." },
+  { id: 24, question: "What biological classification accurately describes the infectious agent responsible for causing trichomoniasis?", options: ["A single celled protozoon", "A complex viral particle", "A rapidly dividing bacterium", "A multicellular fungal strain"], correct: 0, rationale: "The infection is caused by a tiny single celled protozoan organism officially known as Trichomonas vaginalis." },
+  { id: 25, question: "Which maternal complication is directly associated with an active genital herpes simplex virus infection during pregnancy?", options: ["Severe postpartum hemorrhage", "Early preterm labor onset", "Complete placental abruption", "Gestational diabetes mellitus"], correct: 1, rationale: "Infected mothers face an increased risk of severe obstetrical complications including spontaneous abortion and early preterm labor." },
+  { id: 26, question: "An untreated Chlamydia trachomatis infection can progressively cause severe inflammation of the fallopian tubes and subsequent maternal infertility.", options: ["True", "False"], correct: 0, rationale: "The bacterial infection can ascend into the reproductive tract causing endometritis salpingitis and ultimately lead to female infertility if left unmanaged." },
+  { id: 27, question: "How long can the latent stage of a Treponema pallidum infection persist without yielding any observable clinical symptoms?", options: ["Up to five years", "Up to ten years", "Up to fifteen years", "Up to twenty years"], correct: 3, rationale: "The latency phase is characterized by an absolute absence of clinical disease manifestations and can silently last as long as twenty years if not medically treated." },
+  { id: 28, question: "Which pharmaceutical approach is classically indicated as the primary treatment for an acute Neisseria gonorrhea infection?", options: ["Daily topical antiviral application", "Single dose procaine penicillin", "Oral metronidazole regimens", "Continuous antiretroviral therapy"], correct: 1, rationale: "The acute presentation of this bacterial infection is most commonly treated with a massive single dose of procaine penicillin alongside strict bed rest." },
+  { id: 29, question: "Global health data indicates that there are currently three incurable sexually transmitted viral infections that can only be managed with therapeutic treatments.", options: ["True", "False"], correct: 0, rationale: "There are precisely three incurable but highly treatable viral conditions outlined, which include herpes simplex, human papillomavirus, and human immunodeficiency virus." },
+  { id: 30, question: "How are noncancerous visible genital warts associated with a viral infection typically diagnosed by healthcare professionals?", options: ["Through specialized bacterial cultures", "Through direct clinical inspection", "Through comprehensive serological screening", "Through polymerase chain reactions"], correct: 1, rationale: "Clinically visible genital warts caused by the papillomavirus are practically diagnosed through straightforward visual inspection by a trained clinician." }
+]
+            }
+        };
+
+        // --- APP STATE ---
+        let currentQuizKey = null;
+        let currentQuestions = [];
+        let score = 0;
+        let answeredCount = 0;
+        let isDark = false;
+
+        // --- DOM ELEMENTS ---
+        const appContainer = document.getElementById('app-container');
+
+        // --- FUNCTIONS ---
+        function toggleTheme() {
+            isDark = !isDark;
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            const nav = document.querySelector('nav');
+            const footer = document.querySelector('footer');
+
+            if (isDark) {
+                body.classList.replace('bg-slate-50', 'bg-slate-900');
+                body.classList.replace('text-slate-800', 'text-slate-100');
+                nav.classList.replace('bg-white', 'bg-slate-800');
+                nav.classList.replace('border-slate-200', 'border-slate-700');
+                footer.classList.replace('bg-white', 'bg-slate-800');
+                footer.classList.replace('border-slate-200', 'border-slate-700');
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                body.classList.replace('bg-slate-900', 'bg-slate-50');
+                body.classList.replace('text-slate-100', 'text-slate-800');
+                nav.classList.replace('bg-slate-800', 'bg-white');
+                nav.classList.replace('border-slate-700', 'border-slate-200');
+                footer.classList.replace('bg-slate-800', 'bg-white');
+                footer.classList.replace('border-slate-700', 'border-slate-200');
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+            if (!currentQuizKey) renderHome();
+            else renderQuiz();
+        }
+
+        function showHome() {
+            currentQuizKey = null;
+            renderHome();
+            window.scrollTo(0,0);
+        }
+
+        function startQuiz(key) {
+            currentQuizKey = key;
+            const originalData = quizzes[key].data;
+            
+            // Deep copy and shuffle options
+            currentQuestions = originalData.map(q => {
+                const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+                for (let i = opts.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [opts[i], opts[j]] = [opts[j], opts[i]];
+                }
+                return { 
+                    ...q, 
+                    options: opts.map(o => o.text), 
+                    correct: opts.findIndex(o => o.isCorrect) 
+                };
+            });
+            
+            // Shuffle question order
+            for (let i = currentQuestions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [currentQuestions[i], currentQuestions[j]] = [currentQuestions[j], currentQuestions[i]];
+            }
+
+            score = 0;
+            answeredCount = 0;
+            renderQuiz();
+            window.scrollTo(0,0);
+        }
+
+        function renderHome() {
+            const cardClass = isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200";
+            const textClass = isDark ? "text-slate-200" : "text-slate-600";
+            
+            let html = `
+                <div class="text-center mb-10 fade-in">
+                    <h2 class="text-3xl font-bold mb-4">Gynecology Quiz</h2>
+                    <p class="${textClass}">مجموعة شاملة من اختبارات أمراض النساء </p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
+            `;
+
+            for (const [key, quiz] of Object.entries(quizzes)) {
+                html += `
+                    <div onclick="startQuiz('${key}')" class="card-hover cursor-pointer rounded-2xl p-6 border ${cardClass} transition-all duration-300 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 ${quiz.bg} rounded-bl-full opacity-50 transition-transform group-hover:scale-110"></div>
+                        <div class="relative z-10">
+                            <div class="w-12 h-12 rounded-xl ${quiz.bg} ${quiz.color} flex items-center justify-center text-2xl mb-4 shadow-sm">
+                                <i class="fas ${quiz.icon}"></i>
+                            </div>
+                            <h3 class="text-lg font-bold mb-2 ltr-text text-left">${quiz.title}</h3>
+                            <div class="flex items-center justify-between mt-4">
+                                <span class="text-xs font-semibold px-2 py-1 rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-500'}">
+                                    <i class="fas fa-list-ol me-1"></i> ${quiz.data.length} Questions
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fas fa-user-edit"></i> ${quiz.author.split(' ')[0]}..
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+            appContainer.innerHTML = html;
+        }
+
+        function renderQuiz() {
+            const quizInfo = quizzes[currentQuizKey];
+            const cardBg = isDark ? "bg-slate-800" : "bg-white";
+            const borderColor = isDark ? "border-slate-700" : "border-slate-200";
+            const textColor = isDark ? "text-slate-300" : "text-slate-600";
+            
+            let html = `
+                <div class="max-w-3xl mx-auto fade-in mb-8">
+                    <div class="${cardBg} rounded-2xl shadow-sm p-6 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+                        <h1 class="text-2xl font-bold mb-2 ltr-text" dir="auto">${quizInfo.title}</h1>
+                        <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-xs mt-2">
+                            <i class="fas fa-check-circle"></i> "${quizInfo.author}"
+                        </div>
+                    </div>
+                    
+                    <div id="questions-list">
+                        ${currentQuestions.map((q, index) => renderQuestionCard(q, index, cardBg, borderColor, textColor)).join('')}
+                    </div>
+
+                    <div id="result-summary" class="hidden ${cardBg} rounded-2xl shadow-lg p-8 text-center mt-8 border ${borderColor}">
+                        <h2 class="text-2xl font-bold mb-4">Exam Completed!</h2>
+                        <div class="text-5xl font-bold text-blue-600 mb-2">
+                            <span id="score-display">0</span> <span class="text-2xl text-slate-400">/ ${currentQuestions.length}</span>
+                        </div>
+                        <p id="score-message" class="text-lg mb-6 text-slate-500"></p>
+                        <div class="flex justify-center gap-4">
+                            <button onclick="startQuiz('${currentQuizKey}')" class="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg">
+                                <i class="fas fa-redo me-2"></i> إعادة الاختبار
+                            </button>
+                            <button onclick="showHome()" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl hover:bg-slate-300 transition shadow-lg">
+                                <i class="fas fa-home me-2"></i> القائمة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            appContainer.innerHTML = html;
+        }
+
+        function renderQuestionCard(q, index, cardBg, borderColor, textColor) {
+            const isTF = q.options.length === 2;
+            return `
+                <div class="card ${cardBg} rounded-xl p-6 mb-6 border ${borderColor} shadow-sm transition-all" id="card-${index}">
+                    <div class="flex justify-between items-center mb-4 border-b ${isDark ? 'border-slate-700' : 'border-slate-100'} pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Q ${index + 1}</span>
+                        ${isTF ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="${isDark ? 'text-slate-100' : 'text-slate-800'} font-bold mb-6 text-lg leading-relaxed ltr-text text-left">${q.question}</h3>
+                    <div class="grid gap-3 ${isTF ? 'grid-cols-2' : 'grid-cols-1'}">
+                        ${q.options.map((opt, i) => `
+                            <button onclick="checkAnswer(${index},${i})" 
+                                class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border${isDark ? 'border-slate-600 hover:bg-slate-700' : 'border-slate-200 hover:bg-blue-50'} focus:outline-none flex items-center justify-between group transition-all ltr-text">
+                                <span class="font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}">${opt}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 fade-in text-left ltr-text">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong class="font-bold">Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = currentQuestions[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            
+            if (!feedback.classList.contains('hidden')) return;
+            
+            feedback.classList.remove('hidden');
+            
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                btn.classList.remove('hover:bg-blue-50', 'hover:bg-slate-700');
+                
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right mt-1"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right mt-1"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+
+            if (answeredCount === currentQuestions.length) {
+                const summary = document.getElementById('result-summary');
+                summary.classList.remove('hidden');
+                document.getElementById('score-display').innerText = score;
+                
+                const percentage = (score / currentQuestions.length) * 100;
+                const msg = document.getElementById('score-message');
+                if (percentage >= 90) msg.innerText = "Excellent! Outstanding performance! 🌟";
+                else if (percentage >= 75) msg.innerText = "Great Job! You know your stuff. 👍";
+                else if (percentage >= 50) msg.innerText = "Good effort, but review the rationales. 📚";
+                else msg.innerText = "Keep studying and try again! 💪";
+
+                setTimeout(() => summary.scrollIntoView({ behavior: 'smooth' }), 500);
+            }
+        };
+
+        // Initialize
+        renderHome();
+
+    </script>
+</body>
+</html>
