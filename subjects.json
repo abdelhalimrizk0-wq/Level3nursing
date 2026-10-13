@@ -8,52 +8,52 @@
     "department": "obgyn",
     "lectures": [ 
       {
-    "name": "1-Anatomy and Physiology of Female Reproductive System",
+    "name": "Anatomy and Physiology of Female Reproductive System",
     "file": "quizzes/1-Anatomy and Physiology of Female Reproductive System.html",
     "questions": 0
   },
   {
-    "name": "2-Physiology of Menstruation",
+    "name": "Physiology of Menstruation",
     "file": "quizzes/2-Physiology of Menstruation.html",
     "questions": 0
   },
   {
-    "name": "4-Maternal changes during pregnancy",
+     "name": "Physiology of Pregnancy",
+    "file": "quizzes/3-Physiology of Pregnancy.html",
+    "questions": 0
+  },
+  {
+   "name": "Maternal changes during pregnancy",
     "file": "quizzes/4-Maternal changes during pregnancy.html",
     "questions": 0
   },
   {
-    "name": "4-Physiology of Pregnancy",
-    "file": "quizzes/4-Physiology of Pregnancy.html",
-    "questions": 0
-  },
-  {
-    "name": "5-Antenatal Care",
+    "name": "Antenatal Care",
     "file": "quizzes/5-Antenatal Care.html",
     "questions": 0
   },
   {
-    "name": "6-Physiology & Management of Normal Labor",
+    "name": "Physiology & Management of Normal Labor",
     "file": "quizzes/6-Physiology & Management of Normal Labor.html",
     "questions": 0
   },
   {
-    "name": "7-Physiological & Psychological Changes during the Postpartum Period",
+    "name": "Physiological & Psychological Changes during the Postpartum Period",
     "file": "quizzes/7-Physiological & Psychological Changes during the Postpartum Period.html",
     "questions": 0
   },
   {
-    "name": "8-Management and Nursing Care of Puerperium",
+    "name": "Management and Nursing Care of Puerperium",
     "file": "quizzes/8-Management and Nursing Care of Puerperium.html",
     "questions": 0
   },
   {
-    "name": "9-introduction to Family Planning",
+    "name": "introduction to Family Planning",
     "file": "quizzes/9-introduction to Family Planning.html",
     "questions": 0
   },
   {
-    "name": "10-Introduction to Gynecology",
+    "name": "Introduction to Gynecology",
     "file": "quizzes/10-Introduction to Gynecology.html",
     "questions": 0
   }
