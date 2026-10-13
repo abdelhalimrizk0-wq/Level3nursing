@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Management and Nursing Care of Puerperium</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY ---
+        const rawQuizData = [
+            { 
+                id: 1, 
+                question: "Which position is recommended for a postpartum mother after the first eight hours of labor to facilitate involution and lochia drainage?", 
+                options: ["Prone position", "Supine position", "Upright position", "Fowler position"], 
+                correct: 0, 
+                rationale: "After the first eight hours, the prone or lateral positions should be encouraged to facilitate involution and help drainage of lochia." 
+            },
+            { 
+                id: 2, 
+                question: "Vital signs should be checked every thirty minutes during the first hour following labor.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "Assessment of vital signs should occur every fifteen minutes for the first hour after labor, and then every thirty minutes during the second hour." 
+            },
+            { 
+                id: 3, 
+                question: "The physician will order catheterization if the postpartum woman is voiding frequent amounts less than a specific volume. What is this volume?", 
+                options: ["Fifty milliliters", "One hundred milliliters", "One hundred fifty milliliters", "Two hundred milliliters"], 
+                correct: 1, 
+                rationale: "Catheterization is ordered when the bladder is distended and the woman is voiding small amounts of less than one hundred milliliters frequently." 
+            },
+            { 
+                id: 4, 
+                question: "What is the recommended daily caloric requirement for a postpartum woman to maintain a well balanced and nourishing diet?", 
+                options: ["Two thousand calories", "Two thousand five hundred calories", "Three thousand five hundred calories", "Four thousand five hundred calories"], 
+                correct: 2, 
+                rationale: "A daily requirement of three thousand to three thousand five hundred calories is needed in the form of a well-balanced and nourishing diet." 
+            },
+            { 
+                id: 5, 
+                question: "Anti D immunoglobulin must be administered to Rh negative mothers with an Rh positive baby within the first forty eight hours after delivery.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "Anti D immunoglobulin should be administered to those Rh negative mothers with an Rh positive baby within the first seventy two hours after delivery." 
+            },
+            { 
+                id: 6, 
+                question: "When should the nurse instruct the postpartum woman that she can safely resume sexual relations?", 
+                options: ["Two to four weeks postpartum", "Four to six weeks postpartum", "Six to eight weeks postpartum", "Eight to ten weeks postpartum"], 
+                correct: 2, 
+                rationale: "Resumption of sexual relations should be discussed and is generally advised after six to eight weeks postpartum." 
+            },
+            { 
+                id: 7, 
+                question: "How should the fundus of the uterus feel upon abdominal palpation during the first hour after birth?", 
+                options: ["Large soft and deviated", "Small firm and globular", "Large firm and displaced", "Small boggy and midline"], 
+                correct: 1, 
+                rationale: "During the first hour after birth, the fundus should be small, firm, globular, and well contracted, and it should be positioned in the midline." 
+            },
+            { 
+                id: 8, 
+                question: "A temperature of thirty eight degrees Celsius or above for two consecutive days after the first twenty four hours is an early sign of puerperal infection.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "A temperature of thirty eight degrees Celsius or above for two consecutive days after the first twenty four hours is considered an early sign of puerperal infection until otherwise proved." 
+            },
+            { 
+                id: 9, 
+                question: "Which clinical sign suggests the presence of deep vein thrombosis in a postpartum woman?", 
+                options: ["Positive Homan sign", "Positive Chadwick sign", "Positive Goodell sign", "Positive Hegar sign"], 
+                correct: 0, 
+                rationale: "Signs and symptoms of deep vein thrombosis include pain, warmth, tenderness, swelling, redness, hard or solid veins, and a positive Homan sign." 
+            },
+            { 
+                id: 10, 
+                question: "What is an appropriate nursing intervention if the uterus is found to be soft on palpation during the immediate postpartum period?", 
+                options: ["Perform a gentle rotating massage", "Apply a tight abdominal binder", "Position the mother on her back", "Administer intravenous fluids rapidly"], 
+                correct: 0, 
+                rationale: "If the uterus is soft or boggy on palpation, the nurse should perform a gentle rotating motion massage to help the uterus contract and become firm." 
+            },
+            { 
+                id: 11, 
+                question: "The mother should raise her hands over her head during a breast examination to stretch and thin the breast tissues.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "Asking the mother to raise her hands over her head and put them under her head stretches and thins the breast tissues for better inspection and palpation." 
+            },
+            { 
+                id: 12, 
+                question: "Which set of signs is evaluated when observing an episiotomy site during postpartum care?", 
+                options: ["Redness edema ecchymosis discharge approximation", "Rash erythema excoriation drainage alignment", "Redness edema excoriation drainage approximation", "Rash erythema ecchymosis discharge alignment"], 
+                correct: 0, 
+                rationale: "The REEDA signs used for observing an episiotomy stand for Redness, Edema, Ecchymosis, Discharge, and Approximation." 
+            },
+            { 
+                id: 13, 
+                question: "Why is a mother with a boggy uterus encouraged to start breastfeeding immediately?", 
+                options: ["It promotes endogenous release of oxytocin", "It increases blood flow to the uterus", "It prevents postpartum bladder distention", "It reduces the risk of breast engorgement"], 
+                correct: 0, 
+                rationale: "Starting breastfeeding is encouraged because it causes the endogenous release of oxytocin, which helps the uterus contract and control bleeding." 
+            },
+            { 
+                id: 14, 
+                question: "Early ambulation after delivery increases the incidence of puerperal venous thrombosis and pulmonary embolism.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "Early ambulation actually reduces the incidence of puerperal venous thrombosis and pulmonary embolism by promoting blood circulation." 
+            },
+            { 
+                id: 15, 
+                question: "What is the recommended daily sleep requirement for a mother admitted to the postnatal ward?", 
+                options: ["Eight hours night sleep and two hours afternoon nap", "Six hours night sleep and four hours afternoon nap", "Ten hours night sleep and no afternoon nap", "Seven hours night sleep and one hour afternoon nap"], 
+                correct: 0, 
+                rationale: "Providing for sufficient periods of rest and sleep requires eight hours of night sleep and a two hour afternoon nap." 
+            },
+            { 
+                id: 16, 
+                question: "How soon after childbirth can a postpartum woman typically show signs of bladder distention due to normal postpartum diuresis?", 
+                options: ["One to two hours", "Three to four hours", "Five to six hours", "Seven to eight hours"], 
+                correct: 0, 
+                rationale: "A postpartum woman can quickly show signs of bladder distention, possibly as soon as one to two hours after childbirth, due to normal postpartum diuresis." 
+            },
+            { 
+                id: 17, 
+                question: "How often should vital signs be checked between the second hour and the end of the first twenty four hours postpartum?", 
+                options: ["Every four to six hours", "Every two to three hours", "Every six to eight hours", "Every eight to ten hours"], 
+                correct: 0, 
+                rationale: "After the second hour, vital signs should be checked every four to six hours until the end of the first twenty four hours." 
+            },
+            { 
+                id: 18, 
+                question: "What physiological change during pregnancy places postpartum women at an increased risk of developing deep vein thrombosis?", 
+                options: ["A hypercoagulable state", "A hypotensive state", "A hypervolemic state", "A hypoglycemic state"], 
+                correct: 0, 
+                rationale: "Post delivery women are at risk of deep vein thrombosis as a result of the hypercoagulable state established during pregnancy." 
+            },
+            { 
+                id: 19, 
+                question: "A physician will order catheterization if a postpartum woman fails to void completely for how many consecutive hours?", 
+                options: ["Eight hours", "Six hours", "Ten hours", "Twelve hours"], 
+                correct: 0, 
+                rationale: "Catheterization is ordered when the bladder is distended and no voiding has occurred in eight hours." 
+            },
+            { 
+                id: 20, 
+                question: "Which behavior should the nurse remain alert for when assessing the emotional status of a postpartum woman?", 
+                options: ["Extreme mood swings", "Increased physical energy", "Excessive social interaction", "Consistent independent care"], 
+                correct: 0, 
+                rationale: "When assessing the woman's emotional status, the nurse should be alert for mood swings, irritability, or crying episodes." 
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Physiology of Menstruation</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY ---
+        const rawQuizData = [
+            { 
+                id: 1, 
+                question: "What is the primary function of progesterone during the second half of the menstrual cycle?", 
+                options: [
+                    "Inducing secretory changes", 
+                    "Stimulating follicular growth", 
+                    "Initiating the menstrual flow", 
+                    "Reforming the basal layer"
+                ], 
+                correct: 0, 
+                rationale: "Progesterone, produced by the corpus luteum, causes secretory changes in the lining of the uterus which is mainly evident during the second half of the cycle." 
+            },
+            { 
+                id: 2, 
+                question: "Violent exercise is considered a normal activity that a girl should continue during her menstrual period.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "Menstrual hygiene guidelines state that a girl should carry on her usual work and activities except for violent exercise." 
+            },
+            { 
+                id: 3, 
+                question: "What effect do very high circulating levels of estrogens have on the secretion of pituitary gonadotropins?", 
+                options: [
+                    "Exert positive feedback", 
+                    "Exert negative feedback", 
+                    "Maintain stable secretion", 
+                    "Induce complete cessation"
+                ], 
+                correct: 0, 
+                rationale: "At very high levels, estrogens exert positive feedback on luteinizing hormone and follicle stimulating hormone secretion." 
+            },
+            { 
+                id: 4, 
+                question: "What is the average amount of blood lost during a normal menstrual cycle?", 
+                options: [
+                    "Fifty milliliters", 
+                    "Twenty milliliters", 
+                    "Ninety milliliters", 
+                    "Ten milliliters"
+                ], 
+                correct: 0, 
+                rationale: "The amount of blood loss ranges between 10-120 ml with an average of 50 ml." 
+            },
+            { 
+                id: 5, 
+                question: "The basal layer of the endometrium undergoes constant structural changes throughout the menstrual cycle.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The basal layer, which is about 1mm in thickness, never alters during the menstrual cycle." 
+            },
+            { 
+                id: 6, 
+                question: "Which substance is responsible for preventing menstrual blood from clotting?", 
+                options: [
+                    "Fibrinolysin", 
+                    "Progesterone", 
+                    "Gonadotrophin", 
+                    "Oestrogen"
+                ], 
+                correct: 0, 
+                rationale: "The presence of the enzyme fibrinolysin prevents the menstrual blood from clotting." 
+            },
+            { 
+                id: 7, 
+                question: "What represents the structural composition of the functional layer during the secretory phase?", 
+                options: [
+                    "Superficial compact and deeper spongy sections", 
+                    "Basal rudimentary and ciliated epithelial sections", 
+                    "Dehydrated necrotic and highly vascular sections", 
+                    "Tubular glandular and primordial follicular sections"
+                ], 
+                correct: 0, 
+                rationale: "During the secretory phase, the functional layer increases to 3.5mm and forms two layers: a superficial compact layer and a deeper spongy layer." 
+            },
+            { 
+                id: 8, 
+                question: "Follicle stimulating hormone production is halted when estrogen secretion reaches a specific threshold level.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "Follicle stimulating hormone stimulates the graafian follicle to secrete oestrogen. When its level reaches a certain point, FSH production is stopped via a negative feedback mechanism." 
+            },
+            { 
+                id: 9, 
+                question: "What structure forms immediately after the rupture of the graafian follicle?", 
+                options: [
+                    "Corpus luteum", 
+                    "Corpus albicans", 
+                    "Primordial follicle", 
+                    "Basal endometrium"
+                ], 
+                correct: 0, 
+                rationale: "After ovulation, the empty follicle collapses and is known as the corpus luteum, or yellow body." 
+            },
+            { 
+                id: 10, 
+                question: "What physiological change occurs as a direct result of progesterone secretion after ovulation?", 
+                options: [
+                    "Elevation of basal body temperature", 
+                    "Decrease in systemic blood pressure", 
+                    "Reduction of resting heart rate", 
+                    "Increase in cellular oxygenation"
+                ], 
+                correct: 0, 
+                rationale: "Progesterone causes the body temperature to rise by 0.5 degrees Celsius after ovulation." 
+            },
+            { 
+                id: 11, 
+                question: "Which phase of the uterine cycle is characterized by a dehydrated and necrotic endometrium?", 
+                options: [
+                    "Degenerative phase", 
+                    "Proliferative phase", 
+                    "Regenerative phase", 
+                    "Secretory phase"
+                ], 
+                correct: 0, 
+                rationale: "During the degenerative phase, the endometrium becomes dehydrated, necrotic, and starts shedding due to the withdrawal of oestrogen and progesterone." 
+            },
+            { 
+                id: 12, 
+                question: "The average length of a normal menstrual cycle is exactly twenty days.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The cycle length ranges between 21-35 days with an average of 28 days, not exactly 20 days." 
+            },
+            { 
+                id: 13, 
+                question: "Which gland governs the activity of the anterior pituitary gland through specific hormonal pathways?", 
+                options: [
+                    "Hypothalamus", 
+                    "Thyroid gland", 
+                    "Adrenal cortex", 
+                    "Ovarian medulla"
+                ], 
+                correct: 0, 
+                rationale: "The hypothalamus governs the anterior pituitary gland by hormonal pathways, specifically by producing gonadotrophin releasing factor." 
+            },
+            { 
+                id: 14, 
+                question: "What covers the functional layer of the endometrium at the end of the proliferative phase?", 
+                options: [
+                    "Cuboidal ciliated epithelium", 
+                    "Stratified squamous epithelium", 
+                    "Columnar secretory epithelium", 
+                    "Transitional basal epithelium"
+                ], 
+                correct: 0, 
+                rationale: "At the end of the proliferative phase, a layer of cuboidal ciliated epithelium covers the functional layer." 
+            },
+            { 
+                id: 15, 
+                question: "The entire supply of primordial follicles in the ovarian cortex is continuously generated after puberty.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The ovarian cortex contains 200,000 primordial follicles at birth, and they are not continuously generated after puberty." 
+            },
+            { 
+                id: 16, 
+                question: "What happens to the corpus luteum if fertilization does not occur within the female reproductive system?", 
+                options: [
+                    "It atrophies into a white body", 
+                    "It enlarges into a mature follicle", 
+                    "It sheds along with the endometrium", 
+                    "It moves toward the fallopian tube"
+                ], 
+                correct: 0, 
+                rationale: "Corpus luteum will eventually atrophy and become the Corpus albicans, which is known as the white body." 
+            },
+            { 
+                id: 17, 
+                question: "Which specific layers of the endometrium are shed monthly during the normal menstrual cycle?", 
+                options: [
+                    "Superficial compact and deeper spongy layers", 
+                    "Deep basal and rudimentary structural layers", 
+                    "Stratified squamous and myometrial layers", 
+                    "Ovarian cortical and primordial follicular layers"
+                ], 
+                correct: 0, 
+                rationale: "Menstruation is the shedding of a portion of the endometrium, specifically the compact and spongy layers, while the basal layer remains." 
+            },
+            { 
+                id: 18, 
+                question: "Which hormone is responsible for causing one specific graafian follicle to develop more than the others?", 
+                options: [
+                    "Follicle stimulating hormone", 
+                    "Luteinizing hormone", 
+                    "Progesterone hormone", 
+                    "Gonadotrophin releasing hormone"
+                ], 
+                correct: 0, 
+                rationale: "Follicle-Stimulating Hormone causes one of several graafian follicles to develop and enlarge more than all the others." 
+            },
+            { 
+                id: 19, 
+                question: "What type of cells enlarge and proliferate over the fourteen days following the release of an ovum?", 
+                options: [
+                    "Granulosa cells", 
+                    "Endometrial cells", 
+                    "Myometrial cells", 
+                    "Epithelial cells"
+                ], 
+                correct: 0, 
+                rationale: "After ovulation, the follicle collapses, and the granulosa cells enlarge and proliferate over the next 14 days to form the corpus luteum." 
+            },
+            { 
+                id: 20, 
+                question: "What dietary recommendation is explicitly advised for a girl experiencing menstruation?", 
+                options: [
+                    "Consuming a balanced adequate diet", 
+                    "Increasing iron supplement intake", 
+                    "Restricting daily fluid consumption", 
+                    "Avoiding heavily seasoned foods"
+                ], 
+                correct: 0, 
+                rationale: "A well-balanced and adequate diet to which the girl is accustomed should be taken during menstruation." 
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>
