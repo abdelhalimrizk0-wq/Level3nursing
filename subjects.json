@@ -6,7 +6,8 @@
     "emoji": "🤰",
     "color": "#ec4899",
     "department": "obgyn",
-    "lectures": [  {
+    "lectures": [ 
+      {
     "name": "1-Anatomy and Physiology of Female Reproductive System",
     "file": "quizzes/1-Anatomy and Physiology of Female Reproductive System.html",
     "questions": 0
