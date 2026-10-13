@@ -42,7 +42,13 @@
     "emoji": "🏥",
     "color": "#db2777",
     "department": "obgyn",
-    "lectures": []
+    "lectures": [
+        {
+    "name": "Gynecological Quizs",
+    "file": "quizzes/Gynecological Quizs.html",
+    "questions": 0
+  }
+    ]
   },
   {
     "id": "critical-care-2-practical",
