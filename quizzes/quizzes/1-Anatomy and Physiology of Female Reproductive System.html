@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Anatomy and Physiology of Female Reproductive System</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const rawQuizData = [
+            { 
+                id: 1, 
+                question: "Which structure helps to maintain the anteverted position of the uterus?", 
+                options: ["Round ligament", "Broad ligament", "Uterosacral ligament", "Transverse cervical ligament"], 
+                correct: 0, 
+                rationale: "The round ligament arises from the cornu of the uterus and passes through the inguinal canal to maintain the anteverted position of the uterus." 
+            },
+            { 
+                id: 2, 
+                question: "Which component is considered part of the superficial layer of the pelvic floor muscles?", 
+                options: ["Transverse perineal muscles", "Pubococcygeus muscle", "Iliococcygeus muscle", "Ischiococcygeus muscle"], 
+                correct: 0, 
+                rationale: "The transverse perineal muscles are part of the five muscles composing the superficial layer of the pelvic floor." 
+            },
+            { 
+                id: 3, 
+                question: "The left breast is typically larger than the right breast in most women.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "In most women, the left breast is often larger than the right as they are accessory organs of reproduction with varying sizes." 
+            },
+            { 
+                id: 4, 
+                question: "Which part of the fallopian tube is the wider portion where fertilization usually takes place?", 
+                options: ["Ampulla", "Isthmus", "Infundibulum", "Interstitial part"], 
+                correct: 0, 
+                rationale: "The ampulla is the wider part of the fallopian tube where the fertilization of the ovum typically occurs." 
+            },
+            { 
+                id: 5, 
+                question: "What is the normal weight of a nonpregnant uterus?", 
+                options: ["Sixty grams", "Forty grams", "Eighty grams", "Hundred grams"], 
+                correct: 0, 
+                rationale: "The measurements of a nonpregnant uterus include a normal weight of sixty grams." 
+            },
+            { 
+                id: 6, 
+                question: "Which type of female pelvis is characterized by a heart shaped brim?", 
+                options: ["Android pelvis", "Gynaecoid pelvis", "Anthropoid pelvis", "Platypelloid pelvis"], 
+                correct: 0, 
+                rationale: "The Android pelvis is classified chiefly by its heart shaped brim." 
+            },
+            { 
+                id: 7, 
+                question: "The normal environment of the vagina is strongly alkaline to prevent bacterial growth.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The medium of the vagina is strongly acidic due to the action of Doderlein bacilli, which prevents the growth of pathogenic bacteria." 
+            },
+            { 
+                id: 8, 
+                question: "Which glands are located on each side of the urethra and produce lubricating mucus?", 
+                options: ["Skene glands", "Bartholin glands", "Montgomery glands", "Sebaceous glands"], 
+                correct: 0, 
+                rationale: "Skene glands are located on each side of the urethra and produce mucus that helps to lubricate the vagina." 
+            },
+            { 
+                id: 9, 
+                question: "Which layer forms the inner lining of the uterus on a base of connective tissue?", 
+                options: ["Endometrium", "Myometrium", "Perimetrium", "Myoepithelium"], 
+                correct: 0, 
+                rationale: "The endometrium forms a lining of ciliated epithelium on a base of connective tissue and changes throughout the menstrual cycle." 
+            },
+            { 
+                id: 10, 
+                question: "The female pelvis consists of exactly five individual bones including three innominate bones.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The female pelvis consists of four pelvic bones: two innominate bones, one sacrum, and one coccyx." 
+            },
+            { 
+                id: 11, 
+                question: "What structure forms the anterior boundary of the pelvic inlet?", 
+                options: ["Inner border of symphysis pubis", "Sacral promontory", "Ischial tuberosities", "Iliac crest"], 
+                correct: 0, 
+                rationale: "The pelvic inlet is bounded anteriorly by the inner border of the symphysis pubis." 
+            },
+            { 
+                id: 12, 
+                question: "Which major blood vessel receives venous drainage directly from the right ovarian vein?", 
+                options: ["Inferior vena cava", "Left renal vein", "Internal iliac vein", "Superior vena cava"], 
+                correct: 0, 
+                rationale: "The right ovarian vein joins the inferior vena cava, whereas the left ovarian vein returns its blood to the left renal vein." 
+            },
+            { 
+                id: 13, 
+                question: "What is the specific term for the widened portion of the lactiferous duct where milk is stored?", 
+                options: ["Ampulla", "Alveolus", "Acinus", "Tubule"], 
+                correct: 0, 
+                rationale: "The ampulla is the widened out portion of the lactiferous duct lying under the areola where milk is stored." 
+            },
+            { 
+                id: 14, 
+                question: "The uterus naturally leans forward and bends forward upon itself.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "The normal position of the uterus leans forward, known as anteversion, and it bends forward on itself, known as anteflexion." 
+            },
+            { 
+                id: 15, 
+                question: "Which pelvic joint connects the base of the coccyx to the tip of the sacrum?", 
+                options: ["Sacrococcygeal joint", "Symphysis pubis joint", "Sacroiliac joint", "Interpubic joint"], 
+                correct: 0, 
+                rationale: "The sacrococcygeal joint joins the base of the coccyx to the tip of the sacrum." 
+            },
+            { 
+                id: 16, 
+                question: "What is the approximate length of the posterior vaginal wall?", 
+                options: ["Eight to ten centimeters", "Five to seven centimeters", "Three to five centimeters", "Ten to twelve centimeters"], 
+                correct: 0, 
+                rationale: "The posterior wall of the vagina is approximately eight to ten centimeters long, while the anterior wall is shorter." 
+            },
+            { 
+                id: 17, 
+                question: "The perimetrium is the thickest muscle layer of the uterine wall.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The myometrium is the thick middle muscle layer of the uterus. The perimetrium is the outer double serous membrane." 
+            },
+            { 
+                id: 18, 
+                question: "Which structure is a highly vascular projection corresponding to the male penis?", 
+                options: ["Clitoris", "Vestibule", "Fourchette", "Hymen"], 
+                correct: 0, 
+                rationale: "The clitoris is composed of erectile tissue, is highly vascular, and corresponds to the male penis." 
+            },
+            { 
+                id: 19, 
+                question: "Which section of the ovary contains the developing ovarian follicles?", 
+                options: ["Outer cortex layer", "Inner medulla layer", "Central hilum area", "Tunica albuginea"], 
+                correct: 0, 
+                rationale: "The cortex is the functioning part of the ovary that contains the ovarian follicles in different stages of development." 
+            },
+            { 
+                id: 20, 
+                question: "Which component is strictly part of the false pelvis rather than the true pelvis?", 
+                options: ["Upper flared portions of iliac bones", "Pelvic brim", "Pelvic cavity", "Pelvic outlet"], 
+                correct: 0, 
+                rationale: "The false pelvis is formed by the upper flared-out portions of the iliac bones and is situated above the pelvic inlet." 
+            },
+            { 
+                id: 21, 
+                question: "The areola contains approximately twenty sebaceous glands that enlarge during pregnancy.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "Within the areola lie approximately twenty sebaceous glands which enlarge in pregnancy and are known as Montgomery tubercles." 
+            },
+            { 
+                id: 22, 
+                question: "What is the narrow area located between the uterine cavity and the cervix?", 
+                options: ["Isthmus", "Fundus", "Corpus", "Cornua"], 
+                correct: 0, 
+                rationale: "The isthmus is a narrow area between the cavity and the cervix which enlarges during pregnancy to form the lower uterine segment." 
+            },
+            { 
+                id: 23, 
+                question: "Which muscle acts as a strong diaphragm slung like a hammock from the pelvic walls?", 
+                options: ["Levator ani muscle", "Bulbocavernosus muscle", "Ischiocavernosus muscle", "Transverse perineal muscle"], 
+                correct: 0, 
+                rationale: "The levator ani muscle forms the deep layer of the pelvic floor and is a strong diaphragm slung like a hammock." 
+            },
+            { 
+                id: 24, 
+                question: "The external anal sphincter is a component of the deep layer of pelvic floor muscles.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The external anal sphincter is one of the five muscles that compose the superficial layer of the pelvic floor." 
+            },
+            { 
+                id: 25, 
+                question: "What defines the shape of the Anthropoid pelvis brim?", 
+                options: ["Oval brim", "Kidney shaped brim", "Rounded brim", "Heart shaped brim"], 
+                correct: 0, 
+                rationale: "The Anthropoid pelvis is classified by its characteristic oval brim." 
+            },
+            { 
+                id: 26, 
+                question: "Which structures produce estrogen and progesterone to prepare the breasts for lactation?", 
+                options: ["Ovaries and placenta", "Pituitary and hypothalamus", "Adrenal and thyroid glands", "Pancreas and liver"], 
+                correct: 0, 
+                rationale: "During pregnancy, the ovaries and placenta produce estrogen and progesterone to prepare the breasts structurally for lactation." 
+            },
+            { 
+                id: 27, 
+                question: "What is the standard transverse diameter of the female pelvic brim?", 
+                options: ["Thirteen centimeters", "Eleven centimeters", "Twelve centimeters", "Ten centimeters"], 
+                correct: 0, 
+                rationale: "The transverse diameter of the normal female pelvic brim is thirteen centimeters." 
+            },
+            { 
+                id: 28, 
+                question: "The ovaries are attached to the back of the broad ligaments by the mesovarium.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "The ovaries are small organs securely attached to the back of the broad ligaments by the mesovarium." 
+            },
+            { 
+                id: 29, 
+                question: "Which ligament passes backwards from the sides of the isthmus to the sacrum?", 
+                options: ["Uterosacral ligament", "Round ligament", "Transverse cervical ligament", "Pubocervical ligament"], 
+                correct: 0, 
+                rationale: "The uterosacral ligament passes backwards from the sides of the isthmus directly to the sacrum." 
+            },
+            { 
+                id: 30, 
+                question: "Which of the following describes a nipple that is completely flush with the surrounding skin?", 
+                options: ["Flat nipple", "Bifid nipple", "Retracted nipple", "Depressed nipple"], 
+                correct: 0, 
+                rationale: "A flat nipple is defined as being precisely at the level of the surrounding skin." 
+            },
+            { 
+                id: 31, 
+                question: "The false pelvis is situated completely below the level of the pelvic inlet.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The false pelvis is situated above the pelvic inlet, while the true pelvis lies below it." 
+            },
+            { 
+                id: 32, 
+                question: "What anatomical structure forms the upper outer angles of the uterus where fallopian tubes join?", 
+                options: ["Cornua", "Fundus", "Corpus", "Isthmus"], 
+                correct: 0, 
+                rationale: "The cornua are the specific upper outer angles of the uterus where the fallopian tubes attach." 
+            },
+            { 
+                id: 33, 
+                question: "Which distinct bone structures combine to form one complete innominate bone?", 
+                options: ["Ilium ischium and pubis", "Sacrum and coccyx", "Femur and tibia", "Radius and ulna"], 
+                correct: 0, 
+                rationale: "Each innominate or hip bone is composed of three fused parts: the ilium, ischium, and pubis." 
+            },
+            { 
+                id: 34, 
+                question: "Which structures form the four spaces surrounding the cervix at the upper end of the vagina?", 
+                options: ["Fornices", "Vestibules", "Ampullae", "Infundibula"], 
+                correct: 0, 
+                rationale: "The vaginal vault forms four fornices around the projecting cervix: anterior, posterior, and two lateral fornices." 
+            },
+            { 
+                id: 35, 
+                question: "The vestibule essentially forms an oval space containing openings to both the urethra and vagina.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "The vestibule is an oval-shaped space between the labia minora that contains the urethral and vaginal openings." 
+            },
+            { 
+                id: 36, 
+                question: "Which organisms are normal inhabitants that maintain the acidic medium of the vagina?", 
+                options: ["Doderlein bacilli", "Staphylococcus aureus", "Escherichia coli", "Candida albicans"], 
+                correct: 0, 
+                rationale: "Doderlein bacilli are normal inhabitants of the vagina that create a strongly acidic medium to prevent pathogenic growth." 
+            },
+            { 
+                id: 37, 
+                question: "What is a distinguishing characteristic of the male pelvis compared to the female pelvis?", 
+                options: ["Prominent ischial spines", "Wider sciatic notch", "Shallower pelvic cavity", "Straight side walls"], 
+                correct: 0, 
+                rationale: "The male pelvis has prominent ischial spines, convergent side walls, and is longer and narrower than the female pelvis." 
+            },
+            { 
+                id: 38, 
+                question: "Which breast cells surround the alveoli and contract to propel milk into the ducts?", 
+                options: ["Myoepithelial cells", "Acinar cells", "Squamous cells", "Columnar cells"], 
+                correct: 0, 
+                rationale: "Myoepithelial cells lie around each alveolus and contract to propel the milk into the lactiferous duct." 
+            },
+            { 
+                id: 39, 
+                question: "Endocrine activity during pregnancy causes pelvic ligaments to harden.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "During pregnancy, endocrine activity causes the pelvic ligaments to soften, providing more room for the fetal head." 
+            },
+            { 
+                id: 40, 
+                question: "Which part of the fallopian tube features many processes including the ovarian fimbria?", 
+                options: ["Infundibulum", "Ampulla", "Isthmus", "Interstitial part"], 
+                correct: 0, 
+                rationale: "The infundibulum is the funnel-shaped end of the fallopian tube composed of many processes known as fimbriae." 
+            },
+            { 
+                id: 41, 
+                question: "What is the standard length of a nonpregnant uterus?", 
+                options: ["Seven and a half centimeters", "Five and a half centimeters", "Two and a half centimeters", "Ten and a half centimeters"], 
+                correct: 0, 
+                rationale: "The measurements of a normal non-pregnant uterus include a length of seven and a half centimeters." 
+            },
+            { 
+                id: 42, 
+                question: "Which anatomical structure lies directly posterior to the fundus and body of the uterus?", 
+                options: ["Sigmoid colon", "Urinary bladder", "Uterine artery", "Rectum"], 
+                correct: 0, 
+                rationale: "The sigmoid colon sits posterior to the fundus, body, and supravaginal part of the cervix of the uterus." 
+            },
+            { 
+                id: 43, 
+                question: "The space enclosed by the body of the pubic bone and the ischium is known by what name?", 
+                options: ["Obturator foramen", "Sciatic notch", "Iliac fossa", "Sacral hollow"], 
+                correct: 0, 
+                rationale: "The space enclosed by the body of the pubic bone, the rami, and the ischium is called the obturator foramen." 
+            },
+            { 
+                id: 44, 
+                question: "The labia minora unite posteriorly to form which specific external structure?", 
+                options: ["Fourchette", "Vestibule", "Clitoris", "Perineum"], 
+                correct: 0, 
+                rationale: "The labia minora enclose the clitoris anteriorly and unite posteriorly to form the fourchette." 
+            },
+            { 
+                id: 45, 
+                question: "What term describes the breast tissue extending outward towards the axilla?", 
+                options: ["Axillary tail", "Lactiferous duct", "Montgomery tubercle", "Suspensory ligament"], 
+                correct: 0, 
+                rationale: "The axillary tail of Spence is the breast tissue that extends towards the axilla." 
+            },
+            { 
+                id: 46, 
+                question: "Into approximately how many lobes is the glandular tissue of the female breast divided?", 
+                options: ["Eighteen lobes", "Ten lobes", "Twenty four lobes", "Twelve lobes"], 
+                correct: 0, 
+                rationale: "The glandular tissue of the breast is divided into about eighteen distinct lobes separated by fibrous tissue." 
+            },
+            { 
+                id: 47, 
+                question: "What is the exact length of the narrow isthmus section extending from the uterus?", 
+                options: ["Two centimeters", "Five centimeters", "Seven centimeters", "Ten centimeters"], 
+                correct: 0, 
+                rationale: "The isthmus is a narrow part of the fallopian tube which extends for two centimeters from the uterus." 
+            },
+            { 
+                id: 48, 
+                question: "Which of the following organs lies immediately anterior to the vagina?", 
+                options: ["Urethra and bladder", "Rectum and Douglas pouch", "Perineal body", "Sigmoid colon"], 
+                correct: 0, 
+                rationale: "Anatomically, the urethra and bladder are located directly anterior to the vagina." 
+            },
+            { 
+                id: 49, 
+                question: "The subpubic angle of a normal female pelvis is ninety degrees.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "The sub-pubic angle of the female pelvis is normally 90 degrees, whereas in males it is less than 90 degrees." 
+            },
+            { 
+                id: 50, 
+                question: "Which ligament provides anterior support from the cervix under the bladder to the pubic bones?", 
+                options: ["Pubocervical ligament", "Uterosacral ligament", "Transverse cervical ligament", "Broad ligament"], 
+                correct: 0, 
+                rationale: "The pubo-cervical ligament passes forwards from the cervix, under the bladder directly to the pubic bones." 
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

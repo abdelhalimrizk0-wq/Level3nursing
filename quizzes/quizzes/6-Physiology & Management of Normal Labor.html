@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Physiology of Normal Labor and Delivery Quiz</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const rawQuizData = [
+            { 
+                id: 1, 
+                question: "What is the recommended fluid intake per hour during early labor?", 
+                options: ["Twenty five milliliters per hour", "Fifty milliliters per hour", "Seventy five milliliters per hour", "One hundred milliliters per hour"], 
+                correct: 2, 
+                rationale: "During early labor, the woman should receive about 75 ml of fluid per hour to maintain energy and prevent dehydration." 
+            },
+            { 
+                id: 2, 
+                question: "Which component constitutes the primary powers of labor?", 
+                options: ["Voluntary abdominal muscle contractions", "Involuntary uterine muscle contractions", "Downward diaphragmatic pressure", "Natural pelvic floor resistance"], 
+                correct: 1, 
+                rationale: "The primary powers refer strictly to the involuntary contractions and retractions of the uterine muscles." 
+            },
+            { 
+                id: 3, 
+                question: "The partograph is a multiple page chart used exclusively after the delivery of the placenta.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The partograph is a single page graphic chart designed to record information about the woman and fetus during labor, not after." 
+            },
+            { 
+                id: 4, 
+                question: "How long does the fourth stage of labor typically last?", 
+                options: ["One to four consecutive hours", "Four to eight consecutive hours", "Eight to twelve consecutive hours", "Twelve to twenty four consecutive hours"], 
+                correct: 0, 
+                rationale: "The fourth stage begins with expulsion of the placenta and ends with initial physiologic adjustment, lasting 1 to 4 hours." 
+            },
+            { 
+                id: 5, 
+                question: "Which finding is a sign of fetal distress during labor?", 
+                options: ["Fetal heart rate of one forty beats", "Passage of meconium in cephalic presentation", "Complete absence of caput succedaneum", "Presence of normal active fetal movements"], 
+                correct: 1, 
+                rationale: "Passage of meconium while the fetus is in a cephalic presentation is a classical sign of fetal distress." 
+            },
+            { 
+                id: 6, 
+                question: "Which term describes the shortening and thinning of the cervical canal?", 
+                options: ["Cervical dilatation", "Cervical effacement", "Fetal engagement", "Fetal descent"], 
+                correct: 1, 
+                rationale: "Effacement is the process where the cervical canal shortens and thins out, emerging into the lower uterine segment." 
+            },
+            { 
+                id: 7, 
+                question: "What is a major advantage of the left lateral position during labor?", 
+                options: ["Increases voluntary maternal pushing efforts", "Decreases liability for perineal lacerations", "Facilitates continuous fetal heart monitoring", "Eliminates the need for an episiotomy procedure"], 
+                correct: 1, 
+                rationale: "The left lateral position decreases the liability for perineal lacerations and allows easy removal of feces." 
+            },
+            { 
+                id: 8, 
+                question: "What is the primary purpose of the cardinal movements of labor?", 
+                options: ["Prevent serious umbilical cord prolapse", "Adapt the fetal position to the pelvis", "Stimulate natural maternal oxytocin release", "Decrease the overall duration of contractions"], 
+                correct: 1, 
+                rationale: "The cardinal movements are important modifications in the attitude of the fetus to adapt to the maternal pelvis." 
+            },
+            { 
+                id: 9, 
+                question: "Solid food is highly recommended during active labor to maintain maternal energy.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "Solid food is usually avoided during active labor because gastric emptying is prolonged and it may cause aspiration if anesthesia is needed." 
+            },
+            { 
+                id: 10, 
+                question: "What characterizes true labor contractions?", 
+                options: ["Regular intervals that gradually decrease", "Irregular intervals that remain constant", "Pain strictly confined to the groin area", "Relief of discomfort upon maternal walking"], 
+                correct: 0, 
+                rationale: "True labor is characterized by contractions at regular intervals that gradually decrease in frequency." 
+            },
+            { 
+                id: 11, 
+                question: "When should a multiparous woman be transferred to the delivery room?", 
+                options: ["Cervix dilated three centimeters", "Cervix dilated five centimeters", "Cervix dilated seven centimeters", "Cervix dilated ten centimeters"], 
+                correct: 2, 
+                rationale: "A multipara is transferred to the delivery room when the cervix is 7-8 cm dilated." 
+            },
+            { 
+                id: 12, 
+                question: "What is an example of a non pharmacological pain relief method?", 
+                options: ["Regional epidural anesthesia", "Transcutaneous electrical stimulation", "Intravenous opioid analgesics", "Intramuscular narcotic injections"], 
+                correct: 1, 
+                rationale: "Transcutaneous electrical nerve stimulation is a non-pharmacological measure that divert the mother's concentration away from pain." 
+            },
+            { 
+                id: 13, 
+                question: "Which term refers to the neuromuscular harmony between the upper and lower uterine segments?", 
+                options: ["Cervical effacement", "Uterine retraction", "Neuromuscular polarity", "Fetal engagement"], 
+                correct: 2, 
+                rationale: "Polarity is defined as the neuromuscular harmony between the functions of the upper and lower uterine segments." 
+            },
+            { 
+                id: 14, 
+                question: "Maternal temperature should be checked and recorded every four hours during labor.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "Routine maternal care during labor includes checking and recording the temperature every 4 hours." 
+            },
+            { 
+                id: 15, 
+                question: "What is the normal range for fetal heart rate during labor?", 
+                options: ["Eighty to one hundred beats", "One hundred to one twenty beats", "One twenty to one sixty beats", "One sixty to two hundred beats"], 
+                correct: 2, 
+                rationale: "The normal range for fetal heart rate is 120-160 beats per minute." 
+            },
+            { 
+                id: 16, 
+                question: "How long does the latent phase typically last for a nulliparous woman?", 
+                options: ["Approximately three hours", "Approximately six hours", "Approximately nine hours", "Approximately twelve hours"], 
+                correct: 2, 
+                rationale: "For a nulliparous woman, the latent phase typically lasts about 9 hours." 
+            },
+            { 
+                id: 17, 
+                question: "Which sign indicates maternal distress during labor?", 
+                options: ["Pulse rate below eighty beats", "Presence of dark colored vomitus", "Significantly increased blood pressure", "Flushed and relaxed facial appearance"], 
+                correct: 1, 
+                rationale: "Dark vomitus is listed as one of the definitive signs of maternal distress during labor." 
+            },
+            { 
+                id: 18, 
+                question: "What fluid remains after the descent of the forewater?", 
+                options: ["Fresh amniotic fluid", "Residual hind water", "Thick Wharton jelly", "Dark meconium fluid"], 
+                correct: 1, 
+                rationale: "The trickles of amniotic fluid in the bulged part are forewater, while the remaining fluid is called hind water." 
+            },
+            { 
+                id: 19, 
+                question: "Lightening occurs in primiparas approximately ten to fourteen days before labor begins.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "In primiparas, lightening is typically observed 10 to 14 days before labor begins." 
+            },
+            { 
+                id: 20, 
+                question: "Why is an enema avoided in cases of severe preeclampsia?", 
+                options: ["It can stimulate severe convulsions", "It increases the maternal heart load", "It causes premature membrane rupture", "It leads to abnormal fetal presentation"], 
+                correct: 0, 
+                rationale: "Cleansing enemas are contraindicated in severe pre-eclampsia because they can stimulate convulsions." 
+            },
+            { 
+                id: 21, 
+                question: "What defines preterm labor based on gestational age?", 
+                options: ["Less than thirty weeks of gestation", "Less than thirty four weeks of gestation", "Less than thirty seven weeks of gestation", "Less than forty weeks of gestation"], 
+                correct: 2, 
+                rationale: "Preterm labor is defined as labor occurring at less than 37 completed weeks of gestation." 
+            },
+            { 
+                id: 22, 
+                question: "What does station zero indicate during a vaginal examination?", 
+                options: ["Presenting part is at the pelvic inlet", "Presenting part is at the ischial spines", "Presenting part is at the pelvic outlet", "Presenting part is floating completely"], 
+                correct: 1, 
+                rationale: "Station 0 means the presenting fetal part is exactly at the level of the maternal ischial spines." 
+            },
+            { 
+                id: 23, 
+                question: "The dorsal recumbent position is recommended to prevent supine hypotension.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The dorsal recumbent position is explicitly avoided because it may result in supine hypotension and lead to fetal distress." 
+            },
+            { 
+                id: 24, 
+                question: "What maternal action characterizes the second stage of labor?", 
+                options: ["Involuntary bearing down efforts", "Voluntary deep breathing exercises", "Decreased bloody mucous discharge", "Continuous maternal ambulation"], 
+                correct: 0, 
+                rationale: "The woman starts to push, resulting in involuntary bearing down and contractions of the abdominal muscles." 
+            },
+            { 
+                id: 25, 
+                question: "Which maternal factor stimulates oxytocin release?", 
+                options: ["Pressure exerted on the cervix", "Decreased fetal cortical levels", "Increased progesterone output", "Progressive placental aging"], 
+                correct: 0, 
+                rationale: "Pressure on the cervix stimulates the release of oxytocin by the maternal posterior pituitary gland." 
+            },
+            { 
+                id: 26, 
+                question: "How often do contractions occur during the active phase of labor?", 
+                options: ["Every one to two minutes", "Every three to five minutes", "Every ten to fifteen minutes", "Every twenty to thirty minutes"], 
+                correct: 1, 
+                rationale: "During the active phase, contractions occur approximately every 3 to 5 minutes." 
+            },
+            { 
+                id: 27, 
+                question: "Anxiety related to the impending labor and delivery is a valid nursing diagnosis.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "Anxiety related to impending labor and delivery is explicitly listed under nursing diagnoses for the first stage." 
+            },
+            { 
+                id: 28, 
+                question: "What is the correct action if the umbilical cord is tightly looped around the infant neck?", 
+                options: ["Wait for the placenta to fully detach", "Push the fetus back into the uterus", "Clamp and cut the umbilical cord immediately", "Administer maternal oxygen via mask quickly"], 
+                correct: 2, 
+                rationale: "If the cord is tightly looped around the neck, the attendant must clamp and cut it immediately." 
+            },
+            { 
+                id: 29, 
+                question: "A fetal head entirely above the symphysis pubis is recorded as which palpable measurement?", 
+                options: ["Zero fifths palpable", "Two fifths palpable", "Three fifths palpable", "Five fifths palpable"], 
+                correct: 3, 
+                rationale: "A head that is entirely above the symphysis pubis is recorded as five-fifths palpable." 
+            },
+            { 
+                id: 30, 
+                question: "What biochemical change occurs as term approaches regarding maternal hormones?", 
+                options: ["Increased availability of maternal progesterone", "Decreased ratio of estrogen to progesterone", "Decreased availability of maternal progesterone", "Decreased release of uterine prostaglandins"], 
+                correct: 2, 
+                rationale: "Biochemical changes cause a decreased availability of progesterone, which normally relaxes smooth muscle." 
+            },
+            { 
+                id: 31, 
+                question: "The secondary powers of labor involve the abdominal muscles and the diaphragm.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "Secondary powers refer to the power of the abdominal muscles and diaphragm in the form of bearing down efforts." 
+            },
+            { 
+                id: 32, 
+                question: "What medication is typically given after the delivery of the anterior shoulder to prevent bleeding?", 
+                options: ["Continuous oxytocin intravenous infusion", "Syntometrine via intramuscular injection", "Prostaglandin via vaginal suppository", "Magnesium sulfate via intravenous push"], 
+                correct: 1, 
+                rationale: "The woman is given IM Syntometrine after the delivery of the infant's anterior shoulder to prevent bleeding." 
+            },
+            { 
+                id: 33, 
+                question: "Why is a full bladder detrimental during labor?", 
+                options: ["Causes weak and poor uterine contractions", "Accelerates rapid fetal head descent", "Prevents premature rupture of membranes", "Decreases severe maternal pelvic pain"], 
+                correct: 0, 
+                rationale: "A full bladder causes poor uterine contractions, postpartum hemorrhage, and increases pain." 
+            },
+            { 
+                id: 34, 
+                question: "What is the period during which a contraction reaches its peak?", 
+                options: ["The increment phase", "The acme phase", "The decrement phase", "The relaxation phase"], 
+                correct: 1, 
+                rationale: "The acme is the period during which the contraction reaches its peak or strongest state." 
+            },
+            { 
+                id: 35, 
+                question: "What is the maximum duration of normal labor?", 
+                options: ["Maximum of twelve hours", "Maximum of eighteen hours", "Maximum of twenty four hours", "Maximum of thirty six hours"], 
+                correct: 2, 
+                rationale: "A key characteristic of normal labor is that the total time does not exceed 24 hours." 
+            },
+            { 
+                id: 36, 
+                question: "Premature rupture of membranes can lead to a prolapsed umbilical cord if the presenting part is not engaged.", 
+                options: ["True", "False"], 
+                correct: 0, 
+                rationale: "Premature rupture may lead to a prolapsed cord if the presenting part does not adequately fill the pelvic inlet." 
+            },
+            { 
+                id: 37, 
+                question: "Why is an enema contraindicated during the second stage of labor?", 
+                options: ["To prevent uterine muscle rupture", "To avoid retention of the fluid", "To decrease maternal cardiac load", "To prevent acute fetal distress"], 
+                correct: 1, 
+                rationale: "An enema is avoided during the second stage of labor specifically to avoid retention of the enema." 
+            },
+            { 
+                id: 38, 
+                question: "Post term labor occurs beyond which completed week of gestation?", 
+                options: ["Thirty eight completed weeks", "Forty completed weeks", "Forty two completed weeks", "Forty four completed weeks"], 
+                correct: 2, 
+                rationale: "Post term labor is defined as labor occurring beyond 42 completed weeks of gestation." 
+            },
+            { 
+                id: 39, 
+                question: "What percentage of placentas separate using the Schultze mechanism?", 
+                options: ["Forty percent of total cases", "Sixty percent of total cases", "Eighty percent of total cases", "Ninety percent of total cases"], 
+                correct: 2, 
+                rationale: "Approximately 80 percent of placentas separate and present via the Schultze presentation." 
+            },
+            { 
+                id: 40, 
+                question: "Uterine contractions during the first stage of labor are completely voluntary.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The primary powers of labor, which are uterine contractions, are described as quite involuntary." 
+            },
+            { 
+                id: 41, 
+                question: "During the transitional phase what is the expected cervical dilatation?", 
+                options: ["Two to three centimeters", "Four to seven centimeters", "Eight to ten centimeters", "Ten to twelve centimeters"], 
+                correct: 2, 
+                rationale: "The transitional phase of the first stage of labor is characterized by a cervical dilatation of 8 to 10 centimeters." 
+            },
+            { 
+                id: 42, 
+                question: "What indicates placental separation?", 
+                options: ["Gradual shortening of the umbilical cord", "Sudden gush of fresh vaginal blood", "Uterus becoming larger and softer", "Sudden decrease in maternal pulse"], 
+                correct: 1, 
+                rationale: "Signs of placental separation include a sudden gush of fresh blood from the vagina, cord lengthening, and the uterus becoming smaller and harder." 
+            },
+            { 
+                id: 43, 
+                question: "Which sign contraindicates ambulation during the first stage of labor?", 
+                options: ["Intact fetal amniotic membranes", "Normal maternal blood pressure", "Presence of active vaginal bleeding", "Latent phase uterine contractions"], 
+                correct: 2, 
+                rationale: "Women should stay in bed and not walk in the case of bleeding, pregnancy induced hypertension, or ruptured membranes." 
+            },
+            { 
+                id: 44, 
+                question: "The second stage of labor ends with which event?", 
+                options: ["Complete cervical dilatation", "Complete delivery of the fetus", "Complete delivery of placenta", "Complete cervical effacement"], 
+                correct: 1, 
+                rationale: "The second stage of labor begins with complete dilatation and ends specifically with the delivery of the fetus." 
+            },
+            { 
+                id: 45, 
+                question: "At what distance from the baby's abdomen should the first cord tie be placed?", 
+                options: ["One centimeter from the abdomen", "Two centimeters from the abdomen", "Three centimeters from the abdomen", "Four centimeters from the abdomen"], 
+                correct: 1, 
+                rationale: "The ties are placed tightly around the cord at 2 cm and 5 cm from the baby's abdomen." 
+            },
+            { 
+                id: 46, 
+                question: "What is a characteristic of Braxton Hicks contractions?", 
+                options: ["Intensified by continuous walking", "Relieved by changing body position", "Accompanied by heavy bloody show", "Characterized by regular intervals"], 
+                correct: 1, 
+                rationale: "Braxton Hicks or false contractions often cause discomfort that is relieved by changing position." 
+            },
+            { 
+                id: 47, 
+                question: "How does a Schultze presentation of the placenta appear?", 
+                options: ["Shiny fetal surface visible", "Raw maternal surface visible", "Dull maternal surface visible", "Dark lateral surface visible"], 
+                correct: 0, 
+                rationale: "The Schultze presentation occurs when the fetal surface is evident, appearing shiny." 
+            },
+            { 
+                id: 48, 
+                question: "The Duncan presentation occurs when the placenta separates first at its center and folds like an umbrella.", 
+                options: ["True", "False"], 
+                correct: 1, 
+                rationale: "The Schultze presentation involves separating at the center and folding like an umbrella. The Duncan presentation occurs when it separates at the edges." 
+            },
+            { 
+                id: 49, 
+                question: "When is the primigravida instructed to start pushing?", 
+                options: ["During the active transition phase", "While the head is actually being born", "When instructed during a contraction", "Between consecutive uterine contractions"], 
+                correct: 2, 
+                rationale: "She should only push when instructed during a contraction and must desist while the head is actually being born." 
+            },
+            { 
+                id: 50, 
+                question: "Why is cord cutting delayed for one to two minutes after birth?", 
+                options: ["Prevent immediate maternal hemorrhage", "Facilitate rapid placental separation", "Avoid potential neonatal anemia", "Stimulate independent neonatal breathing"], 
+                correct: 2, 
+                rationale: "Delaying cord cutting allows an increased amount of blood to be transfused into the fetal circulation, helping avoid neonatal anemia." 
+            }
+        ];
+
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

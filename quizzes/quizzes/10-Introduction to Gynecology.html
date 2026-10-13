@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Introduction to Gynecology and Gynecological Nursing</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 50 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which timeframe accurately confirms the permanent cessation of menstruation marking the onset of menopause?",
+                options: ["Six consecutive months", "Twelve consecutive months", "Eighteen consecutive months", "Twenty four consecutive months"],
+                correct: 1,
+                rationale: "Menopause is officially recognized after twelve consecutive months of amenorrhea."
+            },
+            {
+                id: 2,
+                question: "Culdoscopy is typically performed under general anesthesia to ensure complete patient sedation.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Culdoscopy is performed under local anesthesia, not general anesthesia."
+            },
+            {
+                id: 3,
+                question: "What is the recommended timeframe for a patient to avoid vaginal douching and sexual intercourse prior to a Pap smear procedure?",
+                options: ["Twelve hours", "Twenty four hours", "Forty eight hours", "Seventy two hours"],
+                correct: 2,
+                rationale: "The woman is instructed to avoid vaginal douching, sexual intercourse, and vaginal medications for the following 48 hours before the procedure."
+            },
+            {
+                id: 4,
+                question: "Which pelvic condition is impossible to identify using a standard hysterosalpingogram procedure?",
+                options: ["Uterine cavity irregularity", "Fallopian tube blockage", "Pelvic adhesions", "Uterine cavity shape"],
+                correct: 2,
+                rationale: "This specific test cannot identify the existence of pelvic adhesions."
+            },
+            {
+                id: 5,
+                question: "What substance is applied to the cervix during a colposcopy to stain unhealthy squamous epithelium white?",
+                options: ["Iodine solution", "Acetic acid", "Contrast medium", "Blue dye"],
+                correct: 1,
+                rationale: "The examiner applies acetic acid to the cervix which stains unhealthy cells with a white color."
+            },
+            {
+                id: 6,
+                question: "Superficial dyspareunia describes pain felt at the cervix and the vault of the vagina.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Superficial dyspareunia is pain felt at or near the entrance of the vagina. Deep dyspareunia involves the cervix or vault."
+            },
+            {
+                id: 7,
+                question: "Where is the primary surgical incision typically made during a diagnostic laparoscopy?",
+                options: ["Suprapubic area", "Umbilical area", "Inguinal area", "Subcostal area"],
+                correct: 1,
+                rationale: "Laparoscopy is performed for direct examination of the intraabdominal cavity through an umbilical and paraumbilical incision."
+            },
+            {
+                id: 8,
+                question: "What is a primary therapeutic indication for the application of vaginal packing?",
+                options: ["Diagnosing cervical erosion", "Healing ulcerated prolapsed uterus", "Preventing vaginal dryness", "Treating bacterial vaginosis"],
+                correct: 1,
+                rationale: "Vaginal packing is indicated to reduce edema and aid in the healing of an ulcerated prolapsed uterus."
+            },
+            {
+                id: 9,
+                question: "Which medical term describes irregular uterine bleeding that occurs between regular menstrual periods?",
+                options: ["Amenorrhea", "Menorrhagia", "Metrorrhagia", "Dysmenorrhea"],
+                correct: 2,
+                rationale: "Metrorrhagia is uterine bleeding between regular menstrual periods or after menopause."
+            },
+            {
+                id: 10,
+                question: "Frequent vaginal douching increases the probability of developing bacterial vaginosis by five times.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Women who douche often are five times more likely to develop bacterial vaginosis than women who do not douche."
+            },
+            {
+                id: 11,
+                question: "When is the optimal time to perform cervical cauterization to promote effective tissue healing?",
+                options: ["During the menstrual period", "In the premenstrual period", "In the postmenstrual period", "During the ovulation phase"],
+                correct: 2,
+                rationale: "It should be performed in the post menstrual period to give a good chance for healing before the next period."
+            },
+            {
+                id: 12,
+                question: "What specific bladder state is required when an ultrasound examination is performed transvaginally?",
+                options: ["Partially full bladder", "Completely full bladder", "Completely empty bladder", "Overdistended bladder"],
+                correct: 2,
+                rationale: "The examination may be made transeabdominally through a full bladder, or transvaginally when the bladder is empty."
+            },
+            {
+                id: 13,
+                question: "Secondary bleeding is a recognized potential complication following a cervical cauterization procedure.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Complications of cauterization include ascending infection and secondary bleeding."
+            },
+            {
+                id: 14,
+                question: "Which muscles experience recurrent involuntary spasms causing interference with coitus in vaginismus?",
+                options: ["Rectus abdominis and oblique muscles", "Pubococcygeus and levator ani muscles", "Bulbospongiosus and ischiocavernosus muscles", "Iliopsoas and quadratus lumborum muscles"],
+                correct: 1,
+                rationale: "Vaginismus is the recurrent involuntary spasm of the pubococcygeus and levator ani muscles."
+            },
+            {
+                id: 15,
+                question: "Which specific anatomical location must the pessary rest against first during a supporting insertion procedure?",
+                options: ["Anterior vaginal fornix", "Posterior vaginal fornix", "Lateral vaginal wall", "Cervical os opening"],
+                correct: 1,
+                rationale: "The pessary is compressed between the fingers before being inserted and positioned, to rest first in the posterior vaginal fornix then in the anterior fornix."
+            },
+            {
+                id: 16,
+                question: "At what exact point in the menstrual cycle should a hysterosalpingogram ideally be scheduled?",
+                options: ["One to three days after the first day", "Seven to ten days after the first day", "Fourteen to sixteen days after the first day", "Twenty to twenty four days after the first day"],
+                correct: 1,
+                rationale: "The time for this test ranges from seven to ten days after the first day of the menstrual period."
+            },
+            {
+                id: 17,
+                question: "The ideal time for applying vaginal creams is in the morning immediately after awakening.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The ideal time for doing these treatments is at the end of the day at bed time after a bath or shower."
+            },
+            {
+                id: 18,
+                question: "How many consecutive years of unprotected intercourse must pass without achieving pregnancy to diagnose infertility?",
+                options: ["One to two years", "Two to three years", "Three to four years", "Four to five years"],
+                correct: 0,
+                rationale: "Infertility is the inability of couples to achieve pregnancy after one to two years of unprotected intercourse."
+            },
+            {
+                id: 19,
+                question: "Which underlying condition causes pruritis vulvae that presents without any associated vaginal discharge?",
+                options: ["Trichomonas vaginalis infection", "Candida albicans infection", "Chronic epithelial atrophy", "Bacterial vaginosis infection"],
+                correct: 2,
+                rationale: "Chronic epithelial atrophy in post menopausal women causes pruritis without vaginal discharge, unlike Trichomonas or Candida."
+            },
+            {
+                id: 20,
+                question: "During a colposcopy procedure iodine solution is used to stain healthy squamous epithelium dark brown.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The cervix is then painted with iodine solution which stains the healthy squamous epithelium very dark brown."
+            },
+            {
+                id: 21,
+                question: "What is the absolute maximum duration that vaginal packing should remain inside the patient?",
+                options: ["Twelve hours", "Twenty four hours", "Thirty six hours", "Forty eight hours"],
+                correct: 3,
+                rationale: "The time of removal is after 12 or 24 hours, and not more than 48 hours."
+            },
+            {
+                id: 22,
+                question: "What exact substance is injected into the uterine cavity to verify the patency of the fallopian tubes during culdoscopy?",
+                options: ["Normal saline", "Acetic acid", "Blue dye", "Iodine solution"],
+                correct: 2,
+                rationale: "Blue dye is injected into the uterine cavity to check patency of tubes during a culdoscopy."
+            },
+            {
+                id: 23,
+                question: "Which condition represents a pathological cause rather than a physiological cause of amenorrhea?",
+                options: ["Uncomplicated pregnancy", "Active lactation", "Natural menopause", "Hormonal disturbance"],
+                correct: 3,
+                rationale: "Hormonal disturbance and congenital absence of the uterus are pathological causes. Pregnancy, lactation, and menopause are physiological."
+            },
+            {
+                id: 24,
+                question: "A woman utilizing a supporting pessary must return every six months to check for vaginal wall ulceration.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The woman must be convinced of the necessity to return at least every 6 months to check that no ulceration or necrosis has occurred."
+            },
+            {
+                id: 25,
+                question: "Which bodily action most commonly triggers an episode of stress urinary incontinence in affected women?",
+                options: ["Sleeping quietly", "Walking slowly", "Coughing suddenly", "Sitting upright"],
+                correct: 2,
+                rationale: "Stress urinary incontinence happens as a result of a sudden increase in intraabdominal pressure such as coughing, sneezing or laughing."
+            },
+            {
+                id: 26,
+                question: "How often is a Pap smear recommended for a twenty five year old woman according to standard guidelines?",
+                options: ["Every single year", "Every two years", "Every three years", "Every five years"],
+                correct: 2,
+                rationale: "For women aged 21 to 29 years, the Pap smear frequency is every 3 years."
+            },
+            {
+                id: 27,
+                question: "Complications are significantly less frequent with operative laparoscopy than with purely diagnostic laparoscopy.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Complications are more frequent with operative laparoscopy than with purely diagnostic laparoscopy."
+            },
+            {
+                id: 28,
+                question: "When does cervical mucus physiologically become thinner and more profuse during the normal menstrual cycle?",
+                options: ["In the first half of the cycle", "In the exact middle of the cycle", "In the second half of the cycle", "During the actual bleeding phase"],
+                correct: 0,
+                rationale: "Under hormonal influence, in the first half of the cycle, the mucus becomes thinner and more profuse."
+            },
+            {
+                id: 29,
+                question: "Patients are advised to restrict sexual intercourse for precisely fifteen days following a cervical cauterization procedure.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Instructions after the procedure include that sexual intercourse should be restricted for 15 days."
+            },
+            {
+                id: 30,
+                question: "Patients must stop taking all prescribed antibiotics exactly two days before undergoing a routine Pap smear.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Patients are instructed to stop antibiotics 7 to 10 days before the procedure, not two days."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>
