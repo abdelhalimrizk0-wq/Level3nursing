@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Gynecology and Obstetrics Comprehensive Quiz</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 100 QUESTIONS HERE) ---
+        const rawQuizData = [
+            { id: 1, question: "Which pelvic bone is described as vestigial and tail like?", options: ["Coccyx", "Sacrum", "Ilium", "Ischium"], correct: 0, rationale: "The coccyx is defined as a vestigial, tail-like, triangular bone in the female pelvis." },
+            { id: 2, question: "What is the primary indication for using supporting vaginal pessaries?", options: ["Relief of symptoms of uterine displacement", "Treatment of severe pelvic inflammatory disease", "Complete eradication of cervical dysplasia", "Reduction of post operative vaginal bleeding"], correct: 0, rationale: "Pessaries are used to relieve symptoms of uterine displacement when surgery is contraindicated." },
+            { id: 3, question: "The false pelvis lies below the level of the pelvic inlet.", options: ["True", "False"], correct: 1, rationale: "The false pelvis is above the pelvic inlet, while the true pelvis is below it." },
+            { id: 4, question: "Which hormone is primarily produced by the corpus luteum under the influence of luteinizing hormone?", options: ["Progesterone", "Oestrogen", "Prolactin", "Oxytocin"], correct: 0, rationale: "The corpus luteum produces progesterone under the influence of LH, causing secretory changes in the uterus." },
+            { id: 5, question: "What is the average expected blood loss during a normal vaginal birth?", options: ["Three hundred to five hundred milliliters", "Five hundred to one thousand milliliters", "One hundred to two hundred milliliters", "One thousand to fifteen hundred milliliters"], correct: 0, rationale: "The usual blood loss for a vaginal birth is 300–500 ml." },
+            { id: 6, question: "Which fetal station indicates that the presenting part is exactly at the level of the ischial spines?", options: ["Zero station", "Minus five station", "Plus four station", "Plus two station"], correct: 0, rationale: "Station 0 occurs when the presenting part is exactly at the level of the ischial spines, indicating the head is engaged." },
+            { id: 7, question: "Which layer of the pelvic floor is perforated by the urethra vagina and rectum?", options: ["Levator ani muscles", "Transverse perineal muscles", "External anal sphincter", "Ischiocavernosus muscles"], correct: 0, rationale: "The levator ani is a strong diaphragm of muscles in the deep layer that is perforated by these three canals." },
+            { id: 8, question: "The yolk sac provides nourishment for the developing embryo for the entire pregnancy.", options: ["True", "False"], correct: 1, rationale: "The yolk sac provides nourishment for a brief time before disappearing." },
+            { id: 9, question: "What characterizes false labor contractions compared to true labor contractions?", options: ["Irregular intervals that stay the same", "Cervical dilatation is already present", "Pain is chiefly in the lower back", "Walking visibly intensifies the discomfort"], correct: 0, rationale: "False labor contractions have irregular intervals, duration, and intensity that typically stay the same rather than progressing." },
+            { id: 10, question: "Which term describes the severe separation of the rectus muscles due to the enlarging uterus?", options: ["Diastasis recti", "Lumbar lordosis", "Waddling gait", "Striae gravidarum"], correct: 0, rationale: "Pressure of the enlarging uterus can cause the rectus abdominis muscles to separate, producing diastasis recti." },
+            { id: 11, question: "What is the expected maximum typical length of the active phase for a nulliparous woman?", options: ["Six hours", "Four and a half hours", "Nine hours", "Fourteen hours"], correct: 0, rationale: "The active phase length is up to 6 hours for a nullipara and 4.5 hours for a multipara." },
+            { id: 12, question: "Which pelvic shape is classically described as heart shaped?", options: ["Android", "Gynaecoid", "Anthropoid", "Platypelloid"], correct: 0, rationale: "The Android pelvis has a heart-shaped (wedge) brim." },
+            { id: 13, question: "Which hormone is responsible for smooth muscle relaxation leading to delayed gastric emptying?", options: ["Progesterone", "Estrogen", "Thyroxine", "Cortisol"], correct: 0, rationale: "Progesterone's smooth-muscle relaxing effect leads to delayed gastric emptying and reduced peristalsis." },
+            { id: 14, question: "What does the letter G stand for in the GATHER steps of family planning counseling?", options: ["Greet each client warmly", "Guide the client to choose", "Give appropriate new methods", "Gather previous medical history"], correct: 0, rationale: "In GATHER, 'G' stands for 'Greet each client warmly'." },
+            { id: 15, question: "A transient temperature rise on the third postpartum day may occur due to breast milk engorgement.", options: ["True", "False"], correct: 0, rationale: "A transient rise around the 3rd–4th day can occur due to breast milk engorgement, constipation, or nervous excitation." },
+            { id: 16, question: "Where does fertilization of the ovum usually occur?", options: ["Ampulla of the fallopian tube", "Interstitial part of the tube", "Isthmus of the fallopian tube", "Infundibulum of the tube"], correct: 0, rationale: "Fertilization normally occurs in the ampulla of the fallopian tube." },
+            { id: 17, question: "Which condition is categorized as an intermediate risk in a high risk pregnancy assessment?", options: ["Moderate pre eclampsia", "Severe intrauterine growth retardation", "Fetal abnormality incompatible with life", "Uncontrolled premature labor"], correct: 0, rationale: "Moderate pre-eclampsia is categorized as an intermediate risk, while the others are high risk." },
+            { id: 18, question: "Quality of care in family planning relies heavily on client satisfaction and safety of methods.", options: ["True", "False"], correct: 0, rationale: "Quality of care concepts secure safety, effectiveness, client satisfaction, and acceptability." },
+            { id: 19, question: "What is the average duration of the normal menstrual cycle?", options: ["Twenty eight days", "Twenty one days", "Thirty five days", "Fourteen days"], correct: 0, rationale: "The average cycle length is 28 days, ranging from 21 to 35 days." },
+            { id: 20, question: "How long can a mature spermatozoon survive in the female reproductive tract?", options: ["Forty eight to seventy two hours", "Twelve to twenty four hours", "Twenty four to forty eight hours", "Seventy two to ninety six hours"], correct: 0, rationale: "The lifespan is about 48 hours but it can survive in the female reproductive tract for 48–72 hours." },
+            { id: 21, question: "According to Reva Rubin which maternal role phase emphasizes the mother resuming control of her body and life?", options: ["Taking hold phase", "Taking in phase", "Letting go phase", "Turning in phase"], correct: 0, rationale: "During the Taking-hold phase, the mother is ready to resume control of her body, mothering, and life." },
+            { id: 22, question: "Which hormone promotes the proliferation of the glandular epithelium of the breast alveoli during pregnancy?", options: ["Progesterone", "Estrogen", "Prolactin", "Oxytocin"], correct: 0, rationale: "Progesterone excess leads to the proliferation of the glandular epithelium of the alveoli." },
+            { id: 23, question: "What is the definition of metrorrhagia?", options: ["Uterine bleeding between regular menstrual periods", "Prolonged or excessive bleeding during menstruation", "Severe pelvic pain occurring during menstruation", "Recurrent involuntary spasm of levator ani muscles"], correct: 0, rationale: "Metrorrhagia is uterine bleeding between regular menstrual periods." },
+            { id: 24, question: "Which phase of a uterine contraction represents its maximum intensity?", options: ["Acme", "Increment", "Decrement", "Interval"], correct: 0, rationale: "The Acme is the peak phase where the uterine contraction is strongest." },
+            { id: 25, question: "What is an important preparation step before a Pap smear test?", options: ["Instructing the woman to avoid vaginal douching", "Administering a strong cathartic enema beforehand", "Ensuring the woman has a completely full bladder", "Performing the test on the first day of menses"], correct: 0, rationale: "A woman should avoid vaginal douching, sexual intercourse, and vaginal medications for 48 hours before a Pap smear." },
+            { id: 26, question: "Administration of an enema is contraindicated in the presence of severe pre eclampsia.", options: ["True", "False"], correct: 0, rationale: "Enemas are contraindicated in severe pre-eclampsia and eclampsia as they can stimulate convulsions." },
+            { id: 27, question: "When is the ideal time to apply vaginal creams for gynecological treatments?", options: ["At the end of the day after a bath", "Early in the morning before breakfast", "Immediately before any strenuous exercise", "During the heaviest flow of menstruation"], correct: 0, rationale: "The ideal time is at the end of the day (at bedtime) after a bath or shower so it dissolves overnight." },
+            { id: 28, question: "Cardiac output reaches its maximum between the twenty eighth and thirty second week of pregnancy.", options: ["True", "False"], correct: 0, rationale: "Cardiac output increases and reaches its maximum between the 28th and 32nd week." },
+            { id: 29, question: "Which symptom describes intense itching of the vulva?", options: ["Pruritis vulvae", "Vaginismus", "Dyspareunia", "Leucorrhea"], correct: 0, rationale: "Pruritis vulvae is an irritative condition of the vulva causing an intense desire to scratch." },
+            { id: 30, question: "Which activity falls under the advocacy role of the nurse in family planning?", options: ["Educating the community about family planning", "Counseling and delivery of many contraceptives", "Keeping accurate records and reports for research", "Organizing group discussions and case presentations"], correct: 0, rationale: "Advocacy involves educating the community about the benefits of family planning." },
+            { id: 31, question: "Which condition involves difficult or painful intercourse?", options: ["Dyspareunia", "Vaginismus", "Leucorrhea", "Pruritis"], correct: 0, rationale: "Dyspareunia is the medical term for difficult or painful intercourse." },
+            { id: 32, question: "What is the normal range for the fetal heart rate?", options: ["One hundred twenty to one hundred sixty beats", "One hundred to one hundred forty beats", "Eighty to one hundred twenty beats", "One hundred forty to one hundred eighty beats"], correct: 0, rationale: "The normal fetal heart rate is 120–160 beats per minute." },
+            { id: 33, question: "A physiological cause of leucorrhea includes cyclical alterations in cervical mucus under hormonal influence.", options: ["True", "False"], correct: 0, rationale: "Physiological causes of leucorrhea include sexual stimulation, pregnancy, and cyclical alterations in cervical mucus." },
+            { id: 34, question: "Which structure forms the upper border of the first sacral vertebra?", options: ["Sacral promontory", "Ischial tuberosity", "Obturator foramen", "Iliac crest"], correct: 0, rationale: "The sacral promontory is the upper border of the first sacral vertebra." },
+            { id: 35, question: "Which ligament passes from the cervix under the bladder to the pubic bones?", options: ["Pubocervical ligament", "Transverse cervical ligament", "Uterosacral ligament", "Round ligament"], correct: 0, rationale: "The pubo-cervical ligament passes forwards from the cervix, under the bladder, to the pubic bones." },
+            { id: 36, question: "The morula reaches the uterine cavity three or four days after ovulation.", options: ["True", "False"], correct: 0, rationale: "The morula reaches the uterine cavity 3 or 4 days after ovulation." },
+            { id: 37, question: "A sudden suppression of lochia may indicate a severe puerperal infection.", options: ["True", "False"], correct: 0, rationale: "A sudden suppression of lochia is a red flag and may indicate severe infection." },
+            { id: 38, question: "Which topic is essential to cover when counseling a client about a specific family planning method?", options: ["Side effects and complications", "Historical development of the method", "Exact chemical composition of the method", "National population growth rate statistics"], correct: 0, rationale: "Side effects and complications are one of the six essential topics to cover in FP counseling." },
+            { id: 39, question: "According to Naegele's rule how is the expected date of delivery calculated?", options: ["Subtract three months and add seven days", "Add three months and subtract seven days", "Subtract seven months and add three days", "Add seven months and subtract three days"], correct: 0, rationale: "Naegele's rule calculates the EDD by subtracting 3 months and adding 7 days to the first day of the LMP." },
+            { id: 40, question: "What is the recommended frequency for a Pap smear for a woman aged twenty one to twenty nine years?", options: ["Every three years", "Every five years", "Every single year", "Not needed anymore"], correct: 0, rationale: "For ages 21 to 29 years, a Pap smear is recommended every 3 years." },
+            { id: 41, question: "What does the fundal height help determine during an abdominal examination?", options: ["Period of gestation", "Fetal presentation", "Pelvic bone adequacy", "Fetal joint attitude"], correct: 0, rationale: "The height of the fundus is primarily used to estimate the period of gestation." },
+            { id: 42, question: "The basal metabolic rate decreases by twenty percent during normal pregnancy.", options: ["True", "False"], correct: 1, rationale: "The basal metabolic rate actually increases by 20–25% during pregnancy." },
+            { id: 43, question: "The perineum forms the base of the perineal body.", options: ["True", "False"], correct: 0, rationale: "The perineum extends from the fourchette to the anus and forms the base of the perineal body." },
+            { id: 44, question: "Which hormone is produced by the graafian follicle under follicle stimulating hormone?", options: ["Oestrogen", "Progesterone", "Luteinizing hormone", "Gonadotrophin releasing factor"], correct: 0, rationale: "Oestrogen is produced by the graafian follicle under the influence of FSH." },
+            { id: 45, question: "Which group represents forty percent of the population in countries with rapid population growth like Egypt?", options: ["Individuals under fifteen years old", "Individuals over sixty five years old", "Women of active childbearing age", "Men in the active national workforce"], correct: 0, rationale: "Rapid population growth increases the dependency burden, with 40% of the population being under 15 years old." },
+            { id: 46, question: "Which muscle is part of the superficial layer of the pelvic floor?", options: ["Bulbocavernosus muscle", "Pubococcygeus muscle", "Iliococcygeus muscle", "Ischiococcygeus muscle"], correct: 0, rationale: "The bulbocavernosus muscle is one of the five superficial muscles of the pelvic floor." },
+            { id: 47, question: "Which of the following is considered a positive sure sign of pregnancy?", options: ["Hearing the fetal heart rate", "Presence of primary amenorrhea", "Positive urine pregnancy test", "Softening of the cervical isthmus"], correct: 0, rationale: "Hearing the fetal heart rate is a positive (sure) sign of pregnancy, confirming the presence of a fetus." },
+            { id: 48, question: "What is the average total weight gain expected during a normal pregnancy?", options: ["Twelve kilograms", "Eight kilograms", "Fifteen kilograms", "Twenty kilograms"], correct: 0, rationale: "The average total weight gain during a normal pregnancy is 12 kg." },
+            { id: 49, question: "What characterizes an ideal contraceptive method?", options: ["It is effective reversible and easy to use", "It is irreversible and requires medical supervision", "It interrupts sexual activity and is highly reliable", "It is inexpensive but difficult to access locally"], correct: 0, rationale: "Criteria of an ideal contraceptive include being effective, reversible, easy to use, and not interrupting sex." },
+            { id: 50, question: "Why does physiological anemia occur in normal pregnancy?", options: ["Plasma volume increases more than hemoglobin", "Hemoglobin mass increases more than plasma", "Total red cell mass decreases significantly", "Platelet count decreases leading to blood loss"], correct: 0, rationale: "Hemodilution and physiological anemia occur because plasma volume increases more (about 50%) than hemoglobin mass (about 20%)." },
+            { id: 51, question: "How long does the early puerperium period last?", options: ["First ten days postpartum", "First twenty four hours postpartum", "Forty days after the delivery", "Six to eight weeks postpartum"], correct: 0, rationale: "The early puerperium is defined as the first 10 days postpartum." },
+            { id: 52, question: "Polygamy and early marriage are considered religious and socio cultural factors contributing to population growth.", options: ["True", "False"], correct: 0, rationale: "Both polygamy and early marriage are listed as religious and socio-cultural causes of rapid population growth." },
+            { id: 53, question: "Which condition causes the enlarged uterus to press on the inferior vena cava when a pregnant woman lies flat?", options: ["Supine hypotension syndrome", "Physiological maternal anemia", "Gestational diabetes mellitus", "Pre eclampsia complication"], correct: 0, rationale: "In supine hypotension syndrome, the enlarged uterus presses on the inferior vena cava, reducing venous return." },
+            { id: 54, question: "A systolic rise of thirty millimeters of mercury above baseline in late pregnancy indicates toxemia.", options: ["True", "False"], correct: 0, rationale: "A systolic rise of 30 mm Hg or diastolic rise of 15 mm Hg above baseline on two occasions suggests toxemia." },
+            { id: 55, question: "Which of the following is considered a major socio economic consequence of rapid population growth?", options: ["Increased dependency burden", "Increased maternal mortality", "Decreased fertility hazards", "Improved intellectual development"], correct: 0, rationale: "An increased dependency burden is a major socio-economic consequence of rapid population growth." },
+            { id: 56, question: "Health organizations strongly recommend regular vaginal douching to prevent bacterial vaginosis.", options: ["True", "False"], correct: 1, rationale: "Health organizations recommend against vaginal douching because it increases the risk of bacterial vaginosis and pelvic inflammatory disease." },
+            { id: 57, question: "What is the normal pH of the vagina?", options: ["Acidic around four point five", "Alkaline around seven point five", "Neutral exactly at seven point zero", "Highly alkaline above eight point zero"], correct: 0, rationale: "The vaginal medium is strongly acidic (pH 4.5) due to Doderlein's bacilli." },
+            { id: 58, question: "Which gynecological investigation uses acetic acid and iodine solution to identify abnormal cervical cells?", options: ["Colposcopy", "Culdoscopy", "Laparoscopy", "Hysterosalpingogram"], correct: 0, rationale: "During a colposcopy, acetic acid and iodine are used to stain the cervix and identify abnormal cells." },
+            { id: 59, question: "A full bladder during labor can prevent the descent of the fetal head.", options: ["True", "False"], correct: 0, rationale: "A full bladder can prevent the descent of the fetal head and cause poor uterine contractions." },
+            { id: 60, question: "The Schultze presentation of placental expulsion presents with the maternal surface evident and appears raw and red.", options: ["True", "False"], correct: 1, rationale: "The Schultze presentation presents the shiny fetal surface. Duncan presents the raw, red maternal surface." },
+            { id: 61, question: "A hysterosalpingogram is capable of identifying the existence of pelvic adhesions.", options: ["True", "False"], correct: 1, rationale: "A hysterosalpingogram cannot identify the existence of pelvic adhesions; a culdoscopy or laparoscopy is needed." },
+            { id: 62, question: "Which hormone exerts negative feedback on luteinizing hormone and follicle stimulating hormone at low circulating levels?", options: ["Estrogen", "Progesterone", "Prolactin", "Relaxin"], correct: 0, rationale: "At low circulating levels, estrogens exert negative feedback on LH and FSH secretion." },
+            { id: 63, question: "Which parameter normally doubles during pregnancy resulting in hypercoagulability?", options: ["Fibrinogen", "White blood cells", "Total red cell mass", "Plasma volume"], correct: 0, rationale: "Fibrinogen becomes doubled during pregnancy, leading to a hyper-coagulable state." },
+            { id: 64, question: "Which procedure involves injecting contrast dye to visualize the uterus and fallopian tubes?", options: ["Hysterosalpingogram", "Culdoscopy", "Laparoscopy", "Ultrasound"], correct: 0, rationale: "A hysterosalpingogram (HSG) is an X-ray procedure involving the injection of contrast dye into the uterus and tubes." },
+            { id: 65, question: "When does menstruation typically return in a non breastfeeding mother?", options: ["Six to eight weeks postpartum", "Two to three weeks postpartum", "Ten to twelve weeks postpartum", "Four to five months postpartum"], correct: 0, rationale: "Menstruation usually returns in 6–8 weeks postpartum, though it may be delayed longer." },
+            { id: 66, question: "Cardiotocography is used to record the maternal heartbeat and respiratory rate during pregnancy.", options: ["True", "False"], correct: 1, rationale: "Cardiotocography is used to record the fetal heartbeat and uterine contractions, not maternal vitals." },
+            { id: 67, question: "What is a core component of the informed choice concept in family planning?", options: ["Providing knowledge of benefits risks and side effects", "Distributing contraceptives completely free of charge", "Enforcing a specific method based on preference", "Restricting services based on socio economic status"], correct: 0, rationale: "Informed choice means giving clients knowledge of the benefits, risks, and side effects of methods." },
+            { id: 68, question: "What defines the first stage of labor?", options: ["Complete dilatation and effacement of the cervix", "Expulsion of the fetus from the uterine cavity", "Delivery of the placenta and fetal membranes", "Initial physiological adjustment of the mother"], correct: 0, rationale: "The first stage of labor begins with true contractions and ends with complete dilatation of the cervix." },
+            { id: 69, question: "By how much does the pregnant uterus increase in size compared to its non pregnant state?", options: ["Twenty times", "Ten times", "Thirty times", "Fifty times"], correct: 0, rationale: "The pregnant uterus increases to 20 times its non-pregnant size." },
+            { id: 70, question: "When is an episiotomy typically assessed during postpartum care?", options: ["Using the REEDA scale", "Using the APGAR score", "Using the GATHER steps", "Using the HOMANS sign"], correct: 0, rationale: "An episiotomy is observed using the REEDA scale (Redness, Edema, Ecchymosis, Discharge, Approximation)." },
+            { id: 71, question: "During the first stage of labor how frequently should the maternal pulse be recorded?", options: ["Every hour", "Every thirty minutes", "Every four hours", "Every fifteen minutes"], correct: 0, rationale: "Maternal respiration, pulse, and BP should be checked every hour during the first stage of labor." },
+            { id: 72, question: "Which of the following is considered a sign of maternal distress during labor?", options: ["Pulse over one hundred beats per minute", "Temperature of thirty seven degrees celsius", "Increased maternal blood pressure readings", "Clear and completely odorless vaginal discharge"], correct: 0, rationale: "A pulse over 100 b/minute is a red flag indicating maternal distress." },
+            { id: 73, question: "What happens to the bladder during the second stage of labor?", options: ["It is drawn up into the abdomen", "It is pushed down into the pelvic floor", "It becomes highly irritable and spastic", "It completely loses its capacity to fill"], correct: 0, rationale: "During the second stage, the bladder is drawn up into the abdomen to decrease the risk of injury and provide space." },
+            { id: 74, question: "At what stage of pregnancy does uterine growth primarily happen by mechanical distention?", options: ["After the twentieth week", "Before the twelfth week", "During the first trimester", "After the thirty sixth week"], correct: 0, rationale: "Growth mostly ceases by the 20th week; thereafter, it expands by distention due to the mechanical stimulus of the fetus." },
+            { id: 75, question: "Which counseling principle ensures the client's personal information is kept private?", options: ["Confidentiality", "Accessibility", "Acceptability", "Continuity"], correct: 0, rationale: "Confidentiality ensures that personal information is kept strictly private." },
+            { id: 76, question: "What is a potential complication of cervical cauterization?", options: ["Ascending infection", "Severe immediate hemorrhage", "Perforation of the bowel", "Development of vaginal adhesions"], correct: 0, rationale: "Ascending infection and secondary bleeding are potential complications of cervical cauterization." },
+            { id: 77, question: "At the end of the first week postpartum where is the uterine fundus normally palpable?", options: ["Midway between umbilicus and symphysis pubis", "Exactly at the level of the umbilicus", "Just behind the maternal symphysis pubis", "It is completely unpalpable abdominally"], correct: 0, rationale: "By the end of the 1st week, the fundus is midway between the umbilicus and symphysis pubis." },
+            { id: 78, question: "Family planning aims to improve the health of the mother the baby and the entire family.", options: ["True", "False"], correct: 0, rationale: "The ultimate goals of FP include improving the health of the mother, baby, and family." },
+            { id: 79, question: "What is the most appropriate initial nursing action if the postpartum uterus is soft or boggy?", options: ["Perform gentle rotating motion massage", "Immediately notify the attending physician", "Administer intravenous fluids very rapidly", "Insert a urinary catheter immediately"], correct: 0, rationale: "If the uterus is soft or boggy, the immediate action is to perform gentle rotating-motion massage to help it contract." },
+            { id: 80, question: "In the mechanism of labor what step immediately follows complete rotation and beginning extension?", options: ["Complete extension and head crowning", "Restitution and external head rotation", "Delivery of the anterior fetal shoulder", "Engagement descent and head flexion"], correct: 0, rationale: "After complete rotation and beginning extension, the next step is complete extension (crowning)." },
+            { id: 81, question: "Which immune system change helps prevent rejection of the fetus by the mother?", options: ["Helper T cells decrease", "Serum immunoglobulin increases", "Cell mediated immunity rises", "White blood cell count drops"], correct: 0, rationale: "Helper T cells decrease, depressing cell-mediated immunity to prevent rejection of the fetus." },
+            { id: 82, question: "What amount of random blood glucose is considered within normal range during pregnancy investigations?", options: ["Eighty to one hundred twenty milligrams", "Forty to eighty milligrams", "One hundred forty to one hundred eighty milligrams", "One hundred eighty to two hundred twenty milligrams"], correct: 0, rationale: "Random blood glucose is typically 80–120 mg/100 ml during pregnancy." },
+            { id: 83, question: "What is the meaning of fetal lie during an abdominal examination?", options: ["Relationship between fetal and maternal axes", "Part of fetus lying over the pelvic inlet", "Posturing of joints and related fetal parts", "Relationship of presenting part to the pelvis"], correct: 0, rationale: "Fetal lie is the relationship between the longitudinal axis of the fetus and the longitudinal axis of the mother." },
+            { id: 84, question: "Which test evaluates the reddened or white areas of the calf for deep vein thrombosis?", options: ["Homans test", "Pawliks maneuver", "Goodells sign", "Chadwicks test"], correct: 0, rationale: "Homan's test is used to check for deep vein thrombosis in the calf." },
+            { id: 85, question: "Which procedure involves a narrow telescope inserted through the back of the vagina to view pelvic organs?", options: ["Culdoscopy", "Laparoscopy", "Colposcopy", "Hysterosalpingogram"], correct: 0, rationale: "A culdoscopy involves inserting a narrow telescope through the back of the vagina into the pelvis." },
+            { id: 86, question: "Which part of the decidua becomes the chorionic frondosum?", options: ["Decidua basalis", "Decidua capsularis", "Decidua vera", "Decidua parietalis"], correct: 0, rationale: "Villi become more profuse in the decidua basalis, forming the chorionic frondosum which develops into the placenta." },
+            { id: 87, question: "Which hormone stimulates the contraction of myoepithelial cells for milk expulsion during lactation?", options: ["Oxytocin", "Prolactin", "Estrogen", "Progesterone"], correct: 0, rationale: "Oxytocin reaches the breast through the bloodstream, causing the contraction of myoepithelial cells." },
+            { id: 88, question: "Which therapeutic intervention is often performed using laparoscopy for polycystic ovarian syndrome?", options: ["Drilling of cysts", "Cauterization of lesions", "Tubal ligation procedure", "Total hysterectomy surgery"], correct: 0, rationale: "Drilling of cysts is a therapeutic laparoscopy indication for polycystic ovarian syndrome." },
+            { id: 89, question: "Which structure develops from the trophoblastic layer of the fertilized ovum?", options: ["Placenta", "Yolk sac", "Amniotic sac", "Embryonic plate"], correct: 0, rationale: "The placenta originates from the trophoblastic layer of the fertilized ovum." },
+            { id: 90, question: "When is the placenta completely formed and functioning?", options: ["Ten to twelve weeks", "Six to eight weeks", "Fourteen to sixteen weeks", "Eighteen to twenty weeks"], correct: 0, rationale: "The placenta is completely formed and functioning from 10–12 weeks after fertilization." },
+            { id: 91, question: "Which term describes the absence or stopping of menstruation during reproductive years?", options: ["Amenorrhea", "Menorrhagia", "Metrorrhagia", "Dysmenorrhea"], correct: 0, rationale: "Amenorrhea is the absence or stopping of menstruation during reproductive years." },
+            { id: 92, question: "Which stage of labor entails the delivery of the placenta?", options: ["Third stage", "First stage", "Second stage", "Fourth stage"], correct: 0, rationale: "The third (placental) stage involves the delivery of the placenta." },
+            { id: 93, question: "What is the normal non pregnant uterus weight?", options: ["Sixty grams", "Forty grams", "Eighty grams", "One hundred grams"], correct: 0, rationale: "The non-pregnant uterus typically weighs about 50 to 60 grams." },
+            { id: 94, question: "Implantation is normally complete by which day after ovulation?", options: ["Eleventh day", "Seventh day", "Fourteenth day", "Fourth day"], correct: 0, rationale: "Implantation is normally complete by the 11th day after ovulation." },
+            { id: 95, question: "Which reflex inhibition condition can cause urinary retention postpartum?", options: ["Stitched perineum", "Diaphoresis", "Lactosuria", "Autolysis"], correct: 0, rationale: "Reflex inhibition due to a stitched perineum or bruised urethra can lead to urinary retention postpartum." },
+            { id: 96, question: "Which process involves the breakdown of uterine muscle protein by enzymes during involution?", options: ["Autolysis", "Ischemia", "Phagocytosis", "Necrosis"], correct: 0, rationale: "Autolysis is the self-digestion of uterine muscle fibers broken down by enzymes." },
+            { id: 97, question: "What type of lochia is pinkish yellow and lasts from the fifth to the eighth day postpartum?", options: ["Lochia serosa", "Lochia rubra", "Lochia alba", "Lochia purulenta"], correct: 0, rationale: "Lochia serosa is pinkish-yellow and typically occurs after the rubra phase, for another 3-4 days." },
+            { id: 98, question: "Softening of the cervix during early pregnancy is known as Goodell's sign.", options: ["True", "False"], correct: 0, rationale: "Goodell's sign is the softening of the cervix." },
+            { id: 99, question: "Which skin change is often referred to as the mask of pregnancy?", options: ["Chloasma", "Linea nigra", "Striae gravidarum", "Montgomery tubercles"], correct: 0, rationale: "Chloasma is increased pigmentation known as the mask of pregnancy." },
+            { id: 100, question: "Postpartum blues typically peak on which days following delivery?", options: ["Fourth or fifth day", "First or second day", "Tenth or eleventh day", "Fourteenth or fifteenth day"], correct: 0, rationale: "Postpartum blues generally peak on the 4th or 5th postpartum day." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>
