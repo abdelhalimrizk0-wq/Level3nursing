@@ -103,6 +103,11 @@
     "name": "Gynecological Quizs",
     "file": "quizzes/Gynecological Quizs.html",
     "questions": 0
+  },
+       {
+    "name": "Antenatal Quizzes",
+    "file": "quizzes/Antenatal Quizzes.html",
+    "questions": 0
   }
     ]
   },
