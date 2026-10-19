@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة اختبارات النسا والتوليد | Obstetrics & Gynecology Quiz Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', 'Noto Sans', sans-serif; }
+        .ltr-text { direction: ltr; font-family: 'Noto Sans', sans-serif; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen transition-colors duration-300">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3" onclick="showHome()" style="cursor: pointer;">
+                    <i class="fas fa-person-pregnant text-pink-600 text-2xl"></i>
+                    <h1 class="text-xl font-bold text-slate-800 hidden sm:block">عبدالحليم <span class="text-pink-600">رزق</span></h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                    <button onclick="showHome()" class="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition-colors shadow-sm font-semibold text-sm">
+                        <i class="fas fa-home ms-2"></i> القائمة الرئيسية
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6" id="app-container">
+        <!-- Views will be injected here -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
+            <p>تم بواسطة عبدالحليم رزق</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA STORE ---
+        const quizzes = {
+            "maternal": {
+                title: "Maternal Changes during Pregnancy",
+                author: "عبدالحليم رزق",
+                icon: "fa-person-pregnant",
+                color: "text-emerald-600",
+                bg: "bg-emerald-50",
+                data: [
+  { id: 1, question: "In normal pregnancy, the total blood volume increases more in hemoglobin mass than in plasma volume.", options: ["True", "False"], correct: 1, rationale: "The blood volume increases more in the plasma volume (about 50%) than in the total red cell mass (about 20%), leading to haemodilution and physiological anemia." },
+  { id: 2, question: "Which factor contributes to the occurrence of renal glucosuria during pregnancy?", options: ["Reduced renal threshold", "Increased maternal insulin", "Decreased filtration rate", "Enhanced tubular reabsorption"], correct: 0, rationale: "Renal glucosuria is not uncommon due to a reduced renal threshold for glucose in pregnancy and should be differentiated from gestational diabetes." },
+  { id: 3, question: "At which gestational age does the uterus typically regain a pyriform shape after being globular?", options: ["Eighth week", "Twelfth week", "Sixteenth week", "Twentieth week"], correct: 2, rationale: "The nonpregnant uterus is an inverted pear shape. At the 8th and 12th weeks, it is globular, and at the 16th week, it becomes pyriform again." },
+  { id: 4, question: "What causes the delayed emptying of the stomach and reduced intestinal peristalsis during pregnancy?", options: ["Smooth muscle relaxing effect", "Mechanical abdominal compression", "Increased gastric acid secretion", "Elevated gonadotropin levels"], correct: 0, rationale: "The smooth muscle relaxing effect of progesterone causes delayed emptying of the stomach and reduced intestinal peristalsis, leading to flatulence and constipation." },
+  { id: 5, question: "Cell-mediated immunity is depressed during pregnancy to prevent the rejection of the fetus.", options: ["True", "False"], correct: 0, rationale: "Helper T cells decrease and cell-mediated immunity is depressed in pregnancy. This suppressed immune system is necessary to prevent the rejection of the fetus, which is considered foreign." },
+  { id: 6, question: "What is the primary cause of growth and branching of the breast ducts during pregnancy?", options: ["Progesterone excess", "Estrogen excess", "Prolactin increase", "Oxytocin release"], correct: 1, rationale: "During pregnancy, estrogen excess causes the growth and branching of the breast ducts, while progesterone excess causes proliferation of the glandular epithelium." },
+  { id: 7, question: "Which skin change is primarily attributed to the stretching of the abdomen and excess corticosteroids?", options: ["Chloasma pigmentation", "Linea nigra formation", "Striae gravidarum appearance", "Montgomery tubercles enlargement"], correct: 2, rationale: "Stretching of the skin of the abdomen and excess corticosteroids in pregnancy are responsible for the appearance of skin striae called striae gravidarum." },
+  { id: 8, question: "Oxygen consumption and carbon dioxide production increase by approximately twenty percent over pre-pregnant values.", options: ["True", "False"], correct: 1, rationale: "Oxygen consumption and carbon dioxide production actually increase by approximately 60% over pre-pregnant values." },
+  { id: 9, question: "What is the primary mechanism for glucose transport across the placental barriers?", options: ["Simple passive diffusion", "Active transport mechanisms", "Facilitated carrier diffusion", "Receptor mediated endocytosis"], correct: 2, rationale: "Glucose transport across the placental barriers is managed by a carrier-mediated mechanism (facilitated diffusion) to meet the increased fetal demand." },
+  { id: 10, question: "Which sign is characterized by the bluish discoloration of the vagina due to increased blood supply?", options: ["Goodell sign", "Chadwick sign", "Braxton Hicks sign", "Montgomery sign"], correct: 1, rationale: "An increased blood supply results in the bluish discoloration of the vagina, which is clinically known as Chadwick's sign." },
+  { id: 11, question: "The nervous system remains completely undisturbed functionally throughout the entire duration of normal pregnancy.", options: ["True", "False"], correct: 1, rationale: "The nervous system becomes functionally disturbed by pregnancy, leading to issues like morning sickness of neurotic origin, sleepiness, depression, irritability, and insomnia." },
+  { id: 12, question: "Which layer of the uterine muscle consists of a meshwork of interlacing fibers?", options: ["Outer longitudinal layer", "Inner circular layer", "Intermediate meshwork layer", "Internal mucosal layer"], correct: 2, rationale: "The muscle wall of the uterus consists of 3 layers in late pregnancy: an outer thin longitudinal layer, a thin inner circular layer, and a thick intermediate layer consisting of a meshwork of interlacing fibers." },
+  { id: 13, question: "When does the cardiac output reach its maximum increase during pregnancy?", options: ["Twelfth to sixteenth week", "Twentieth to twenty fourth week", "Twenty eighth to thirty second week", "Thirty sixth to fortieth week"], correct: 2, rationale: "The cardiac output increases by about 30-50%, starting from the 12th week and reaching a maximum between the 28th and 32nd week of pregnancy." },
+  { id: 14, question: "A waddling gait during pregnancy is caused by relaxation of the pelvic joint due to hormonal influences.", options: ["True", "False"], correct: 0, rationale: "A waddling gait occurs due to the relaxation of the pelvic joint because of hormonal influences such as relaxin and progesterone." },
+  { id: 15, question: "What is the average total maternal weight gain during pregnancy?", options: ["Eight kilograms", "Ten kilograms", "Twelve kilograms", "Fourteen kilograms"], correct: 2, rationale: "Maternal body weight increases in pregnancy, except in the first trimester due to morning sickness, with an average total gain of 12 kg." },
+  { id: 16, question: "Which group is most likely to exhibit marked progressive dilatation of the renal pelvis and ureter?", options: ["Multigravida women on the left side", "Primigravida women on the right side", "Multigravida women on the right side", "Primigravida women on the left side"], correct: 1, rationale: "There is progressive dilatation of the renal pelvis and ureter from the 16th week; this dilatation is marked in primigravida and is more on the right side." },
+  { id: 17, question: "Peptic ulcers typically become more active and symptomatic during the course of pregnancy.", options: ["True", "False"], correct: 1, rationale: "Gastric acidity is often reduced during pregnancy, which causes peptic ulcers to become quiet rather than more active." },
+  { id: 18, question: "How long does the corpus luteum produce high levels of estrogen and progesterone before the placenta takes over?", options: ["Four to six weeks", "Ten to twelve weeks", "Sixteen to eighteen weeks", "Twenty to twenty two weeks"], correct: 1, rationale: "The corpus luteum enlarges, producing a high level of estrogen and progesterone in the first 10-12 weeks." },
+  { id: 19, question: "What defines the decidua basalis?", options: ["Decidua that covers the embryo completely", "Uterine lining not in contact with the fetus", "Uterine lining situated beneath implantation", "Mucous plug collected in the cervical canal"], correct: 2, rationale: "The decidua basalis is defined as the uterine lining located directly beneath the site of implantation." },
+  { id: 20, question: "Pregnancy is typically associated with a state of hypercoagulability where fibrinogen becomes doubled.", options: ["True", "False"], correct: 0, rationale: "Normal pregnancy is associated with hyper-coagulability, and fibrinogen levels become doubled." },
+  { id: 21, question: "What causes nasal stuffiness and epistaxis in pregnant women?", options: ["Decreased atmospheric pressure", "Upward displacement of the diaphragm", "Vascularity of respiratory mucous membranes", "Reduced lung expansion capacity"], correct: 2, rationale: "Nasal stuffiness and epistaxis occur because the respiratory mucous membranes become highly vascular, edematous, and friable during pregnancy." },
+  { id: 22, question: "What is the normal weight of the uterus at term under the influence of hormonal changes?", options: ["Five hundred grams", "Eight hundred grams", "One thousand grams", "Twelve hundred grams"], correct: 2, rationale: "The uterus grows and its weight increases from 50 grams before pregnancy to 1000 grams at term." },
+  { id: 23, question: "Plasma urea and creatinine levels progressively increase due to enhanced renal blood flow during pregnancy.", options: ["True", "False"], correct: 1, rationale: "Renal blood flow increases in pregnancy, causing an increase in glomerular filtration which is associated with a FALL in plasma urea and creatinine levels, not an increase." },
+  { id: 24, question: "How much protein is typically retained by the end of pregnancy due to positive nitrogen balance?", options: ["Two hundred grams", "Three hundred grams", "Four hundred grams", "Five hundred grams"], correct: 3, rationale: "There is a positive nitrogen balance in pregnancy, and about 500 grams of protein are retained by the end of pregnancy." },
+  { id: 25, question: "What causes supine hypotension syndrome in a pregnant woman?", options: ["Enlarged uterus pressing on the inferior vena cava", "Significant reduction in maternal blood volume", "Upward displacement of the maternal diaphragm", "Increased peripheral resistance of blood vessels"], correct: 0, rationale: "Supine hypotension syndrome occurs when the enlarged uterus presses on the inferior vena cava in the supine position, reducing venous return to the heart." },
+  { id: 26, question: "Increased activity of sebaceous glands due to progesterone excess can lead to acne and oily skin.", options: ["True", "False"], correct: 0, rationale: "Increased activity of sebaceous glands due to progesterone excess occurs in pregnancy and is manifested by acne, oily skin, and oily hair." },
+  { id: 27, question: "From which part of the uterus does the lower uterine segment develop in late pregnancy?", options: ["Uterine fundus", "Uterine isthmus", "Cervical canal", "Uterine cornua"], correct: 1, rationale: "The lower uterine segment becomes developed in late pregnancy from the isthmus of the uterus." },
+  { id: 28, question: "How many small tubercles typically form the ring known as Montgomery tubercles on the areola?", options: ["Five to ten tubercles", "Twelve to twenty tubercles", "Twenty to thirty tubercles", "Thirty to forty tubercles"], correct: 1, rationale: "Sebaceous glands on the areola become hypertrophied and are seen as a ring of 12-20 small tubercles termed Montgomery's tubercles." },
+  { id: 29, question: "Maternal serum levels of immunoglobulin G and immunoglobulin M decrease during pregnancy.", options: ["True", "False"], correct: 0, rationale: "Serum levels of IgG and IgM decrease in pregnancy as part of the overall adaptation of the maternal immune system." },
+  { id: 30, question: "Which substance serves as the major source of stored energy during pregnancy?", options: ["Dietary carbohydrates", "Stored tissue fat", "Cellular proteins", "Circulating glucose"], correct: 1, rationale: "Fat is the major source of stored energy during pregnancy, and excess fat is deposited in the abdominal wall, back, thigh, and breasts." }
+]
+            },
+            "antenatal": {
+                title: "Antenatal Care",
+                author: "عبدالحليم رزق",
+                icon: "fa-stethoscope",
+                color: "text-blue-600",
+                bg: "bg-blue-50",
+                data: [
+  { id: 1, question: "Fetal heart sound is normally heard using a Pinard stethoscope after the tenth week of pregnancy.", options: ["True", "False"], correct: 1, rationale: "Fetal heart sound is heard by a Pinard stethoscope after the twentieth week of pregnancy. A sonicaid is used to hear it as early as the tenth week." },
+  { id: 2, question: "Which maternal characteristic classifies a pregnant woman as having an intermediate risk.", options: ["Normal weight and height", "Parity of four and more", "History of diabetes mellitus", "Adequate hemoglobin levels"], correct: 1, rationale: "A parity of four and more places the pregnant woman in the intermediate risk category according to the risk assessment guidelines." },
+  { id: 3, question: "What is the expected total maternal weight gain during a normal pregnancy.", options: ["Eight kilograms", "Ten kilograms", "Twelve kilograms", "Fourteen kilograms"], correct: 2, rationale: "The approximate weight gain during a normal pregnancy is twelve kilograms, distributed as two kilograms in the first half and ten kilograms in the second half." },
+  { id: 4, question: "What is the normal coagulation time during pregnancy compared to the nonpregnant state.", options: ["Six minutes", "Eight minutes", "Ten minutes", "Twelve minutes"], correct: 1, rationale: "Coagulation time changes from twelve minutes to eight minutes during pregnancy, increasing the capacity for clotting and the risk of thrombosis." },
+  { id: 5, question: "Quickening is considered a positive sign of pregnancy that confirms the presence of a fetus.", options: ["True", "False"], correct: 1, rationale: "Quickening is a presumptive symptom of pregnancy, meaning it suggests but does not positively confirm the pregnancy." },
+  { id: 6, question: "The absence of fetal movements precedes intrauterine fetal death by how many hours.", options: ["Twelve hours", "Twenty hours", "Twenty four hours", "Twenty eight hours"], correct: 3, rationale: "The absence of fetal movements typically precedes intrauterine fetal death by twenty eight hours." },
+  { id: 7, question: "Which components are used to calculate the estimated due date according to Naegele rule.", options: ["Add seven days and subtract three months", "Add seven days and add three months", "Subtract seven days and add three months", "Subtract seven days and subtract three months"], correct: 0, rationale: "Naegele rule calculates the estimated due date by adding seven days to the first day of the last menstrual period, subtracting three months, and adding one year." },
+  { id: 8, question: "Preconception care emphasizes interventions given to females only after conception occurs.", options: ["True", "False"], correct: 1, rationale: "Preconception care is a set of interventions given to females before conception to identify and modify biomedical, behavioral, and social risks." },
+  { id: 9, question: "Which medical disease is directly classified as a high risk condition during pregnancy.", options: ["Essential hypertension", "Diabetes mellitus", "Mild cardiac disease", "Treated renal disease"], correct: 1, rationale: "Diabetes mellitus is explicitly classified as a high risk medical disease during pregnancy." },
+  { id: 10, question: "Which clinical finding is classified as a probable sign of pregnancy.", options: ["History of amenorrhea", "Morning sickness complaint", "Positive pregnancy test", "Hearing fetal heart rate"], correct: 2, rationale: "A positive pregnancy test is considered a probable sign, which strongly indicates pregnancy but does not definitively confirm it." },
+  { id: 11, question: "What clinical condition causes the uterus to be lower than expected for the period of gestation.", options: ["Multiple pregnancy", "Polyhydramnios", "Large fetus", "Oligohydramnios"], correct: 3, rationale: "The uterus may be lower than expected due to a small fetus, intrauterine growth retardation, oligohydramnios, or a mistaken date of the last menstrual period." },
+  { id: 12, question: "Hemodilution during pregnancy typically results in a lowered maternal hemoglobin level.", options: ["True", "False"], correct: 0, rationale: "Hemodilution of blood during pregnancy causes a physiological decrease in hemoglobin levels, hematocrit, and red blood cell count." },
+  { id: 13, question: "Which maternal posture defines the relationship of fetal parts to one another.", options: ["Fetal lie", "Fetal presentation", "Fetal attitude", "Fetal position"], correct: 2, rationale: "Fetal attitude refers to the posturing of the joints and the relation of the fetal parts to one another." },
+  { id: 14, question: "What maternal height measurement gives an indication of a contracted pelvis.", options: ["Less than one hundred fifty centimeters", "Exactly one hundred sixty centimeters", "More than one hundred sixty centimeters", "Exactly one hundred seventy centimeters"], correct: 0, rationale: "A maternal height shorter than one hundred fifty centimeters gives an indication of a contracted pelvis." },
+  { id: 15, question: "It is recommended that all pregnant women see a trained health provider at least four times during pregnancy.", options: ["True", "False"], correct: 0, rationale: "To be most effective, it is recommended that all mothers see a trained provider at least four times during pregnancy at regular intervals." },
+  { id: 16, question: "A raised systolic blood pressure indicates toxemia if it is above the baseline by how many millimeters of mercury.", options: ["Ten millimeters", "Twenty millimeters", "Thirty millimeters", "Forty millimeters"], correct: 2, rationale: "In late pregnancy, a raised systolic pressure of thirty millimeters of mercury above the baseline on two occasions indicates toxemia." },
+  { id: 17, question: "At what gestational age should the hemoglobin test be routinely repeated.", options: ["Twenty weeks", "Twenty eight weeks", "Thirty two weeks", "Thirty six weeks"], correct: 3, rationale: "Hemoglobin testing should be routinely repeated at thirty six weeks of gestation during follow-up visits." },
+  { id: 18, question: "The maternal abdomen appears longer if the fetal lie is transverse rather than longitudinal.", options: ["True", "False"], correct: 1, rationale: "The abdomen is longer if the fetal lie is longitudinal, and it appears lower and broad if the lie is transverse." },
+  { id: 19, question: "Which diagnostic method is used to detect deep vein thrombosis during the examination of the legs.", options: ["Homan test", "Pawlik maneuver", "Pinard stethoscope", "Naegele rule"], correct: 0, rationale: "The calf must be observed for reddened areas or white areas which could be caused by deep vein thrombosis, often checked using the Homan test." },
+  { id: 20, question: "Which service is a core component of preconception care.", options: ["Family planning counseling", "Fetal heart rate monitoring", "Measurement of fundal height", "Administration of analgesics"], correct: 0, rationale: "Family planning counseling to avoid unplanned pregnancies is a key component of preconception care." },
+  { id: 21, question: "A primigravida is automatically classified as a low risk pregnancy due to the absence of previous complications.", options: ["True", "False"], correct: 1, rationale: "Being a primigravida classifies a pregnant woman under the intermediate risk category, not low risk." },
+  { id: 22, question: "Which assessment finding provides a definite positive indication of pregnancy.", options: ["Breast tenderness", "Urinary frequency", "Fetal outline confirmation", "Abdominal enlargement"], correct: 2, rationale: "Ultrasonography to confirm the fetal outline is a positive or sure sign that definitively confirms the pregnancy." },
+  { id: 23, question: "What is the normal baseline fetal heart rate range.", options: ["Eighty to one hundred beats per minute", "One hundred to one hundred twenty beats per minute", "One hundred twenty to one hundred sixty beats per minute", "One hundred sixty to two hundred beats per minute"], correct: 2, rationale: "The normal fetal heart rate ranges from one hundred twenty to one hundred sixty beats per minute." },
+  { id: 24, question: "The uterus becomes palpable over the maternal abdomen after the twelfth week of gestation.", options: ["True", "False"], correct: 0, rationale: "The uterus will be palpable per abdomen after the twelfth week of gestation." },
+  { id: 25, question: "Which specific type of white blood cell increases during pregnancy to enhance bactericidal properties.", options: ["Eosinophils", "Neutrophils", "Basophils", "Lymphocytes"], correct: 1, rationale: "White blood cells increase during pregnancy, especially neutrophils, which account for more than seventy percent of the increase." },
+  { id: 26, question: "Which detail is primarily recorded under the obstetrical history during the initial visit.", options: ["Serious childhood illnesses", "Current maternal occupation", "Previous spontaneous abortions", "Known parental consanguinity"], correct: 2, rationale: "The date of the last abortion is recorded as part of the details of previous pregnancies under obstetrical history." },
+  { id: 27, question: "Premature rupture of membranes is classified as a high risk condition if it occurs between which weeks of gestation.", options: ["Twenty to twenty four weeks", "Twenty four to twenty eight weeks", "Twenty eight to thirty three weeks", "Thirty four to thirty seven weeks"], correct: 2, rationale: "Premature rupture of membranes occurring specifically between twenty eight and thirty three weeks is classified as a high risk condition." },
+  { id: 28, question: "What is the definition of the prefix ante in the context of maternity care.", options: ["After delivery", "Before delivery", "During delivery", "Following delivery"], correct: 1, rationale: "Ante means before, while natal means delivery, making antenatal care the care given before delivery." },
+  { id: 29, question: "Which physical change is classified strictly as a presumptive sign of pregnancy.", options: ["Softening of the isthmus", "Positive pregnancy test", "Hearing fetal movement", "Chloasma and linea nigra"], correct: 3, rationale: "Chloasma and linea nigra are classified as presumptive signs, which suggest pregnancy but do not positively indicate it." },
+  { id: 30, question: "White blood cells decrease during pregnancy to reduce the risk of maternal autoimmune diseases.", options: ["True", "False"], correct: 1, rationale: "White blood cells actually increase during pregnancy to enhance the blood phagocytic and bactericidal properties." },
+  { id: 31, question: "Which obstetric technique is specifically used to locate the round hard head of the fetus and judge its mobility.", options: ["Homan test", "Pawlik maneuver", "Naegele rule", "Pinard method"], correct: 1, rationale: "Pawlik maneuver is used during abdominal palpation to locate the round hard head and judge its size, flexion, and mobility." },
+  { id: 32, question: "Which finding places a pregnant woman in the intermediate risk category.", options: ["Uncontrolled premature labor", "Previous neonatal death", "Severe growth retardation", "Major fetal abnormality"], correct: 1, rationale: "A previous stillbirth or neonatal death places the mother in the intermediate risk category, whereas the other options are high risk conditions." },
+  { id: 33, question: "How many fetal movements should a pregnant woman report feeling within a twelve hour period.", options: ["At least five movements", "At least ten movements", "At least fifteen movements", "At least twenty movements"], correct: 1, rationale: "During a fetal kick count assessment, the pregnant woman is expected to report at least ten movements in twelve hours." },
+  { id: 34, question: "Cardiotocography is primarily used to record the maternal heartbeat and respiratory rate during pregnancy.", options: ["True", "False"], correct: 1, rationale: "Cardiotocography is an electronic fetal monitor used to record the fetal heartbeat and uterine contractions, not maternal respiratory rate." },
+  { id: 35, question: "Which goal is a primary objective of prenatal care.", options: ["To reduce the number of breastfed babies", "To increase maternal and perinatal mortality", "To prepare the mother for labor and lactation", "To eliminate all possible pregnancy risks entirely"], correct: 2, rationale: "Preparing the mother for labor, lactation, and subsequent care of her child is a direct objective of prenatal care." },
+  { id: 36, question: "What is the expected weight gain for a pregnant woman during the first twenty weeks of gestation.", options: ["One kilogram", "Two kilograms", "Ten kilograms", "Twelve kilograms"], correct: 1, rationale: "The approximate weight gain in the first twenty weeks is two kilograms, followed by ten kilograms in the remaining twenty weeks." },
+  { id: 37, question: "A mucoid vaginal loss should be immediately reported to the obstetrician if it occurs before which week of pregnancy.", options: ["Twenty fourth week", "Twenty eighth week", "Thirty second week", "Thirty seventh week"], correct: 3, rationale: "Women are instructed to report any mucoid loss to the obstetrician if it happens before the thirty seventh week of pregnancy." },
+  { id: 38, question: "Which clinical sign observed on the face indicates maternal anemia.", options: ["Facial edema", "Skin pallor", "Prominent chloasma", "Dark pigmentation"], correct: 1, rationale: "The face is observed during the general examination for skin color changes such as pallor, which is an indicator of anemia." },
+  { id: 39, question: "What urine specific gravity level may be found due to the physiological changes of pregnancy.", options: ["Less than one point one zero two", "More than one point one zero two", "Less than two point one zero two", "More than two point one zero two"], correct: 0, rationale: "A low specific gravity of urine, specifically less than 1.102, may be found due to the normal physiological changes of pregnancy." },
+  { id: 40, question: "Hegar sign is clinically defined as which anatomical change during early pregnancy.", options: ["Softening of the isthmus", "Enlargement of the abdomen", "Discoloration of the vagina", "Tenderness of the breasts"], correct: 0, rationale: "Hegar sign is a probable sign of pregnancy characterized by the softening of the uterine isthmus." }
+]
+            },
+            "anemia": {
+                title: "Anemia in Pregnancy",
+                author: "عبدالحليم رزق",
+                icon: "fa-droplet",
+                color: "text-red-600",
+                bg: "bg-red-50",
+                data: [
+  { id: 1, question: "Parenteral iron therapy is highly recommended for patients with concurrent severe renal disease.", options: ["True", "False"], correct: 1, rationale: "Parenteral iron injection is strictly contraindicated in cases of liver or renal disease." },
+  { id: 2, question: "Which hemoglobin concentration range defines moderate anemia during pregnancy?", options: ["Seven to nine grams per deciliter", "Nine to eleven grams per deciliter", "Four to seven grams per deciliter", "Less than four grams per deciliter"], correct: 0, rationale: "According to the degrees of severity, moderate anemia is characterized by a hemoglobin level between seven and nine grams per deciliter." },
+  { id: 3, question: "Which laboratory finding distinguishes physiological anemia of pregnancy from pathological anemia?", options: ["Normal serum ferritin levels", "Decreased overall plasma volume", "Elevated hematocrit percentages", "Abnormal red blood cell shape"], correct: 0, rationale: "Physiological anemia is distinguished from pathological anemia by normal indices of red blood cells and a normal serum ferritin level evaluating the body iron stores." },
+  { id: 4, question: "Which cooking method significantly reduces the folic acid content in green leafy vegetables?", options: ["Utilizing prolonged boiling techniques", "Steaming for a short duration", "Grilling over an open flame", "Baking inside a sealed oven"], correct: 0, rationale: "Folic acid is destroyed by prolonged boiling, the addition of bicarbonate, or cooking in a large amount of water." },
+  { id: 5, question: "Pregnant patients with severe anemia should be instructed to actively bear down during the first stage of labor.", options: ["True", "False"], correct: 1, rationale: "Nursing care during labor specifically instructs the anemic patient to avoid bearing down in the first stage of labor." },
+  { id: 6, question: "Which condition is most likely to exacerbate sickling in pregnant patients with sickle cell anemia?", options: ["Cellular dehydration states", "Elevated oxygen tension", "Systemic alkalosis states", "Excessive fluid overload"], correct: 0, rationale: "Sickling is enhanced by hypoxia, dehydration, acidosis, trauma, and infection." },
+  { id: 7, question: "When is the administration of parenteral iron therapy preferred over oral supplementation?", options: ["Diagnosis after the thirty sixth week", "Hemoglobin levels exceeding nine grams", "Initial diagnosis in the first trimester", "Requirement for prophylactic treatment"], correct: 0, rationale: "Parenteral iron therapy should replace oral iron in cases where anemia is detected after the thirty sixth week or in severe cases." },
+  { id: 8, question: "The fetus primarily stores drawn maternal iron in the liver during the latter part of the second trimester.", options: ["True", "False"], correct: 0, rationale: "In the latter part of the second trimester, the fetus draws iron from the mother and stores it in the liver for use during the first four to six months of life." },
+  { id: 9, question: "Which fetal complication is commonly associated with maternal anemia during the antenatal period?", options: ["Intrauterine growth retardation", "Congenital cardiac anomalies", "Excessive fetal birth weight", "Post term gestation period"], correct: 0, rationale: "Antenatal fetal complications of anemia include intrauterine hypoxia, impaired uteroplacental oxygen, and growth retardation." },
+  { id: 10, question: "Which pharmacological agent is identified as a potential trigger for aplastic anemia during pregnancy?", options: ["Maternal chloramphenicol administration", "Daily ferrous sulphate consumption", "Routine folic acid supplementation", "Intravenous heparin administration"], correct: 0, rationale: "Aplastic anemia occurs rarely in pregnancy due to certain agents such as chloramphenicol or phenylbutazone that depress bone marrow hemopoiesis." },
+  { id: 11, question: "Which dietary component inhibits the effective absorption of iron supplements?", options: ["High calcium dietary foods", "Fresh citrus fruit juices", "Dark green leafy vegetables", "Lean animal meat sources"], correct: 0, rationale: "Substances that inhibit iron absorption include excessive tea, coffee, high calcium foods, or supplements with antacids." },
+  { id: 12, question: "Oral iron supplementation frequently causes maternal stools to turn abnormally black.", options: ["True", "False"], correct: 0, rationale: "Women taking oral iron should be explicitly warned that their stool may turn black as a side effect." },
+  { id: 13, question: "Which specific intervention is universally required for all women during the postpartum period regardless of blood loss?", options: ["Routine oral iron supplementation", "Packed red blood cell transfusion", "Continuous intravenous fluid therapy", "Prophylactic maternal heparin therapy"], correct: 0, rationale: "Postpartum nursing care clearly dictates that all women will require an iron supplement after delivery." },
+  { id: 14, question: "Which diagnostic procedure can detect thalassemia in a fetus under ultrasound guidance?", options: ["Fetal blood cordocentesis", "Amniotic fluid cultivation", "Maternal serum evaluation", "Doppler ultrasound velocimetry"], correct: 0, rationale: "Thalassemia can be detected in the fetus either by chorionic villus sampling or by sampling the fetus blood taken by cordocentesis under ultrasound guidance." },
+  { id: 15, question: "Which clinical characteristic is specifically found in cases of folic acid deficiency anemia?", options: ["Deficient gastric hydrochloric acid", "Elevated peripheral reticulocytes", "Microcytic hypochromic red cells", "Abnormally high hematocrit values"], correct: 0, rationale: "A key clinical characteristic of folic acid deficiency anemia is a deficient or absent hydrochloric acid in the gastric secretion." },
+  { id: 16, question: "By what percentage does the total maternal blood volume typically increase during a normal pregnancy?", options: ["Forty to fifty percent", "Ten to twenty percent", "Twenty to thirty percent", "Sixty to seventy percent"], correct: 0, rationale: "During pregnancy, the total blood volume is increased by about forty to fifty percent, contributing to hydremia and physiological anemia." },
+  { id: 17, question: "Which factor places a pregnant woman at a high risk for developing anemia?", options: ["Short intervals between births", "Advanced maternal age status", "Excessive protein consumption", "Singleton fetal gestations"], correct: 0, rationale: "Women who have recently given birth, representing a short birth interval, are identified as a high risk group for anemia in pregnancy." },
+  { id: 18, question: "Which laboratory finding is characteristic of iron deficiency anemia in pregnant patients?", options: ["Serum ferritin under thirty micrograms", "Hemoglobin above eleven grams", "Hematocrit exceeding thirty percent", "Serum iron above sixty micrograms"], correct: 0, rationale: "The complete blood picture investigation for iron deficiency anemia shows serum ferritin below thirty micrograms per one hundred milliliters." },
+  { id: 19, question: "Why must parenteral iron be administered deep into the muscular tissue?", options: ["To prevent localized abscess formation", "To accelerate red blood cell production", "To bypass hepatic metabolic pathways", "To enhance overall systemic absorption"], correct: 0, rationale: "Nursing management specifies that parenteral iron should be given deep into muscles to prevent abscess formation." },
+  { id: 20, question: "What is the recommended daily dietary intake of folic acid for prophylactic treatment during pregnancy?", options: ["Six hundred micrograms daily", "Two hundred micrograms daily", "Four hundred micrograms daily", "Eight hundred micrograms daily"], correct: 0, rationale: "Prophylactic treatment outlines a daily dietary intake of folic acid at six hundred micrograms per day." },
+  { id: 21, question: "Which combination of blood abnormalities characterizes aplastic anemia during pregnancy?", options: ["Severe anemia with leucopenia and thrombocytopenia", "Mild anemia with leukocytosis and thrombocytosis", "Severe anemia with leukocytosis and thrombocytosis", "Mild anemia with leucopenia and thrombocytopenia"], correct: 0, rationale: "In cases of aplastic anemia, a complete blood count shows severe anemia combined with leucopenia and thrombocytopenia." },
+  { id: 22, question: "Which complication is a direct consequence of maternal anemia during the postnatal period?", options: ["Severe postpartum hemorrhage", "Uterine hyperstimulation events", "Gestational hypertensive states", "Complete placental abruption"], correct: 0, rationale: "Postnatal effects of anemia on the mother specifically include postpartum hemorrhage and infection." },
+  { id: 23, question: "Folic acid deficiency during pregnancy is directly linked to which specific type of birth defect?", options: ["Neural tube structural abnormalities", "Congenital cardiac septal defects", "Facial cleft lip and palate", "Fetal limb reduction defects"], correct: 0, rationale: "Folic acid deficiency can directly contribute to certain types of birth defects, such as neural tube abnormalities like spina bifida." },
+  { id: 24, question: "What type of cellular appearance is classically associated with iron deficiency anemia?", options: ["Hypochromic microcytic cellular appearance", "Hyperchromic macrocytic cellular appearance", "Normochromic normocytic cellular appearance", "Hypochromic macrocytic cellular appearance"], correct: 0, rationale: "The text classifies iron deficiency anemia specifically as hypochromic microcytic anemia." },
+  { id: 25, question: "Thalassemia is characterized by the excessive synthesis of normal alpha and beta globin chains.", options: ["True", "False"], correct: 1, rationale: "Thalassemia is a genetically inherited blood disorder characterized by the inadequate synthesis of alpha or beta globin chains." }
+]
+            },
+            "diabetes": {
+                title: "Diabetes Mellitus with Pregnancy",
+                author: "عبدالحليم رزق",
+                icon: "fa-cubes-stacked",
+                color: "text-amber-600",
+                bg: "bg-amber-50",
+                data: [
+  { id: 1, question: "During the first trimester of pregnancy maternal insulin sensitivity typically increases slightly.", options: ["True", "False"], correct: 0, rationale: "During the first trimester, there is a slight increase in insulin sensitivity leading to greater glucose utilization and decreased fasting blood glucose." },
+  { id: 2, question: "Which plasma glucose level after a one hour fifty gram glucose screening necessitates a formal three hour tolerance test?", options: ["One hundred forty milligrams per deciliter", "Ninety five milligrams per deciliter", "One hundred twenty milligrams per deciliter", "One hundred eighty milligrams per deciliter"], correct: 0, rationale: "A plasma glucose level of 140 mg/100 ml following the 50-gram glucose load necessitates proceeding to the 3-hour glucose tolerance test." },
+  { id: 3, question: "When does gestational diabetes mellitus typically develop and become initially recognized during the course of pregnancy?", options: ["During the second or third trimester", "Throughout the entire first trimester", "Exclusively during the peripartum period", "Immediately following placental delivery"], correct: 0, rationale: "Gestational diabetes usually develops during the second or third trimester due to pregnancy-induced insulin resistance." },
+  { id: 4, question: "What is the recommended fasting blood glucose target level for achieving optimal glycemic control during pregnancy?", options: ["Below ninety five milligrams per deciliter", "Below one hundred twenty milligrams per deciliter", "Below one hundred forty milligrams per deciliter", "Below one hundred ten milligrams per deciliter"], correct: 0, rationale: "Management protocols aim to maintain fasting blood glucose strictly below 95 mg/dL to achieve optimal glycemic control." },
+  { id: 5, question: "Breastfeeding is actively discouraged for mothers with gestational diabetes to prevent severe neonatal hypoglycemic episodes.", options: ["True", "False"], correct: 1, rationale: "Postpartum care actually encourages breastfeeding, as it improves maternal glucose metabolism and benefits the infant while lowering insulin requirements." },
+  { id: 6, question: "Which complication is a direct physiological consequence of fetal polyuria secondary to severe maternal hyperglycemia?", options: ["Increased incidence of polyhydramnios", "Severe intrauterine growth retardation", "Premature rupture of amniotic membranes", "Development of maternal preeclampsia"], correct: 0, rationale: "There is an increased incidence of polyhydramnios due to fetal polyuria, which occurs strictly secondary to maternal hyperglycemia." },
+  { id: 7, question: "At what estimated fetal weight is a cesarean delivery strongly considered to actively prevent intrapartum shoulder dystocia?", options: ["Four thousand five hundred grams", "Four thousand grams", "Three thousand five hundred grams", "Three thousand eight hundred grams"], correct: 0, rationale: "Cesarean delivery may be considered when the estimated fetal weight is greater than or equal to 4500 g because of the high risk of shoulder dystocia." },
+  { id: 8, question: "Maternal age younger than twenty five years represents a major independent risk factor for developing gestational diabetes.", options: ["True", "False"], correct: 1, rationale: "Maternal age greater than or equal to 35 years is identified as an increased risk factor, not an age younger than 25 years." },
+  { id: 9, question: "Which placental hormone exerts a significant peripheral anti insulin effect that heavily prevents optimal maternal cellular glucose utilization?", options: ["Human placental lactogen", "Maternal circulating estrogen", "Placental derived progesterone", "Maternal circulating prolactin"], correct: 0, rationale: "Human placental lactogen secreted from the placenta has a peripheral anti-insulin effect that prevents the utilization of glucose." },
+  { id: 10, question: "How frequently should a patient with normal postpartum glucose tolerance testing undergo lifelong systemic diabetes screening?", options: ["Every one to three years", "Every four to six months", "Every five to ten years", "Every six to twelve months"], correct: 0, rationale: "If postpartum results are normal, patients should undergo lifelong diabetes screening every 1 to 3 years." },
+  { id: 11, question: "What is the preferred pharmacological treatment for gestational diabetes when strict dietary and exercise modifications completely fail?", options: ["Maternal insulin therapy", "Oral metformin administration", "Intravenous dextrose infusion", "Subcutaneous glucagon injection"], correct: 0, rationale: "If diet and exercise fail to achieve glycemic targets, insulin is officially considered the preferred treatment." },
+  { id: 12, question: "The routine delivery of the placenta causes a rapid decline in placental hormones resulting in a marked increase in maternal insulin resistance.", options: ["True", "False"], correct: 1, rationale: "Delivery of the placenta causes a rapid decline in placental hormones, which actually results in a marked decrease (not increase) in insulin resistance." },
+  { id: 13, question: "How much fast acting carbohydrate should be promptly administered to a fully conscious pregnant woman experiencing symptomatic hypoglycemia?", options: ["Fifteen to twenty grams", "Five to ten grams", "Twenty five to thirty grams", "Thirty five to forty grams"], correct: 0, rationale: "Conscious women experiencing hypoglycemia should be treated with 15 to 20 grams of fast-acting carbohydrate." },
+  { id: 14, question: "The definitive three hour oral glucose tolerance test requires an overnight fasting period followed by the administration of how much oral glucose?", options: ["One hundred grams", "Fifty grams", "Seventy five grams", "One hundred fifty grams"], correct: 0, rationale: "The three-hour glucose tolerance test involves an overnight fast and the administration of a 100-gram oral glucose load." },
+  { id: 15, question: "Routine screening of maternal urine for glucose is considered a highly reliable diagnostic method for detecting active gestational diabetes.", options: ["True", "False"], correct: 1, rationale: "Testing the urine for glucose in pregnancy is unreliable because renal glucosuria is a common physiological occurrence." },
+  { id: 16, question: "What is the explicitly recommended daily dosage of folic acid prior to conception and continuing until twelve weeks of early pregnancy?", options: ["Five milligrams daily", "One milligram daily", "Ten milligrams daily", "Two milligrams daily"], correct: 0, rationale: "Preconception care for diabetic patients involves prescribing folic acid at a dose of 5 mg/day until 12 weeks of pregnancy." },
+  { id: 17, question: "What is the specific target range for strictly maintaining maternal blood glucose levels during the active stages of clinical labor?", options: ["Seventy to one hundred ten milligrams", "Ninety to one hundred forty milligrams", "Fifty to ninety five milligrams", "One hundred to one hundred fifty milligrams"], correct: 0, rationale: "During labor, maternal glucose should be maintained strictly between 70 and 110 mg/dL using insulin and glucose infusions as needed." },
+  { id: 18, question: "Which specific pharmacological class is officially identified as a potential chemical inducer of secondary maternal diabetes mellitus?", options: ["Systemic glucocorticoid medications", "Routine multivitamin supplementations", "Intravenous electrolyte replacements", "Subcutaneous anticoagulant therapies"], correct: 0, rationale: "Specific types of diabetes include drug- or chemical-induced diabetes resulting directly from agents such as glucocorticoids." },
+  { id: 19, question: "When is formal induction of delivery generally recommended for a pregnant patient diagnosed with medication controlled gestational diabetes?", options: ["Thirty nine weeks gestation", "Forty weeks gestation", "Thirty seven weeks gestation", "Forty one weeks gestation"], correct: 0, rationale: "For medication-controlled GDM or pregestational diabetes, delivery is usually planned at 39 weeks unless maternal or fetal complications develop earlier." },
+  { id: 20, question: "What immediate metabolic neonatal complication requires close clinical observation and monitoring in the newborn of a diabetic mother?", options: ["Severe neonatal hypoglycemia", "Profound neonatal hyperglycemia", "Systemic diabetic ketoacidosis", "Congenital renal glucosuria"], correct: 0, rationale: "Care of the newborn dictates early feeding and close monitoring specifically for neonatal hypoglycemia." },
+  { id: 21, question: "Why do women with pre existing type one diabetes frequently require substantially reduced insulin doses during the first trimester of pregnancy?", options: ["Increased maternal insulin sensitivity", "Decreased placental lactogen production", "Accelerated hepatic glycogen depletion", "Impaired pancreatic beta cell function"], correct: 0, rationale: "In the first trimester, an increased insulin sensitivity alongside reduced glucose levels often requires lowering the usual insulin doses." },
+  { id: 22, question: "According to the International Diabetes Federation what precise global percentage of live births is affected by maternal hyperglycemia during pregnancy?", options: ["Approximately seventeen percent", "Approximately twenty five percent", "Approximately ten percent", "Approximately thirty percent"], correct: 0, rationale: "Approximately 1 in 6 live births, which constitutes about 17%, is affected by hyperglycemia during pregnancy." },
+  { id: 23, question: "Pregnant women clinically diagnosed with diabetes exhibit an overall incidence rate of preeclampsia that is how much higher than in non diabetic women?", options: ["Three times higher", "Two times higher", "Four times higher", "Five times higher"], correct: 0, rationale: "Maternal complications of diabetes include an increased incidence of pre-eclampsia that is three times higher than in non-diabetic pregnancies." },
+  { id: 24, question: "A definitive clinical diagnosis of gestational diabetes using the three hour oral glucose tolerance test requires how many elevated glucose test values?", options: ["Two or more elevated values", "One single elevated value", "Three or more elevated values", "All four tested elevated values"], correct: 0, rationale: "Gestational diabetes is firmly diagnosed when two or more glucose tolerance test levels equal or heavily exceed the stated diagnostic thresholds." },
+  { id: 25, question: "When is an oral glucose tolerance test medically recommended following childbirth for a patient previously diagnosed with gestational diabetes?", options: ["Four to twelve weeks postpartum", "One to three weeks postpartum", "Six to twelve months postpartum", "Immediately following placental delivery"], correct: 0, rationale: "Postpartum care entails performing a 75-g OGTT at 4 to 12 weeks postpartum to evaluate the maternal glucose status accurately." }
+]
+            },
+            "heart": {
+                title: "Heart Disease in Pregnancy",
+                author: "عبدالحليم رزق",
+                icon: "fa-heart-pulse",
+                color: "text-rose-600",
+                bg: "bg-rose-50",
+                data: [
+  { id: 1, question: "Which bacterial infection is identified as the most common precipitating cause of rheumatic heart disease in pregnant women?", options: ["Streptococcal bacterial infections causing subsequent valvular damage", "Staphylococcal bacterial infections causing widespread systemic sepsis", "Viral respiratory infections causing acute myocardial inflammation", "Fungal opportunistic infections causing localized subacute endocarditis"], correct: 0, rationale: "Rheumatic heart disease involves heart muscles and valves damage due to rheumatic fever caused by streptococcal bacterial infections." },
+  { id: 2, question: "Approximately how much blood is expelled from the actively contracting uterus into the general maternal circulation during each contraction?", options: ["Three hundred to five hundred milliliters of total blood volume", "One hundred to two hundred milliliters of total blood volume", "Six hundred to eight hundred milliliters of total blood volume", "Eight hundred to one thousand milliliters of total blood volume"], correct: 0, rationale: "Each uterine contraction is associated with the expulsion of 300-500ml of blood from the uterus to the general circulation, leading to increased stroke volume." },
+  { id: 3, question: "Oxytocin administration is highly recommended during the first and second stages of labor for patients with cardiac disease.", options: ["True", "False"], correct: 1, rationale: "Oxytocin is strictly contraindicated for heart disease in the first and second stages of labor according to labor management guidelines." },
+  { id: 4, question: "What is the primary dietary modification recommended for pregnant women managing symptomatic cardiac disease?", options: ["Decreased sodium intake combined with increased protein consumption", "Increased carbohydrate intake combined with restricted fat consumption", "Elevated sodium intake combined with reduced protein consumption", "Decreased caloric intake combined with limited iron supplementation"], correct: 0, rationale: "The diet should contain low salt, less carbohydrate, less fat, but more protein, iron, and essential nutrients to support the mother and reduce cardiac workload." },
+  { id: 5, question: "Why is there a significant increase in maternal cardiac output immediately following the delivery of the placenta?", options: ["Increased venous return secondary to the absent placental vascular pool", "Decreased systemic vascular resistance lowering peripheral blood pressure", "Rapid depletion of intravascular volume from normal postpartum bleeding", "Acute parasympathetic stimulation slowing the maternal resting heart rate"], correct: 0, rationale: "Immediately following labor there is an increase in cardiac output due to increased venous return secondary to the absence of the placenta pool." },
+  { id: 6, question: "Which condition represents an absolute maternal indication for performing a therapeutic abortion in early pregnancy?", options: ["Cyanotic congenital heart disease complicated by pulmonary hypertension", "Rheumatic valvular disease with documented previous endocarditis", "Gestational hypertension without significant target organ involvement", "Uncomplicated mild maternal anemia presenting in the first trimester"], correct: 0, rationale: "Therapeutic abortion is specifically indicated in cyanotic congenital heart disease, such as pulmonary hypertension, or cases of Class III and IV that do not respond to medical treatment." },
+  { id: 7, question: "In pregnant women with cardiac disease Class three and Class four patients must remain hospitalized throughout the entire pregnancy.", options: ["True", "False"], correct: 0, rationale: "According to antenatal management protocols, Class III and Class IV patients must be hospitalized throughout pregnancy due to their high risk of decompensation." },
+  { id: 8, question: "Which specific clinical finding during labor requires immediate evaluation for early signs of maternal cardiac decompensation?", options: ["Maternal respiratory rate exceeding twenty five breaths per minute", "Maternal heart rate dropping below sixty regular beats per minute", "Maternal systolic pressure falling below ninety peripheral millimeters", "Maternal oxygen saturation remaining above ninety five percent overall"], correct: 0, rationale: "A pulse rate greater than 100 beats per minute or a respiration rate greater than 25 per minute require careful evaluation to detect early signs of decompensation." },
+  { id: 9, question: "At which specific gestational age do maternal cardiac output and total blood volume typically reach their absolute maximum levels?", options: ["At thirty two weeks of active gestational development", "At twenty four weeks of active gestational development", "At thirty eight weeks of active gestational development", "At twenty eight weeks of active gestational development"], correct: 0, rationale: "The critical period during which heart failure is liable to occur is at 32 weeks, as the cardiac output and blood volume are at their absolute maximum." },
+  { id: 10, question: "Which classification describes a patient who is severely compromised and experiences cardiac discomfort even while completely at rest?", options: ["Class four functional cardiac classification", "Class three functional cardiac classification", "Class two functional cardiac classification", "Class one functional cardiac classification"], correct: 0, rationale: "Class IV indicates a patient is severely compromised, with an inability to perform any physical activity without discomfort, and the patient experiences discomfort even at rest." },
+  { id: 11, question: "What is the primary purpose of administering diuretic medications during the active stages of clinical labor?", options: ["To decrease maternal venous return and reduce acute pulmonary congestion", "To increase maternal blood volume and enhance direct placental perfusion", "To stimulate frequent uterine contractions and accelerate active labor progress", "To raise maternal blood pressure and prevent sudden neurogenic shock"], correct: 0, rationale: "Diuretics are administered to decrease venous return to the heart and to decrease pulmonary and left atrial blood pressure, thereby reducing pulmonary congestion." },
+  { id: 12, question: "Pregnant women with Class three functional cardiac disease can safely be discharged from the hospital immediately following a successful delivery.", options: ["True", "False"], correct: 1, rationale: "Discharge guidelines mandate that patients with Class III heart disease should not leave the hospital until their condition improves and reaches Class I." },
+  { id: 13, question: "Which specific electrolyte imbalance must be carefully monitored in hospitalized cardiac patients receiving continuous digitalis medication therapy?", options: ["Systemic hypokalemia requiring dietary potassium supplementation", "Systemic hypercalcemia requiring aggressive intravenous fluid therapy", "Systemic hyponatremia requiring strict dietary sodium restriction", "Systemic hypermagnesemia requiring immediate pharmacological reversal"], correct: 0, rationale: "Patients hospitalized for digitalis therapy must be observed for hypokalemia, and nurses must provide food high in potassium to prevent life-threatening arrhythmias." },
+  { id: 14, question: "What is the normal physiological increase in maternal blood volume during the first trimester of pregnancy?", options: ["Forty to fifty percent above normal baseline", "Twenty to thirty percent above normal baseline", "Ten to fifteen percent above normal baseline", "Sixty to seventy percent above normal baseline"], correct: 0, rationale: "During the first trimester, the volume of blood increases by 40 to 50 percent and remains high throughout the entire pregnancy." },
+  { id: 15, question: "Which position is most beneficial for maximizing uteroplacental blood flow during labor in a patient with heart disease?", options: ["The lateral side lying position or semi upright elevated position", "The supine flat position with the lower extremities significantly elevated", "The prone flat position with soft pillows supporting the maternal abdomen", "The full upright standing position combined with continuous active ambulation"], correct: 0, rationale: "A side-lying or semi-Fowler’s position helps in assuring cardiac emptying, proper oxygenation, and maximum uteroplacental blood flow." },
+  { id: 16, question: "The functional classification of heart disease in pregnancy is based strictly on the anatomical diagnosis rather than the physical symptoms.", options: ["True", "False"], correct: 1, rationale: "The classification of heart disease in pregnancy is based purely on function, not diagnosis. Different individuals with the same diagnosis may fall into different functional classes." },
+  { id: 17, question: "When therapeutic abortion is indicated for severe cardiac disease which specific method is strictly preferred after the twelfth gestational week?", options: ["The direct intrauterine injection of synthetic prostaglandin medications", "The immediate surgical performance of an open abdominal hysterotomy", "The standard clinical application of manual vacuum aspiration techniques", "The exclusive continuous use of concentrated intravenous oxytocin infusions"], correct: 0, rationale: "Therapeutic abortion is performed by suction curettage before the 12th week, while intrauterine injection of prostaglandins is preferred after that time." },
+  { id: 18, question: "During which specific period of labor does the act of maternal straining place the greatest physical stress on the compromised heart?", options: ["Throughout the entire second stage of active clinical labor", "During the initial latent phase of the first clinical labor stage", "Following the complete expulsion of the delivered maternal placenta", "Prior to the spontaneous rupture of the surrounding amniotic membranes"], correct: 0, rationale: "The critical period during which heart failure is liable to occur is in the 2nd stage of labor, where intense straining leads to extreme stress on the heart." },
+  { id: 19, question: "How many hours of total daily rest are generally recommended for a pregnant woman diagnosed with functional cardiac disease?", options: ["Twelve total hours including night sleep and daytime resting", "Eight total hours consisting exclusively of uninterrupted night sleep", "Fourteen total hours distributed evenly throughout the entire daytime", "Ten total hours focused entirely on uninterrupted afternoon sleeping"], correct: 0, rationale: "Adequate rest requires the woman to have 10 hours of rest in bed at night and 2 hours in the afternoon, totaling 12 hours to reduce the workload of the heart." },
+  { id: 20, question: "Prophylactic ampicillin is frequently recommended to guard against the recurrence of bacterial endocarditis in vulnerable pregnant women.", options: ["True", "False"], correct: 0, rationale: "Prophylactic antibiotics, such as Ampicillin or amoxicillin, are recommended to guard against the recurrence of rheumatic fever or bacterial endocarditis." },
+  { id: 21, question: "What is the most severe potential fetal consequence of maternal cardiac disease during the active period of pregnancy?", options: ["Complete intrauterine fetal demise before the actual onset of labor", "Transient fetal tachycardia during early irregular maternal contractions", "Slight overall reduction in fetal movement during the late evening hours", "Accelerated rapid fetal lung maturation throughout the third trimester"], correct: 0, rationale: "Effects of heart disease on the fetus during pregnancy include severe outcomes such as intrauterine growth retardation and intra uterine fetal death." },
+  { id: 22, question: "Which vital sign alteration is considered a normal physiological cardiovascular adaptation during a healthy pregnancy?", options: ["An elevated baseline heart rate of ten to fifteen beats per minute", "A dramatic increase in diastolic blood pressure of twenty millimeters", "A severe hazardous reduction in overall peripheral vascular resistance", "A significant dramatic drop in maternal cardiac output by thirty percent"], correct: 0, rationale: "It is normal for the heart rate to physiologically increase by 10 to 15 beats per minute over the baseline during a healthy pregnancy." },
+  { id: 23, question: "Which sign or symptom is considered a classic early indicator of active congestive heart failure in a pregnant patient?", options: ["The presence of a persistent nighttime nocturnal cough", "The sudden development of mild transient morning sickness", "The unusual sensation of sporadic irregular fetal movements", "The isolated presentation of diffuse maternal lower back discomfort"], correct: 0, rationale: "Signs of heart failure explicitly include a nocturnal cough, progressive edema, increasing dyspnea, and hemoptysis." },
+  { id: 24, question: "How frequently should a pregnant outpatient with Class two cardiac disease be medically evaluated prior to the twenty eighth week?", options: ["Every two weeks continuously until reaching the twenty eighth week", "Every four weeks continuously until reaching the thirty sixth week", "Every week continuously starting directly from the initial diagnosis", "Every three weeks continuously until reaching the active delivery phase"], correct: 0, rationale: "Class I and class II patients are managed as outpatients but should be closely seen every two weeks up to the 28th week, then weekly until delivery." },
+  { id: 25, question: "Which postpartum complication is considered most likely to precipitate a sudden maternal cardiac crisis?", options: ["The development of massive acute systemic thromboembolism", "The sudden onset of localized mild peripheral lower extremity edema", "The presentation of completely asymptomatic transient nighttime bradycardia", "The spontaneous gradual resolution of previously existing varicose veins"], correct: 0, rationale: "Postpartum hemorrhage, infection, and thromboembolism can all precipitate life-threatening crises and must be prevented or immediately treated." }
+]
+            },
+            "rh": {
+                title: "Rh Incompatibility",
+                author: "عبدالحليم رزق",
+                icon: "fa-vial-virus",
+                color: "text-purple-600",
+                bg: "bg-purple-50",
+                data: [
+  { id: 1, question: "Which type of maternal antibody is primarily produced during the initial exposure to fetal red blood cells and fails to cross the placental barrier?", options: ["Immunoglobulin M antibodies", "Immunoglobulin G antibodies", "Immunoglobulin A antibodies", "Immunoglobulin E antibodies"], correct: 0, rationale: "During the first pregnancy, the initial exposure causes the mother's B cells to secrete IgM antibodies, which are too large to cross the placental barrier." },
+  { id: 2, question: "Which fetal complication is directly caused by the accumulation of waste products resulting from excessive red blood cell destruction?", options: ["Systemic kernicterus toxicity", "Generalized hydrops fetalis", "Complete bone marrow failure", "Severe cardiac enlargement"], correct: 0, rationale: "Kernicterus is listed specifically as a complication resulting from the waste products of excessive hemolysis." },
+  { id: 3, question: "If both the mother and the father have rhesus negative blood types there is a high risk for rhesus incompatibility in the newborn.", options: ["True", "False"], correct: 1, rationale: "If both parents are Rh-negative, the child will be Rh-negative, resulting in absolutely no risk for Rh incompatibility." },
+  { id: 4, question: "At which specific gestational age is the prophylactic administration of rhesus immunoglobulin routinely recommended during an uncomplicated pregnancy?", options: ["Twenty eight weeks gestation", "Twenty four weeks gestation", "Thirty two weeks gestation", "Thirty six weeks gestation"], correct: 0, rationale: "Primary prevention dictates administering the prophylactic Rh immunoglobulin injection at 28 weeks of gestation." },
+  { id: 5, question: "Which specific diagnostic test is utilized to detect maternal antibodies that have already attached to the circulating fetal red blood cells?", options: ["The direct Coombs test", "The indirect Coombs test", "The complete blood count", "The maternal antibody titer"], correct: 0, rationale: "The direct Coombs test specifically detects maternal anti-D antibodies that have already bound directly to the fetal red blood cells." },
+  { id: 6, question: "Which non fetal exposure event significantly increases the maternal risk of developing rhesus sensitization during a first pregnancy?", options: ["Previous bone marrow transplantation", "Routine external cephalic version", "Diagnostic chorionic villus sampling", "Unexplained antepartum placental hemorrhage"], correct: 0, rationale: "Bone marrow transplantation is classified as a non-fetal exposure to Rh-positive blood, whereas the others involve fetal exposure." },
+  { id: 7, question: "Sensitization to the rhesus antigen occurs in approximately ten percent of all pregnancies involving a rhesus negative mother and a rhesus positive fetus.", options: ["True", "False"], correct: 1, rationale: "The incidence of carrying an Rh-positive fetus is about 10%, but actual sensitization only occurs in about 5% of these cases." },
+  { id: 8, question: "Which specific biological material was transfused into laboratory animals by Landsteiner and Wiener to isolate the newly discovered antibody?", options: ["Rhesus monkey red cells", "Guinea pig blood plasma", "Domestic rabbit white cells", "Laboratory mouse red cells"], correct: 0, rationale: "In 1940, Landsteiner and Wiener reported an antibody found in guinea pigs and rabbits when they were transfused specifically with rhesus monkey red cells." },
+  { id: 9, question: "Which intrapartum clinical practice must be strictly avoided to heavily decrease the entry of incompatible blood into the maternal circulation?", options: ["Umbilical cord milking", "Early membrane rupture", "Delayed cord clamping", "Placental manual removal"], correct: 0, rationale: "Primary prevention guidelines include a specific note to completely avoid cord milking during labor to decrease Rh- blood entry into the maternal circulation." },
+  { id: 10, question: "What approximate percentage of the general human population inherits the specific rhesus protein and is therefore classified as rhesus positive?", options: ["Eighty five percent", "Seventy five percent", "Ninety five percent", "Sixty five percent"], correct: 0, rationale: "The majority of people in the general population, approximately 85%, inherit the protein and are Rh-positive." },
+  { id: 11, question: "Repeated fetal stillbirths resulting from severe blood incompatibility can lead to long term relative infertility in the affected mother.", options: ["True", "False"], correct: 0, rationale: "Relative infertility and obstetric complications from repeated stillbirths are officially listed under the complications of Rh incompatibility on the mother." },
+  { id: 12, question: "Which maternal immune cells are primarily responsible for mounting a targeted destructive response against fetal blood cells during subsequent pregnancies?", options: ["Immunoglobulin memory B cells", "Circulating helper T lymphocytes", "Activated natural killer cells", "Specialized cytotoxic T cells"], correct: 0, rationale: "In subsequent pregnancies, the IgG memory B cells mount an immune response and produce antibodies that cross the placenta to destroy fetal red blood cells." },
+  { id: 13, question: "Which fetal physiological consequence is a direct result of the absolute reduction in circulating red blood cells rather than the accumulation of metabolic waste?", options: ["Fetal splenic enlargement", "Fetal hepatic enlargement", "Complete hepatic failure", "Complete renal failure"], correct: 0, rationale: "Splenomegaly is grouped strictly under the complications resulting from the absolute reduction of red blood cells, not from waste products." },
+  { id: 14, question: "What is the primary therapeutic purpose of utilizing maternal plasmapheresis as a secondary prevention strategy during a complicated pregnancy?", options: ["To temporarily remove targeted immune antibodies from the maternal circulation", "To permanently suppress the maternal immune response against fetal antigens", "To actively stimulate fetal red blood cell production within the bone marrow", "To continuously enhance fetal lung maturation before early cesarean delivery"], correct: 0, rationale: "Plasmapheresis is a temporary treatment designed to remove maternal antibodies, knowing they can later be reproduced by the mother's immune response." },
+  { id: 15, question: "The indirect Coombs test is utilized to precisely identify maternal antibodies that are circulating freely within the fetal blood serum.", options: ["True", "False"], correct: 1, rationale: "The indirect Coombs test is used to find free anti-D antibodies circulating in the mother's serum, not the fetal blood serum." },
+  { id: 16, question: "Which specific clinical intervention represents a core component of the social rehabilitation phase for mothers experiencing severe complications from blood incompatibility?", options: ["Strengthening community support systems", "Providing individual psychological therapy", "Monitoring newborn developmental growth", "Administering postpartum immune globulin"], correct: 0, rationale: "Strengthening support through family, support groups, and healthcare services constitutes the social support systems pillar of social rehabilitation." },
+  { id: 17, question: "Which potential severe maternal complication is heavily associated with the heavy psychological burden of repeatedly experiencing profound rhesus incompatibility?", options: ["Severe marital relationship breakdown", "Chronic physical maternal exhaustion", "Permanent renal filtration impairment", "Acute maternal hepatic dysfunction"], correct: 0, rationale: "Marital breakdown and psychological trauma are identified directly as critical complications of Rh incompatibility on the mother." },
+  { id: 18, question: "Within what specific time frame following labor must the prophylactic maternal immunoglobulin injection be properly administered to ensure optimal protective efficacy?", options: ["Within seventy two hours", "Within forty eight hours", "Within twenty four hours", "Within ninety six hours"], correct: 0, rationale: "The Rh immunoglobulin injection must be given at 28 weeks of gestation and strictly within 72 hours following labor." },
+  { id: 19, question: "Cortisone injections are administered during the secondary prevention phase to directly halt the maternal immune destruction of fetal circulating red blood cells.", options: ["True", "False"], correct: 1, rationale: "Cortisone injections are administered specifically to enhance fetal lung maturation prior to an early cesarean section, not to halt immune destruction." },
+  { id: 20, question: "Which underlying mechanical event usually causes the initial maternal exposure to incompatible fetal red blood cells during a completely normal first pregnancy?", options: ["Separation of the placenta from the uterine wall", "Spontaneous rupture of the amniotic sac membranes", "Gradual thinning of the lower uterine segment", "Routine dilation of the maternal cervical canal"], correct: 0, rationale: "Initial exposure typically occurs during delivery when the placenta separates from the uterine wall, causing umbilical cord blood to enter the maternal circulation." },
+  { id: 21, question: "Which serious fetal complication is directly categorized under toxicity completely resulting from excessive red blood cell destruction waste products?", options: ["Severe kidney filtration toxicity", "Generalized bodily fluid accumulation", "Severe structural cardiac enlargement", "Absolute cellular bone marrow failure"], correct: 0, rationale: "Kidneys toxicity is explicitly grouped as a complication resulting directly from the accumulation of waste products." },
+  { id: 22, question: "Which obstetric condition provides a direct risk factor mechanism for fetal blood to enter the maternal circulation during early gestational pregnancy?", options: ["Ectopic tubal pregnancy", "Gestational maternal diabetes", "Severe pregnancy hypertension", "Premature membrane rupture"], correct: 0, rationale: "An ectopic pregnancy is listed as a major risk factor involving direct exposure to fetal Rh-positive blood." },
+  { id: 23, question: "Which specific neonatal procedure is frequently required during the postpartum period to actively manage and treat the severe complications of blood incompatibility?", options: ["Complete infant blood exchange", "Prophylactic neonatal vaccination", "Continuous maternal breastfeeding", "Routine infant physical therapy"], correct: 0, rationale: "Postpartum procedures for the affected fetus regularly include crucial treatments such as phototherapy and infant blood exchange." },
+  { id: 24, question: "How does the maternal immune system initially perceive the completely unfamiliar fetal rhesus antigen when exposed during an incompatible pregnancy?", options: ["As a dangerous foreign biological threat", "As a harmless inherited genetic variant", "As a necessary fetal developmental protein", "As a complementary maternal blood component"], correct: 0, rationale: "When exposed, the mother's immune system perceives the D antigen as a foreign threat exactly similar to how invasive bacteria and viruses are perceived." },
+  { id: 25, question: "What is the absolute primary clinical focus of the physical rehabilitation component for complicated cases resolving from severe blood incompatibility?", options: ["Regular monitoring of the newborn developmental milestones", "Continuous evaluation of maternal psychological stability", "Immediate restoration of maternal reproductive fertility", "Routine assessment of future maternal pregnancy risks"], correct: 0, rationale: "Physical rehabilitation involves the regular follow-up of the newborn specifically to monitor growth, development, and any subsequent long-term complications." }
+]
+            },
+            "discomfort": {
+                title: "Minor Discomfort during Pregnancy",
+                author: "عبدالحليم رزق",
+                icon: "fa-face-frown",
+                color: "text-cyan-600",
+                bg: "bg-cyan-50",
+                data: [
+  { id: 1, question: "What is the recommended duration to pinch the nose closed to manage a nosebleed during pregnancy?", options: ["Two minutes", "Five minutes", "Ten minutes", "Fifteen minutes"], correct: 1, rationale: "The woman should lean slightly forward and pinch the area right above the nostrils closed for five minutes." },
+  { id: 2, question: "Most striae completely disappear postpartum.", options: ["True", "False"], correct: 1, rationale: "Most striae fade to pale or flesh-colored lines and shrink postpartum, but they usually do not disappear completely." },
+  { id: 3, question: "The flick sign is associated with the relief of symptoms in which condition?", options: ["Supine hypotension", "Carpal tunnel syndrome", "Hyperemesis gravidarum", "Obstetric cholestasis"], correct: 1, rationale: "To relieve the symptoms of Carpal Tunnel Syndrome, women often flick their wrist as if shaking down a thermometer." },
+  { id: 4, question: "Which conservative management technique is recommended for pregnant women experiencing hemorrhoids?", options: ["Warm sitz baths", "Cold compresses", "Warm washcloths", "Heated blankets"], correct: 1, rationale: "Application of an ice bag or cold compresses to the anus usually gives relief for hemorrhoids." },
+  { id: 5, question: "In managing a sudden muscle cramp, the affected foot should be moved in which specific manner?", options: ["Plantar flexed", "Sharply flexed", "Gently rotated", "Fully extended"], correct: 1, rationale: "A second individual should apply pressure on the knee with one hand and sharply flex the foot with the other hand." },
+  { id: 6, question: "Pregnancy hormones typically accelerate the digestive process and speed up stomach emptying.", options: ["True", "False"], correct: 1, rationale: "Relaxation of the gut under the effect of pregnancy hormones actually leads to delayed digestion and delayed gastric emptying." },
+  { id: 7, question: "Hyperemesis gravidarum is characterized by a prepregnancy weight loss exceeding what percentage?", options: ["Two percent", "Three percent", "Four percent", "Five percent"], correct: 3, rationale: "Hyperemesis gravidarum results in dehydration, ketonuria, and a weight loss of more than 5 percent of pre-pregnancy body weight." },
+  { id: 8, question: "Adding what household substance to bath water serves as a soothing measure for physiological itching?", options: ["Apple cider vinegar", "Sodium bicarbonate", "Magnesium sulfate", "Hydrogen peroxide"], correct: 1, rationale: "Bathing in tepid rather than hot water and adding sodium bicarbonate to the bath water are soothing measures for itching." },
+  { id: 9, question: "Which physiological state acts as a primary cofactor for flatulence during pregnancy?", options: ["Severe tachycardia", "Chronic constipation", "Systemic hypotension", "Persistent proteinuria"], correct: 1, rationale: "Flatulence is the co-factor for constipation, so where constipation exists, flatulence exists due to increased bacterial action time." },
+  { id: 10, question: "Total parenteral nutrition is reserved for women who cannot tolerate which feeding method?", options: ["Oral feeding", "Enteral feeding", "Intravenous fluids", "Clear liquids"], correct: 1, rationale: "Total parenteral nutrition is reserved for women suffering from hyperemesis gravidarum who cannot tolerate enteral feeding." },
+  { id: 11, question: "Enemas are strictly avoided during pregnancy unless all other treatments fail due to abortion risks.", options: ["True", "False"], correct: 0, rationale: "Enemas are to be avoided during pregnancy unless all other treatment has been ineffective because of the risk of abortion." },
+  { id: 12, question: "What mineral imbalance contributes to the development of muscular tetany during late pregnancy?", options: ["Reduced serum calcium", "Elevated serum potassium", "Reduced serum sodium", "Elevated serum magnesium"], correct: 0, rationale: "A reduced level of diffusible serum calcium or elevation of serum phosphorus in the bloodstream leads to muscular tetany." },
+  { id: 13, question: "Which complication is commonly associated with women who practice pica?", options: ["Lead poisoning", "Hyperthyroidism", "Gestational diabetes", "Essential hypertension"], correct: 0, rationale: "Studies have shown anemia and lead poisoning among women who practice pica, which is the craving of unnatural substances like dust or coal." },
+  { id: 14, question: "Which position is most recommended for managing supine hypotensive syndrome?", options: ["Right lateral position", "Left lateral position", "Prone resting position", "Supine resting position"], correct: 1, rationale: "Immediate change of position to the side-lying position, preferably on the left side, is important to relieve vena cava compression." },
+  { id: 15, question: "Obstetric cholestasis can increase the risk of maternal hemorrhage after delivery.", options: ["True", "False"], correct: 0, rationale: "Obstetric cholestasis is a potentially dangerous liver disorder that can increase the risk of premature birth, stillbirth, and maternal hemorrhage after delivery." },
+  { id: 16, question: "Chewing gum is recommended for heartburn because it stimulates the production of what substance?", options: ["Salivary flow", "Gastric acid", "Pancreatic juice", "Bile salts"], correct: 0, rationale: "Chewing gum stimulates the salivary glands and the produced saliva may help neutralize stomach acid." },
+  { id: 17, question: "Round ligament pain typically resolves by which week of gestation?", options: ["Twelve weeks", "Sixteen weeks", "Twenty two weeks", "Thirty weeks"], correct: 2, rationale: "Pulling and stretching of pelvic structures causes round ligament pain, which usually resolves by 22 weeks." },
+  { id: 18, question: "Which hormone is primarily responsible for vasodilation leading to early fainting episodes?", options: ["Progesterone", "Estrogen", "Relaxin", "Oxytocin"], correct: 0, rationale: "Fainting is due to the vasodilatation effect of progesterone leading to hypotension and decreased blood supply to the brain." },
+  { id: 19, question: "How far is the diaphragm displaced by the enlarged uterus in the third trimester?", options: ["One centimeter", "Two centimeters", "Three centimeters", "Four centimeters"], correct: 3, rationale: "The enlarged uterus displaces the diaphragm up to 4 cm, which reduces diaphragmatic mobility and makes respiration mainly thoracic." },
+  { id: 20, question: "Excessive salivation typically disappears by the end of which period?", options: ["First trimester", "Second trimester", "Third trimester", "Fourth trimester"], correct: 0, rationale: "Ptyalism occurs from 8 weeks gestation and disappears by the end of the first trimester." },
+  { id: 21, question: "Elevated levels of which hormone lead to reduced peristalsis and intestinal motility?", options: ["Progesterone", "Estrogen", "Prolactin", "Thyroxine"], correct: 0, rationale: "Elevated progesterone levels in pregnancy enhance smooth muscle relaxation, resulting in reduced peristalsis and constipation." },
+  { id: 22, question: "Constipation affects up to forty percent of women at some stage in their pregnancies.", options: ["True", "False"], correct: 0, rationale: "Constipation is a very common discomfort and can affect up to 40% of women at some stage in their pregnancies." },
+  { id: 23, question: "Which psychological factor contributes significantly to insomnia in the third trimester?", options: ["Financial concerns", "Fetal anticipation", "Marital issues", "Career anxiety"], correct: 1, rationale: "Excitement and anticipation of birth may make it hard to relax and turn off the mind for sleeping in the third trimester." },
+  { id: 24, question: "Marked fatigue disappears by the end of the third month but reappears during which period?", options: ["Second trimester", "Third trimester", "Early puerperium", "Late puerperium"], correct: 1, rationale: "Marked fatigue and lassitude early in pregnancy disappears by the end of the third month and reappear in the third trimester." },
+  { id: 25, question: "Which exercise is recommended to help tighten and relax the muscles of the perineum?", options: ["Kegel exercises", "Aerobic exercises", "Isometric exercises", "Stretching exercises"], correct: 0, rationale: "Teaching the mother how to do Kegel exercises helps alternate tightening and relaxing of the muscles of the perineum." },
+  { id: 26, question: "Which intervention is contraindicated for managing lower limb edema during pregnancy?", options: ["Daily isometric exercise", "Application of diuretics", "Adequate fluid intake", "Frequent leg elevation"], correct: 1, rationale: "Diuretics are strictly contraindicated for the management of edema during pregnancy." },
+  { id: 27, question: "Douching is highly encouraged during pregnancy to maintain optimal vaginal hygiene.", options: ["True", "False"], correct: 1, rationale: "Douching should be avoided during pregnancy except when advised by health care providers." },
+  { id: 28, question: "Lactic and pyruvic acid buildup inside the muscles is a result of what cellular process?", options: ["Aerobic respiration", "Anaerobic metabolism", "Oxidative phosphorylation", "Gluconeogenesis"], correct: 1, rationale: "Decreased oxygen supply forces muscle cells to use anaerobic metabolism, which results in the buildup of lactic and pyruvic acid causing involuntary cramps." },
+  { id: 29, question: "The pathogenesis of nausea might involve rapidly rising serum levels of which hormone?", options: ["Human chorionic gonadotropin", "Human placental lactogen", "Follicle stimulating hormone", "Luteinizing hormone"], correct: 0, rationale: "Nausea probably results from rapidly rising serum levels of human chorionic gonadotropin during the first trimester." },
+  { id: 30, question: "Severe generalized itching without a rash in late pregnancy may indicate which condition?", options: ["Obstetric cholestasis", "Preeclampsia syndrome", "Gestational diabetes", "Placental abruption"], correct: 0, rationale: "Severe generalized itching without a rash, most commonly in the last four months of pregnancy, is the main symptom of obstetric cholestasis." },
+  { id: 31, question: "Which vitamin must be administered before glucose to prevent Wernicke encephalopathy?", options: ["Vitamin A", "Vitamin B1", "Vitamin C", "Vitamin D"], correct: 1, rationale: "Thiamine (Vitamin B1) must be given before glucose administration in patients with hyperemesis to prevent Wernicke encephalopathy." },
+  { id: 32, question: "The respiratory rate significantly increases during the first trimester of pregnancy.", options: ["True", "False"], correct: 1, rationale: "The respiratory rate does not increase during pregnancy from its normal rate of 14 to 15 breaths per minute." },
+  { id: 33, question: "During the first trimester the increased oxygen requirement is approximately what volume per minute?", options: ["Ten to twenty milliliters", "Thirty to fifty milliliters", "Sixty to eighty milliliters", "Ninety to one hundred milliliters"], correct: 1, rationale: "Basal metabolic rate increases and oxygen requirement increases by 30 to 50 ml/min, creating the sensation of breathing for two." },
+  { id: 34, question: "Which hormone works alongside steroid sex hormones to cause relaxation of the sacroiliac joint?", options: ["Progesterone", "Estrogen", "Relaxin", "Oxytocin"], correct: 2, rationale: "Relaxation of the sacroiliac joint is due to increased hormones including steroid sex hormones and the relaxin hormone." },
+  { id: 35, question: "Hydremia of pregnancy causes lower limb edema by decreasing what physiological parameter?", options: ["Venous pressure", "Capillary permeability", "Osmotic pressure", "Blood volume"], correct: 2, rationale: "Decreased osmotic pressure in the blood due to hydremia of pregnancy is one of the causes of physiological edema." },
+  { id: 36, question: "A multiple pregnancy increases the risk of developing hyperemesis gravidarum.", options: ["True", "False"], correct: 0, rationale: "Women at higher risk for hyperemesis gravidarum include those having a multiple pregnancy such as twins or triplets." },
+  { id: 37, question: "Melasma occurs in up to what percentage of pregnant women?", options: ["Thirty percent", "Fifty percent", "Seventy percent", "Ninety percent"], correct: 2, rationale: "Melasma, or the mask of pregnancy, is the most cosmetically troublesome skin condition and occurs in up to 70% of pregnant women." },
+  { id: 38, question: "Which nutritional supplement is recommended to help manage frequent nosebleeds during pregnancy?", options: ["Vitamin A", "Vitamin C", "Vitamin D", "Vitamin E"], correct: 1, rationale: "Taking an extra 250 mg of vitamin C and increasing the intake of vitamin C sources is recommended for managing nosebleeds." },
+  { id: 39, question: "Which therapeutic approach provides the best evidence for relieving leg cramps?", options: ["Calcium gluconate", "Magnesium lactate", "Potassium chloride", "Sodium bicarbonate"], correct: 1, rationale: "Various supplements claim to help leg cramps in pregnancy, but the best evidence is for magnesium lactate or citrate." },
+  { id: 40, question: "Which dietary practice is recommended to reduce stomach volume and manage heartburn?", options: ["Drinking with meals", "Eating heavy meals", "Separating food and liquids", "Consuming high fat foods"], correct: 2, rationale: "Women should avoid eating and drinking at the same time to reduce stomach volume and prevent gastric reflux." },
+  { id: 41, question: "Which beverage should pregnant women minimize to avoid diuresis and dehydration?", options: ["Orange juice", "Herbal tea", "Caffeinated beverages", "Milk products"], correct: 2, rationale: "Caffeine beverages such as tea, coffee, cola, and hot chocolate should be kept to a minimum to avoid diuresis and dehydration." },
+  { id: 42, question: "Mineral oil is highly recommended for treating constipation during pregnancy.", options: ["True", "False"], correct: 1, rationale: "Mineral oil is contraindicated as it is ineffective and inhibits the absorption of fat-soluble vitamins." },
+  { id: 43, question: "By the third trimester stretch marks occur in up to what percentage of pregnant women?", options: ["Fifty percent", "Seventy percent", "Eighty percent", "Ninety percent"], correct: 3, rationale: "Striae gravidarum or stretch marks occur in up to 90 percent of pregnant women by the third trimester." },
+  { id: 44, question: "A recommended alternative therapy for nausea includes supplementation of which substance?", options: ["Cinnamon powder", "Ginger supplementation", "Turmeric extract", "Garlic cloves"], correct: 1, rationale: "Alternative therapies such as ginger supplementation at a recommended dose of 125 to 250 mg every 6 hours can be beneficial." },
+  { id: 45, question: "Gastroesophageal reflux affects what proportion of pregnant women by the third trimester?", options: ["One quarter", "One third", "One half", "Two thirds"], correct: 3, rationale: "Gastro-oesophageal reflux is common in pregnancy and occurs in two-thirds of pregnant women by the third trimester." },
+  { id: 46, question: "Taking baking soda for heartburn is contraindicated due to the risk of what condition?", options: ["Hypokalemia", "Sodium retention", "Proteinuria", "Calcium depletion"], correct: 1, rationale: "Taking baking soda in a glass of water is contraindicated because of the possibility of retention of sodium and subsequent edema." },
+  { id: 47, question: "Which condition requires immediate medical management rather than simple nursing care?", options: ["Morning sickness", "Hyperemesis gravidarum", "Pregnancy ptyalism", "Dietary pica"], correct: 1, rationale: "Unlike morning sickness, hyperemesis gravidarum is a severe form of nausea and vomiting requiring medical treatment or hospitalization." },
+  { id: 48, question: "Prolonged periods of standing can exacerbate fainting episodes during the first trimester.", options: ["True", "False"], correct: 0, rationale: "To manage fainting, the pregnant woman is advised to avoid long periods of standing to prevent blood pooling." },
+  { id: 49, question: "Hormonal stimulation of which glands causes an increase in lubricant secretions in the vagina?", options: ["Bartholin glands", "Skene glands", "Cowper glands", "Pituitary glands"], correct: 0, rationale: "Hormonal stimulation of the Bartholin's glands of the vagina leads them to secrete more lubricant secretions causing leukorrhea." },
+  { id: 50, question: "Which nerve is tapped during Tinels sign to assess for peripheral paraesthesia?", options: ["Median nerve", "Ulnar nerve", "Radial nerve", "Sciatic nerve"], correct: 0, rationale: "Tinel's Sign involves tapping or pressing on the median nerve in the wrist to test for Carpal Tunnel Syndrome." }
+]
+            },
+            "changes": {
+                title: "Dealing with Physical and Psychological Changes",
+                author: "عبدالحليم رزق",
+                icon: "fa-brain",
+                color: "text-indigo-600",
+                bg: "bg-indigo-50",
+                data: [
+  { id: 1, question: "Which symptom requires a pregnant woman to stop exercising immediately?", options: ["Calf swelling", "Joint stiffness", "Pelvic pressure", "Muscle fatigue"], correct: 0, rationale: "Calf pain or swelling could indicate a blood clot and is a severe warning sign to stop exercising immediately." },
+  { id: 2, question: "Pregnant women should avoid all unnecessary drugs during pregnancy.", options: ["True", "False"], correct: 0, rationale: "Many drugs have adverse effects on pregnancy, so all unnecessary medications should be completely avoided." },
+  { id: 3, question: "How many kilograms should a pregnant woman gain during the first trimester?", options: ["One to two kilograms", "Three to four kilograms", "Five to six kilograms", "Seven to eight kilograms"], correct: 0, rationale: "During the first trimester, the pregnant woman typically gains about 1-2 kg." },
+  { id: 4, question: "What is the primary purpose of applying wet tea bags to the nipples during the prenatal period?", options: ["To release tannic acid", "To stimulate milk flow", "To remove dried liquid", "To prevent local edema"], correct: 0, rationale: "Wet tea bags release tannic acid, which naturally helps toughen the skin of the nipples in preparation for breastfeeding." },
+  { id: 5, question: "Massaging the breasts during the second trimester is recommended to prepare for breastfeeding.", options: ["True", "False"], correct: 1, rationale: "Massaging the breasts is not recommended because it may stimulate oxytocin hormone secretion and possibly lead to an abortion." },
+  { id: 6, question: "Which maternal condition is considered an absolute contraindication to antenatal exercise?", options: ["Restrictive lung disease", "Chronic respiratory bronchitis", "Poorly controlled diabetes", "Extremely morbid obesity"], correct: 0, rationale: "Restrictive lung disease is an absolute contraindication, whereas the others are classified as relative contraindications." },
+  { id: 7, question: "When is the most comfortable time for a pregnant woman to travel?", options: ["During the first trimester", "During the second trimester", "During the third trimester", "During the postpartum period"], correct: 1, rationale: "There are no restrictions, but the most comfortable time to travel is usually during the second trimester." },
+  { id: 8, question: "Tub baths are contraindicated after the rupture of fetal membranes.", options: ["True", "False"], correct: 0, rationale: "Tub baths are strictly contraindicated after the rupture of membranes due to the high possibility of infecting the vaginal tract." },
+  { id: 9, question: "Which daily caloric intake is essential for fetal development throughout pregnancy?", options: ["Two thousand calories", "Three thousand calories", "Four thousand calories", "Five thousand calories"], correct: 1, rationale: "About 3000 calories per day is essential to support the rapid growth of the fetus and the changing maternal body." },
+  { id: 10, question: "What causes noticeably more irregular bowel elimination during pregnancy?", options: ["Relaxation of the bowel", "Contraction of the bowel", "Increased physical exertion", "Decreased iron consumption"], correct: 0, rationale: "Bowel relaxation occurs as a physiological response to hormones, which frequently contributes to constipation and irregular elimination." },
+  { id: 11, question: "Pregnant women should avoid contact with individuals diagnosed with German measles.", options: ["True", "False"], correct: 0, rationale: "Contact with infectious diseases like rubella (German measles) should be avoided because it has deleterious effects on the developing fetus." },
+  { id: 12, question: "What protection level does the third dose of the tetanus toxoid vaccine provide?", options: ["Eighty percent protection", "Ninety five percent protection", "Ninety nine percent protection", "Zero baseline protection"], correct: 1, rationale: "The third dose provides 95% protection that lasts for 5 years." },
+  { id: 13, question: "Which environmental hazard is specifically mentioned as causing reproductive problems?", options: ["Ethylene oxide", "Carbon monoxide", "Nitrogen dioxide", "Sulfur hexafluoride"], correct: 0, rationale: "Ethylene oxide, lead, mercury, and benzene are pollutants and chemicals that can cause reproductive problems if carried home." },
+  { id: 14, question: "A pregnant woman is permitted to fly unconditionally after the thirty second week.", options: ["True", "False"], correct: 1, rationale: "Airlines generally require a medical certificate and do not permit pregnant women to fly after the 32nd week of gestation." },
+  { id: 15, question: "Which skin change occurs specifically during the second trimester of pregnancy?", options: ["Linea nigra", "Palmar erythema", "Pruritic plaques", "Contact dermatitis"], correct: 0, rationale: "Skin pigmentation changes such as chloasma, striae gravidarum, and linea nigra naturally occur during the second trimester." },
+  { id: 16, question: "What is the recommended daily intake of folic acid to reduce the risk of birth defects?", options: ["One milligram", "Two milligrams", "Three milligrams", "Four milligrams"], correct: 0, rationale: "The recommended intake of folic acid is 1 mg per day to proactively reduce the risk of birth defects." },
+  { id: 17, question: "Contraceptive pills should be discontinued one month before a woman tries to become pregnant.", options: ["True", "False"], correct: 1, rationale: "Contraceptive pills should actually be discontinued 3-6 months before a woman tries to become pregnant." },
+  { id: 18, question: "Which exercise stretches the back muscles and helps to alleviate backache?", options: ["Pelvic rocking", "Tailor sitting", "Kegel exercise", "Abdominal contraction"], correct: 0, rationale: "Pelvic rocking is highly effective because it stretches the back muscles and helps alleviate pregnancy-related backache." },
+  { id: 19, question: "What is a potential consequence of excessive nicotine consumption during pregnancy?", options: ["Abruptio placentae", "Placenta accreta", "Uterine atony", "Gestational diabetes"], correct: 0, rationale: "Excessive nicotine causes severe vasoconstriction, leading to critical complications such as abruptio placentae." },
+  { id: 20, question: "Minor complaints should be managed with prophylactic drug therapy whenever possible.", options: ["True", "False"], correct: 1, rationale: "Minor complaints should always be managed without drugs whenever possible to prevent any adverse effects on the pregnancy." },
+  { id: 21, question: "How much weight does the pregnant woman typically gain during the second trimester?", options: ["Three to four kilograms", "Four to five kilograms", "Six to seven kilograms", "Ten to twelve kilograms"], correct: 2, rationale: "During the second trimester, the pregnant woman normally gains about 6-7 kg." },
+  { id: 22, question: "What physiological process does sitting with crossed legs impede during the third trimester?", options: ["Normal circulation", "Pulmonary airflow", "Gastric emptying", "Muscle relaxation"], correct: 0, rationale: "A pregnant woman should avoid sitting with legs crossed because it will significantly impede systemic venous circulation." },
+  { id: 23, question: "Pregnant women should wear comfortable shoes with a good solid base of support.", options: ["True", "False"], correct: 0, rationale: "Shoes should be very comfortable and well-fitting with a broad heel to ensure a solid base of support and avoid dangerous falls." },
+  { id: 24, question: "How many hours of sleep should be obtained every night during the first trimester?", options: ["Six hours", "Seven hours", "Eight hours", "Nine hours"], correct: 2, rationale: "At least 8 hours of sleep should be obtained every night and progressively increased towards term." },
+  { id: 25, question: "Which activity should pregnant women avoid to prevent faintness or loss of balance?", options: ["Reaching high shelves", "Making large beds", "Sweeping the floor", "Polishing the floor"], correct: 0, rationale: "She should never climb to reach high shelves because of her strong tendency to faint or lose her balance during pregnancy." },
+  { id: 26, question: "Lying on the back is the only recommended position for the pelvic rocking exercise.", options: ["True", "False"], correct: 1, rationale: "Pelvic rocking is versatile and can be done safely by getting on all fours, lying on the back, or standing up." },
+  { id: 27, question: "What should a pregnant woman do to prevent dizziness after performing floor exercises?", options: ["Rise up slowly", "Drink hot water", "Breathe very deeply", "Stretch leg muscles"], correct: 0, rationale: "After completing floor exercises, the woman must get up slowly and gradually to prevent sudden orthostatic dizziness." },
+  { id: 28, question: "Which intervention is recommended to counter insomnia and relax tensed muscles?", options: ["Therapeutic bathing", "Intense exercising", "Increased fluid intake", "Pelvic floor rocking"], correct: 0, rationale: "Baths can be highly therapeutic as they relax tensed muscles, effectively counter insomnia, and make women feel fresh." },
+  { id: 29, question: "Patients with a history of ruptured membranes face no restrictions on sexual intercourse.", options: ["True", "False"], correct: 1, rationale: "Patients with a history of ruptured membranes or preterm labor must have strict restrictions on sexual intercourse." },
+  { id: 30, question: "Which complication is categorized as a warning symptom during the third trimester?", options: ["Recurring frontal headache", "Mild dependent edema", "Intermittent uterine cramping", "Increased vaginal secretion"], correct: 0, rationale: "Severe recurring frontal headache is a crucial warning symptom that requires immediate medical evaluation and advice." },
+  { id: 31, question: "How much water should a pregnant woman consume daily to maintain fluid balance?", options: ["Four to five cups", "Six to eight cups", "Nine to ten cups", "Eleven to twelve cups"], correct: 1, rationale: "The standard recommended fluid intake for maintaining healthy fluid and electrolyte balance is 6-8 cups of water." },
+  { id: 32, question: "Which element is primarily stored in the fetal liver during the latter part of the second trimester?", options: ["Iron", "Calcium", "Nitrogen", "Potassium"], correct: 0, rationale: "In the critical latter part of the second trimester, the growing fetus specifically starts to store iron in the liver." },
+  { id: 33, question: "Which exercise stretches the perineal muscles and strengthens the thigh muscles?", options: ["Tailor sitting", "Pelvic rocking", "Abdominal contraction", "Kegel exercise"], correct: 0, rationale: "Tailor sitting is carefully designed to stretch the perineal muscles and continuously strengthen the thigh muscles." },
+  { id: 34, question: "What is the recommended schedule for antenatal clinic visits during the ninth month?", options: ["Every single week", "Every two weeks", "Every three weeks", "Every four weeks"], correct: 0, rationale: "During the final stages, the pregnant woman should visit the antenatal clinic every single week for the 9th month." },
+  { id: 35, question: "Which cardiovascular phenomenon occurs as an expected change during the second trimester?", options: ["Vascular spiders", "Decreased blood volume", "Reduced metabolic rate", "Lowered iron storage"], correct: 0, rationale: "Vascular spiders are a common, harmless physiological cardiovascular change that naturally occurs during the second trimester." }
+]
+            }
+        };
+
+        // --- APP STATE ---
+        let currentQuizKey = null;
+        let currentQuestions = [];
+        let score = 0;
+        let answeredCount = 0;
+        let isDark = false;
+
+        // --- DOM ELEMENTS ---
+        const appContainer = document.getElementById('app-container');
+
+        // --- FUNCTIONS ---
+
+        function toggleTheme() {
+            isDark = !isDark;
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            const nav = document.querySelector('nav');
+            const footer = document.querySelector('footer');
+
+            if (isDark) {
+                body.classList.replace('bg-slate-50', 'bg-slate-900');
+                body.classList.replace('text-slate-800', 'text-slate-100');
+                nav.classList.replace('bg-white', 'bg-slate-800');
+                nav.classList.replace('border-slate-200', 'border-slate-700');
+                footer.classList.replace('bg-white', 'bg-slate-800');
+                footer.classList.replace('border-slate-200', 'border-slate-700');
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                body.classList.replace('bg-slate-900', 'bg-slate-50');
+                body.classList.replace('text-slate-100', 'text-slate-800');
+                nav.classList.replace('bg-slate-800', 'bg-white');
+                nav.classList.replace('border-slate-700', 'border-slate-200');
+                footer.classList.replace('bg-slate-800', 'bg-white');
+                footer.classList.replace('border-slate-700', 'border-slate-200');
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+            if (!currentQuizKey) renderHome();
+            else renderQuiz();
+        }
+
+        function showHome() {
+            currentQuizKey = null;
+            renderHome();
+            window.scrollTo(0,0);
+        }
+
+        function startQuiz(key) {
+            currentQuizKey = key;
+            const originalData = quizzes[key].data;
+            currentQuestions = originalData.map(q => {
+                const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+                for (let i = opts.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [opts[i], opts[j]] = [opts[j], opts[i]];
+                }
+                return { 
+                    ...q, 
+                    options: opts.map(o => o.text), 
+                    correct: opts.findIndex(o => o.isCorrect) 
+                };
+            });
+            
+            for (let i = currentQuestions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [currentQuestions[i], currentQuestions[j]] = [currentQuestions[j], currentQuestions[i]];
+            }
+
+            score = 0;
+            answeredCount = 0;
+            renderQuiz();
+            window.scrollTo(0,0);
+        }
+
+        function renderHome() {
+            const cardClass = isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200";
+            const textClass = isDark ? "text-slate-200" : "text-slate-600";
+            
+            let html = `
+                <div class="text-center mb-10 fade-in">
+                    <h2 class="text-3xl font-bold mb-4">Antenatal Quizzes</h2>
+                    <p class="${textClass}">قال النبي ﷺ: «من صلى عليّ رد الله عليّ روحي حتى أرد عليه السلام</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
+            `;
+
+            for (const [key, quiz] of Object.entries(quizzes)) {
+                html += `
+                    <div onclick="startQuiz('${key}')" class="card-hover cursor-pointer rounded-2xl p-6 border ${cardClass} transition-all duration-300 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 ${quiz.bg} rounded-bl-full opacity-50 transition-transform group-hover:scale-110"></div>
+                        <div class="relative z-10">
+                            <div class="w-12 h-12 rounded-xl ${quiz.bg} ${quiz.color} flex items-center justify-center text-2xl mb-4 shadow-sm">
+                                <i class="fas ${quiz.icon}"></i>
+                            </div>
+                            <h3 class="text-lg font-bold mb-2 ltr-text text-left">${quiz.title}</h3>
+                            <div class="flex items-center justify-between mt-4">
+                                <span class="text-xs font-semibold px-2 py-1 rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-500'}">
+                                    <i class="fas fa-list-ol me-1"></i> ${quiz.data.length} Questions
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fas fa-user-edit"></i> ${quiz.author.split(' ')[0]}..
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+            appContainer.innerHTML = html;
+        }
+
+        function renderQuiz() {
+            const quizInfo = quizzes[currentQuizKey];
+            const cardBg = isDark ? "bg-slate-800" : "bg-white";
+            const borderColor = isDark ? "border-slate-700" : "border-slate-200";
+            const textColor = isDark ? "text-slate-300" : "text-slate-600";
+            
+            let html = `
+                <div class="max-w-3xl mx-auto fade-in mb-8">
+                    <div class="${cardBg} rounded-2xl shadow-sm p-6 mb-8 text-center border-t-4 border-pink-600 relative overflow-hidden">
+                        <h1 class="text-2xl font-bold mb-2 ltr-text" dir="auto">${quizInfo.title}</h1>
+                        <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-xs mt-2">
+                            <i class="fas fa-check-circle"></i> "${quizInfo.author}"
+                        </div>
+                    </div>
+                    
+                    <div id="questions-list">
+                        ${currentQuestions.map((q, index) => renderQuestionCard(q, index, cardBg, borderColor, textColor)).join('')}
+                    </div>
+
+                    <div id="result-summary" class="hidden ${cardBg} rounded-2xl shadow-lg p-8 text-center mt-8 border ${borderColor}">
+                        <h2 class="text-2xl font-bold mb-4">Exam Completed!</h2>
+                        <div class="text-5xl font-bold text-pink-600 mb-2">
+                            <span id="score-display">0</span> <span class="text-2xl text-slate-400">/ ${currentQuestions.length}</span>
+                        </div>
+                        <p id="score-message" class="text-lg mb-6 text-slate-500"></p>
+                        <div class="flex justify-center gap-4">
+                            <button onclick="startQuiz('${currentQuizKey}')" class="bg-pink-600 text-white px-6 py-3 rounded-xl hover:bg-pink-700 transition shadow-lg">
+                                <i class="fas fa-redo me-2"></i> إعادة الاختبار
+                            </button>
+                            <button onclick="showHome()" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl hover:bg-slate-300 transition shadow-lg">
+                                <i class="fas fa-home me-2"></i> القائمة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            appContainer.innerHTML = html;
+        }
+
+        function renderQuestionCard(q, index, cardBg, borderColor, textColor) {
+            const isTF = q.options.length === 2;
+            return `
+                <div class="card ${cardBg} rounded-xl p-6 mb-6 border ${borderColor} shadow-sm transition-all" id="card-${index}">
+                    <div class="flex justify-between items-center mb-4 border-b ${isDark ? 'border-slate-700' : 'border-slate-100'} pb-3">
+                        <span class="bg-pink-100 text-pink-800 text-xs font-bold px-3 py-1 rounded-full">Q ${index + 1}</span>
+                        ${isTF ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="${isDark ? 'text-slate-100' : 'text-slate-800'} font-bold mb-6 text-lg leading-relaxed ltr-text text-left">${q.question}</h3>
+                    <div class="grid gap-3 ${isTF ? 'grid-cols-2' : 'grid-cols-1'}">
+                        ${q.options.map((opt, i) => `
+                            <button onclick="checkAnswer(${index},${i})" 
+                                class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border${isDark ? 'border-slate-600 hover:bg-slate-700' : 'border-slate-200 hover:bg-pink-50'} focus:outline-none flex items-center justify-between group transition-all ltr-text">
+                                <span class="font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}">${opt}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden mt-6 bg-pink-50 rounded-xl p-5 border border-pink-100 fade-in text-left ltr-text">
+                        <p class="text-pink-800 text-sm leading-relaxed"><strong class="font-bold">Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = currentQuestions[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            
+            if (!feedback.classList.contains('hidden')) return;
+            
+            feedback.classList.remove('hidden');
+            
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                btn.classList.remove('hover:bg-pink-50', 'hover:bg-slate-700');
+                
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right mt-1"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right mt-1"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+
+            if (answeredCount === currentQuestions.length) {
+                const summary = document.getElementById('result-summary');
+                summary.classList.remove('hidden');
+                document.getElementById('score-display').innerText = score;
+                
+                const percentage = (score / currentQuestions.length) * 100;
+                const msg = document.getElementById('score-message');
+                if (percentage >= 90) msg.innerText = "Excellent! Outstanding performance! 🌟";
+                else if (percentage >= 75) msg.innerText = "Great Job! You know your stuff. 👍";
+                else if (percentage >= 50) msg.innerText = "Good effort, but review the rationales. 📚";
+                else msg.innerText = "Keep studying and try again! 💪";
+
+                setTimeout(() => summary.scrollIntoView({ behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderHome();
+
+    </script>
+</body>
+</html>
