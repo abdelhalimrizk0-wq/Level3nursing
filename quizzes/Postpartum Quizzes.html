@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postpartum Quizzes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; transition: background-color 0.3s; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .theme-blue .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .theme-purple .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .portal-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none !important; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body id="main-body" class="pb-12 bg-slate-50">
+
+    <!-- PORTAL CONTAINER -->
+    <div id="portal-container" class="max-w-5xl mx-auto px-4 py-12 animate-fade-in">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4 font-cairo">Postpartum Quizzes</h1>
+            <p class="text-gray-500">صلوا على النبي</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="quiz-menu">
+            <!-- Menu items injected via JS -->
+        </div>
+    </div>
+
+    <!-- ACTIVE QUIZ CONTAINER -->
+    <div id="active-quiz-container" class="hidden-content max-w-3xl mx-auto px-4 py-8 animate-fade-in">
+        
+        <!-- Navigation Back Button -->
+        <button onclick="returnToPortal()" class="mb-6 flex items-center text-gray-600 hover:text-gray-900 transition bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Portal
+        </button>
+
+        <!-- Dynamic Header -->
+        <div id="quiz-header"></div>
+        
+        <!-- Questions -->
+        <div id="quiz-questions"></div>
+        
+        <!-- Result Summary -->
+        <div id="result-summary" class="hidden-content rounded-2xl shadow-lg p-8 text-center mt-8 border">
+            <h2 class="text-2xl font-bold" id="rs-title">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold mb-2" id="rs-score-wrapper">
+                <span id="score-display">0</span> <span class="text-xl opacity-60" id="total-display"></span>
+            </div>
+            <p id="score-message" class="mb-6 opacity-80"></p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button onclick="restartCurrentQuiz()" id="btn-restart" class="px-8 py-3 rounded-xl transition shadow-lg flex items-center justify-center">
+                    <i class="fas fa-redo mr-2"></i> Restart Exam
+                </button>
+                <button onclick="returnToPortal()" class="bg-gray-100 text-gray-700 px-8 py-3 rounded-xl hover:bg-gray-200 transition shadow border border-gray-200 flex items-center justify-center">
+                    <i class="fas fa-home mr-2"></i> Main Menu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const allQuizzes = [
+            {
+                id: 'quiz-1',
+                title: 'Physiological & Psychological Changes during the Postpartum Period',
+                theme: 'blue',
+                data: [
+                    { id: 1, question: "Estrogen and progesterone actively stimulate the production of milk in the mammary glands during the third trimester.", options: ["True", "False"], correct: 1, rationale: "Estrogen inhibits milk production until the end of pregnancy, although it prepares the breasts for lactation." },
+                    { id: 2, question: "What is a typical pulse characteristic during the early postnatal period?", options: ["Physiological bradycardia", "Persistent tachycardia", "Irregular palpitations", "Ventricular fibrillation"], correct: 0, rationale: "During the early postnatal period, the pulse is usually full and slow, known as physiological bradycardia." },
+                    { id: 3, question: "Which characteristic is mostly associated with lochia alba?", options: ["Creamy white discharge", "Bright red bleeding", "Pinkish yellow fluid", "Clear watery secretion"], correct: 0, rationale: "Lochia alba is described as a creamy white or pale yellowish discharge containing leukocytes and decidual cells." },
+                    { id: 4, question: "The uterus normally returns to its prepregnant weight of approximately fifty grams by the sixth week postpartum.", options: ["True", "False"], correct: 0, rationale: "As involution is completed around the 6th week, the uterus weighs approximately 50 grams." },
+                    { id: 5, question: "During which timeframe does the taking hold phase of maternal adaptation typically begin?", options: ["The third day postpartum", "The second week postpartum", "The first hour postpartum", "The fourth week postpartum"], correct: 0, rationale: "The taking-hold phase starts on the third day postpartum when the mother becomes driven to organize herself." },
+                    { id: 6, question: "How long does the postpartum period generally last following a normal full term birth?", options: ["Forty days", "Seven days", "Twenty days", "Ninety days"], correct: 0, rationale: "The duration of the postpartum period is typically 40 days or 6-8 weeks for maximum involution." },
+                    { id: 7, question: "Oxytocin acts on the myoepithelial cells to facilitate the expulsion of breast milk.", options: ["True", "False"], correct: 0, rationale: "Oxytocin leads to the contraction of myoepithelial cells and the subsequent expulsion of milk." },
+                    { id: 8, question: "What is the estimated blood loss associated with a typical vaginal birth?", options: ["Three to five hundred milliliters", "Five to one thousand milliliters", "One to two hundred milliliters", "Two to three thousand milliliters"], correct: 0, rationale: "The usual blood loss with a vaginal birth ranges from 300 to 500 milliliters." },
+                    { id: 9, question: "The external opening of the cervix returns completely to its original nulliparous dimpled shape following childbirth.", options: ["True", "False"], correct: 1, rationale: "The characteristic dimple-like os of the nullipara changes permanently to a transverse slit in multiparous women." },
+                    { id: 10, question: "Which process involves the breakdown of uterine muscle fiber protein by specific enzymes?", options: ["Autolysis", "Ischemia", "Diuresis", "Hemostasis"], correct: 0, rationale: "Autolysis is the self-digestion where protein material of uterine muscle fibers is broken down by enzymes." },
+                    { id: 11, question: "When do postpartum blues typically reach their highest intensity?", options: ["Fourth or fifth day", "First or second day", "Tenth or twelfth day", "Second or third week"], correct: 0, rationale: "Postpartum blues peak on the 4th or 5th postpartum days and may last from hours to days." },
+                    { id: 12, question: "A temporary state of urinary retention may occur in the first few days after labor due to loss of bladder tone.", options: ["True", "False"], correct: 0, rationale: "The parturient may experience retention of urine due to transient loss of bladder tone from the pressure of the fetal head." },
+                    { id: 13, question: "What physiological event primarily causes the initial reactionary rise in maternal body temperature?", options: ["Muscle waste absorption", "Breast milk engorgement", "Endometrial tissue infection", "Urinary tract colonization"], correct: 0, rationale: "The reactionary rise in temperature in the first 24 hours is due to the absorption of waste products of muscular contractions and dehydration." },
+                    { id: 14, question: "How do clotting factors and fibrinogen behave during the immediate puerperium?", options: ["They remain notably elevated", "They decrease very rapidly", "They vanish completely entirely", "They fluctuate unpredictably"], correct: 0, rationale: "Clotting factors and fibrinogen are normally increased during pregnancy and remain elevated in the immediate puerperium." },
+                    { id: 15, question: "Where should the uterine fundus typically be felt at the end of the first week postpartum?", options: ["Midway between umbilicus and symphysis", "At the level of the central umbilicus", "Just above the upper pelvic brim", "Slightly above the umbilicus region"], correct: 0, rationale: "At the end of the 1st week, the fundus is midway between the umbilicus and symphysis pubis." },
+                    { id: 16, question: "Which symptom is a common integumentary change during the first week postpartum?", options: ["Excessive sweating", "Severe skin flaking", "Increased pigmentation", "Chronic intense itchiness"], correct: 0, rationale: "Diaphoresis is common during the first week to reduce the fluids retained during pregnancy." },
+                    { id: 17, question: "A sudden onset of hypotension during the immediate postpartum period may indicate hemorrhage.", options: ["True", "False"], correct: 0, rationale: "If hypotension is present after birth, postpartum hemorrhage is highly suspected." },
+                    { id: 18, question: "Which factor is a significant predisposing cause of diastasis recti abdominis?", options: ["Multiple pregnancies", "Excessive exercising", "Complete strict bedrest", "Uterine underdistention"], correct: 0, rationale: "Over distention of the uterus as in multiple pregnancies pre-disposes a woman to diastasis recti abdominis." },
+                    { id: 19, question: "How long does lochia serosa typically last after the initial rubra phase?", options: ["Three to four days", "One to two weeks", "Five to six hours", "Ten to twelve days"], correct: 0, rationale: "Lochia serosa typically lasts for another 3-4 days after the rubra phase." },
+                    { id: 20, question: "Which maternal phase involves the woman being passive and highly dependent on others?", options: ["Taking in phase", "Taking hold phase", "Letting go phase", "Moving forward phase"], correct: 0, rationale: "During the taking-in phase, the woman reacts passively and is mostly dependent on others to meet her needs." },
+                    { id: 21, question: "How much additional weight loss is typically attributed to the combined effects of diuresis and diaphoresis?", options: ["Two to four kilograms", "Four to five kilograms", "One to two kilograms", "Five to seven kilograms"], correct: 0, rationale: "The rapid diuresis and diaphoresis during the second to fifth days after birth cause a 2 to 4 kg weight loss." },
+                    { id: 22, question: "A spontaneous bowel evacuation is guaranteed to occur within the first twenty four hours after childbirth.", options: ["True", "False"], correct: 1, rationale: "A spontaneous bowel evacuation may not occur for 2 to 3 days after birth due to decreased motility." },
+                    { id: 23, question: "What condition results from the vigorous contraction of uterine muscle fibers pinching open blood vessels?", options: ["Ischemia", "Autolysis", "Diaphoresis", "Diuresis"], correct: 0, rationale: "Ischemia occurs when vigorous contractions act as living ligatures, reducing blood supply and stopping bleeding." },
+                    { id: 24, question: "Lactosuria is most frequently observed on the very first day immediately following childbirth.", options: ["True", "False"], correct: 1, rationale: "Lactosuria is common with milk engorgement on the 4th day at the start of lactation." },
+                    { id: 25, question: "By what percentage does the maternal cardiac output normally decrease two weeks after birth?", options: ["Thirty percent", "Fifty percent", "Ten percent", "Seventy percent"], correct: 0, rationale: "By 2 weeks after birth, cardiac output decreases by 30%." },
+                    { id: 26, question: "Which abnormal lochia sign strongly suggests the presence of retained placental fragments?", options: ["Prolonged rubra discharge", "Sudden complete suppression", "Fetid offensive odor", "Clear serous weeping"], correct: 0, rationale: "Prolongation of lochia rubra beyond the 7th postpartum day suggests retained parts of the placenta." },
+                    { id: 27, question: "Perineal tightening exercises can successfully improve the tone and contractility of the vaginal orifice.", options: ["True", "False"], correct: 0, rationale: "Tone and contractility of the vaginal orifice may be improved by perineal tightening exercises like Kegel exercises." },
+                    { id: 28, question: "When do nonlactating mothers generally begin to menstruate following childbirth?", options: ["Six to eight weeks", "One to two weeks", "Ten to twelve weeks", "Three to four months"], correct: 0, rationale: "Mothers begin to menstruate in 6-8 weeks following birth." },
+                    { id: 29, question: "Which factor can trigger a transient rise in body temperature on the third or fourth postpartum day?", options: ["Breast milk engorgement", "Severe muscle weakness", "Extreme fluid retention", "Sudden blood volume loss"], correct: 0, rationale: "On the third or fourth day there may be a transient rise of temperature due to breast milk engorgement, constipation, or nervous excitation." },
+                    { id: 30, question: "The letting go phase generally occurs after the mother has completely returned to her home environment.", options: ["True", "False"], correct: 0, rationale: "The letting-go phase generally occurs when the mother returns home and establishes her mothering functions." }
+                ]
+            },
+            {
+                id: 'quiz-2',
+                title: 'Management and Nursing Care of Puerperium',
+                theme: 'blue',
+                data: [
+                    { id: 1, question: "Which position is recommended for a postpartum mother after the first eight hours of labor to facilitate involution and lochia drainage?", options: ["Prone position", "Supine position", "Upright position", "Fowler position"], correct: 0, rationale: "After the first eight hours, the prone or lateral positions should be encouraged to facilitate involution and help drainage of lochia." },
+                    { id: 2, question: "Vital signs should be checked every thirty minutes during the first hour following labor.", options: ["True", "False"], correct: 1, rationale: "Assessment of vital signs should occur every fifteen minutes for the first hour after labor, and then every thirty minutes during the second hour." },
+                    { id: 3, question: "The physician will order catheterization if the postpartum woman is voiding frequent amounts less than a specific volume. What is this volume?", options: ["Fifty milliliters", "One hundred milliliters", "One hundred fifty milliliters", "Two hundred milliliters"], correct: 1, rationale: "Catheterization is ordered when the bladder is distended and the woman is voiding small amounts of less than one hundred milliliters frequently." },
+                    { id: 4, question: "What is the recommended daily caloric requirement for a postpartum woman to maintain a well balanced and nourishing diet?", options: ["Two thousand calories", "Two thousand five hundred calories", "Three thousand five hundred calories", "Four thousand five hundred calories"], correct: 2, rationale: "A daily requirement of three thousand to three thousand five hundred calories is needed in the form of a well-balanced and nourishing diet." },
+                    { id: 5, question: "Anti D immunoglobulin must be administered to Rh negative mothers with an Rh positive baby within the first forty eight hours after delivery.", options: ["True", "False"], correct: 1, rationale: "Anti D immunoglobulin should be administered to those Rh negative mothers with an Rh positive baby within the first seventy two hours after delivery." },
+                    { id: 6, question: "When should the nurse instruct the postpartum woman that she can safely resume sexual relations?", options: ["Two to four weeks postpartum", "Four to six weeks postpartum", "Six to eight weeks postpartum", "Eight to ten weeks postpartum"], correct: 2, rationale: "Resumption of sexual relations should be discussed and is generally advised after six to eight weeks postpartum." },
+                    { id: 7, question: "How should the fundus of the uterus feel upon abdominal palpation during the first hour after birth?", options: ["Large soft and deviated", "Small firm and globular", "Large firm and displaced", "Small boggy and midline"], correct: 1, rationale: "During the first hour after birth, the fundus should be small, firm, globular, and well contracted, and it should be positioned in the midline." },
+                    { id: 8, question: "A temperature of thirty eight degrees Celsius or above for two consecutive days after the first twenty four hours is an early sign of puerperal infection.", options: ["True", "False"], correct: 0, rationale: "A temperature of thirty eight degrees Celsius or above for two consecutive days after the first twenty four hours is considered an early sign of puerperal infection until otherwise proved." },
+                    { id: 9, question: "Which clinical sign suggests the presence of deep vein thrombosis in a postpartum woman?", options: ["Positive Homan sign", "Positive Chadwick sign", "Positive Goodell sign", "Positive Hegar sign"], correct: 0, rationale: "Signs and symptoms of deep vein thrombosis include pain, warmth, tenderness, swelling, redness, hard or solid veins, and a positive Homan sign." },
+                    { id: 10, question: "What is an appropriate nursing intervention if the uterus is found to be soft on palpation during the immediate postpartum period?", options: ["Perform a gentle rotating massage", "Apply a tight abdominal binder", "Position the mother on her back", "Administer intravenous fluids rapidly"], correct: 0, rationale: "If the uterus is soft or boggy on palpation, the nurse should perform a gentle rotating motion massage to help the uterus contract and become firm." },
+                    { id: 11, question: "The mother should raise her hands over her head during a breast examination to stretch and thin the breast tissues.", options: ["True", "False"], correct: 0, rationale: "Asking the mother to raise her hands over her head and put them under her head stretches and thins the breast tissues for better inspection and palpation." },
+                    { id: 12, question: "Which set of signs is evaluated when observing an episiotomy site during postpartum care?", options: ["Redness edema ecchymosis discharge approximation", "Rash erythema excoriation drainage alignment", "Redness edema excoriation drainage approximation", "Rash erythema ecchymosis discharge alignment"], correct: 0, rationale: "The REEDA signs used for observing an episiotomy stand for Redness, Edema, Ecchymosis, Discharge, and Approximation." },
+                    { id: 13, question: "Why is a mother with a boggy uterus encouraged to start breastfeeding immediately?", options: ["It promotes endogenous release of oxytocin", "It increases blood flow to the uterus", "It prevents postpartum bladder distention", "It reduces the risk of breast engorgement"], correct: 0, rationale: "Starting breastfeeding is encouraged because it causes the endogenous release of oxytocin, which helps the uterus contract and control bleeding." },
+                    { id: 14, question: "Early ambulation after delivery increases the incidence of puerperal venous thrombosis and pulmonary embolism.", options: ["True", "False"], correct: 1, rationale: "Early ambulation actually reduces the incidence of puerperal venous thrombosis and pulmonary embolism by promoting blood circulation." },
+                    { id: 15, question: "What is the recommended daily sleep requirement for a mother admitted to the postnatal ward?", options: ["Eight hours night sleep and two hours afternoon nap", "Six hours night sleep and four hours afternoon nap", "Ten hours night sleep and no afternoon nap", "Seven hours night sleep and one hour afternoon nap"], correct: 0, rationale: "Providing for sufficient periods of rest and sleep requires eight hours of night sleep and a two hour afternoon nap." },
+                    { id: 16, question: "How soon after childbirth can a postpartum woman typically show signs of bladder distention due to normal postpartum diuresis?", options: ["One to two hours", "Three to four hours", "Five to six hours", "Seven to eight hours"], correct: 0, rationale: "A postpartum woman can quickly show signs of bladder distention, possibly as soon as one to two hours after childbirth, due to normal postpartum diuresis." },
+                    { id: 17, question: "How often should vital signs be checked between the second hour and the end of the first twenty four hours postpartum?", options: ["Every four to six hours", "Every two to three hours", "Every six to eight hours", "Every eight to ten hours"], correct: 0, rationale: "After the second hour, vital signs should be checked every four to six hours until the end of the first twenty four hours." },
+                    { id: 18, question: "What physiological change during pregnancy places postpartum women at an increased risk of developing deep vein thrombosis?", options: ["A hypercoagulable state", "A hypotensive state", "A hypervolemic state", "A hypoglycemic state"], correct: 0, rationale: "Post delivery women are at risk of deep vein thrombosis as a result of the hypercoagulable state established during pregnancy." },
+                    { id: 19, question: "A physician will order catheterization if a postpartum woman fails to void completely for how many consecutive hours?", options: ["Eight hours", "Six hours", "Ten hours", "Twelve hours"], correct: 0, rationale: "Catheterization is ordered when the bladder is distended and no voiding has occurred in eight hours." },
+                    { id: 20, question: "Which behavior should the nurse remain alert for when assessing the emotional status of a postpartum woman?", options: ["Extreme mood swings", "Increased physical energy", "Excessive social interaction", "Consistent independent care"], correct: 0, rationale: "When assessing the woman's emotional status, the nurse should be alert for mood swings, irritability, or crying episodes." }
+                ]
+            },
+            {
+                id: 'quiz-3',
+                title: 'Cesarean Section',
+                theme: 'purple',
+                data: [
+                    { id: "q1", question: "Which specific incisions define a cesarean section procedure?", options: ["Abdominal and uterine incisions", "Abdominal and cervical incisions", "Uterine and vaginal incisions", "Perineal and uterine incisions"], correct: 0, rationale: "Cesarean section is defined as the delivery of a viable fetus through an abdominal incision and a uterine incision." },
+                    { id: "q2", question: "Why is the term 'cesarean birth' often preferred over 'cesarean section'?", options: ["It puts the focus on childbirth rather than the surgical elements", "It emphasizes the prophylactic nature of the operative procedure", "It clearly defines the exact site of the uterine incision", "It categorizes the procedure strictly as an emergency intervention"], correct: 0, rationale: "The term cesarean birth is preferred because it puts the focus on the childbirth rather than the surgical elements of the procedure." },
+                    { id: "q3", question: "Which of the following conditions is classified as an absolute indication for a cesarean delivery?", options: ["Contracted pelvis", "Abnormal uterine action", "Severe respiratory disease", "Active genital herpes"], correct: 0, rationale: "Contracted pelvis is listed as an absolute indication, meaning vaginal delivery is impossible or extremely dangerous. The other options are relative maternal indications." },
+                    { id: "q4", question: "Which of these conditions represents a placental indication for a cesarean section?", options: ["Umbilical cord prolapse", "Malposition and malpresentation", "Extreme low birth weight", "Fetal distress"], correct: 0, rationale: "Umbilical cord prolapse is categorized under placental indications, alongside placenta previa and premature separation of the placenta." },
+                    { id: "q5", question: "What is a major disadvantage associated with the classic cesarean incision?", options: ["It is more often followed by peritonitis and severe bleeding", "It significantly increases the risk of bladder lacerations", "It places the uterine muscle under much greater tension", "It requires a highly complex surgical approach to perform"], correct: 0, rationale: "The classic cesarean incision is more often followed by peritonitis, severe bleeding, and ileus. The scar may also rupture in subsequent pregnancies." },
+                    { id: "q6", question: "Under which specific circumstance is a classical cesarean section indicated?", options: ["Impacted shoulder presentation", "Deeply engaged fetal head", "Presence of lateral varicosities", "Suspected fetal macrosomia"], correct: 0, rationale: "An impacted shoulder presentation is an indication for a classical c-section. The other options are indications for a vertical incision on the lower segment." },
+                    { id: "q7", question: "Why does a transverse incision on the lower uterine segment decrease the risk of peritoneal contamination?", options: ["The incision is located behind the bladder and covered by peritoneum", "The lower segment contains highly vascularized fibrous tissue", "The incision avoids the predominant muscle fibers entirely", "The surgical approach eliminates the need for an abdominal cut"], correct: 0, rationale: "The transverse incision decreases the risk of peritoneal contamination because it is behind the bladder and covered by peritoneum, preventing infected material from escaping into the peritoneal cavity." },
+                    { id: "q8", question: "What is a primary disadvantage of making a vertical incision on the lower uterine segment?", options: ["It easily extends to the corpus or surrounding structures", "It requires a transverse suprapubic abdominal approach", "It guarantees a catastrophic rupture in future pregnancies", "It creates extreme tension on the uterine muscle fibers"], correct: 0, rationale: "A vertical incision on the lower segment has the disadvantage that it easily extends to the corpus, the bladder, or the vagina." },
+                    { id: "q9", question: "What is the most effective way to stimulate lower extremity circulation after a cesarean birth?", options: ["Early ambulation", "Deep breathing exercises", "Continuous supine positioning", "Gastric emptying agents"], correct: 0, rationale: "Early ambulation is described as the most effective way to stimulate lower extremity circulation after a cesarean birth." },
+                    { id: "q10", question: "Why might a medication like metoclopramide be prescribed prior to cesarean surgery?", options: ["To speed stomach emptying", "To prevent epidural hypotension", "To decrease surgical site bleeding", "To improve neonatal respiration"], correct: 0, rationale: "A gastric emptying agent such as metoclopramide is used to speed stomach emptying prior to surgery to prepare the gastrointestinal tract." },
+                    { id: "q11", question: "Why is catheterizing a pregnant woman typically more difficult than catheterizing a nonpregnant woman?", options: ["The pressure of the fetal head distorts anatomic landmarks", "The urethra becomes fully relaxed and overly dilated", "The bladder position shifts completely into the upper abdomen", "The fluid volume in the bladder decreases significantly"], correct: 0, rationale: "Catheterizing a pregnant woman is more difficult because the pressure of the fetal head puts pressure on the urethra and distorts anatomic landmarks, and the vulva may be swollen." },
+                    { id: "q12", question: "What size catheter or needle should be used for the intravenous fluid line before surgery?", options: ["18 or 20 gauge", "14 or 16 gauge", "22 or 24 gauge", "26 or 28 gauge"], correct: 0, rationale: "A large-size catheter or needle of 18 or 20 gauge is used so that blood replacement therapy can be administered by the same line if needed." },
+                    { id: "q13", question: "At what point during the procedure are prophylactic antibiotics usually administered?", options: ["After clamping the umbilical cord", "During the initial skin preparation", "Before the epidural anesthesia starts", "Immediately after abdominal closure"], correct: 0, rationale: "Prophylactic antibiotics are usually given after clamping the umbilical cord." },
+                    { id: "q14", question: "During surgical preparation, why is a towel placed under the woman's right hip?", options: ["To lift the uterus off the vena cava", "To align the spine for spinal anesthesia", "To prevent pooling of the antiseptic scrub", "To stretch the lower segment muscle fibers"], correct: 0, rationale: "A woman is positioned with a towel under her right hip to move abdominal contents away from the surgical field and to lift her uterus off the vena cava." },
+                    { id: "q15", question: "Why is the uterus often exteriorized during wound closure?", options: ["To massage the fundus and inspect the adnexa", "To prevent hypotension and intraoperative nausea", "To facilitate immediate extraction of the placenta", "To apply direct pressure to the umbilical cord"], correct: 0, rationale: "The uterus is often exteriorized to massage the fundus, inspect the adnexa, and facilitate visualization of the wound for repair." },
+                    { id: "q16", question: "How many layers are typically required to close a vertical uterine incision?", options: ["3 layers", "1 layer", "2 layers", "4 layers"], correct: 0, rationale: "A vertical incision usually is closed in 3 layers because of the myometrial thickness of the upper segment." },
+                    { id: "q17", question: "What is a key benefit of applying leg compression with an elastic stocking just before spinal anesthesia?", options: ["It decreases the incidence of spinal-induced hypotension", "It completely stops post-operative abdominal pain", "It reduces the necessary dosage of epidural medication", "It accelerates the post-operative involution of the uterus"], correct: 0, rationale: "Leg compression with an elastic stocking decreases the incidence of spinal-induced hypotension and diminishes the frequency of intraoperative nausea, vomiting, and shivering." },
+                    { id: "q18", question: "Which post-operative infection is explicitly listed as a complication of a cesarean section?", options: ["Endometritis", "Thrombophlebitis", "Paralytic ileus", "Placenta previa"], correct: 0, rationale: "Endometritis, wound sepsis, peritonitis, and secondary pelvic adhesions are listed as post-operative infection complications. Thrombophlebitis is an embolism complication, and paralytic ileus is an intestinal obstruction." },
+                    { id: "q19", question: "Which of the following represents a relative fetal indication for cesarean delivery?", options: ["Macrosomia", "Soft tissue dystocia", "Contracted pelvis", "Conjoined twins"], correct: 0, rationale: "Macrosomia is a relative fetal indication. Soft tissue dystocia, contracted pelvis, and conjoined twins are all absolute indications." },
+                    { id: "q20", question: "What makes a subsequent uterine rupture less catastrophic when a prior transverse lower segment incision was used?", options: ["It is most often a dehiscence of the scar", "It occurs strictly in the fibrous upper segment", "It involves multiple layers of myometrial tearing", "It is contained securely by the exteriorized adnexa"], correct: 0, rationale: "With a transverse incision, decreased risk of uterine rupture exists, and when it occurs, it is usually not catastrophic because most often it is a dehiscence of the scar." },
+                    { id: "q21", question: "Cesarean birth is currently used most often as a prophylactic measure to alleviate problems during labor.", options: ["True", "False"], correct: 0, rationale: "Nowadays, cesarean birth is used most often as a prophylactic measure to alleviate problems that can occur during labor." },
+                    { id: "q22", question: "A previous cesarean birth via a classic incision is classified as a relative indication for future cesarean sections.", options: ["True", "False"], correct: 1, rationale: "A previous cesarean birth by classic incision is listed under absolute indications, not relative indications." },
+                    { id: "q23", question: "Relative indications refer to conditions where vaginal delivery is absolutely impossible.", options: ["True", "False"], correct: 1, rationale: "Relative indications mean vaginal delivery can be attained, but there is undue risk for the fetus or mother. Absolute indications are when vaginal delivery is impossible." },
+                    { id: "q24", question: "A primary cesarean section is defined as an operation performed on a woman for the very first time.", options: ["True", "False"], correct: 0, rationale: "A primary cesarean section is done for the first time, whereas a repeated cesarean section is done on a woman with a previous cesarean scar." },
+                    { id: "q25", question: "The lower uterine segment is highly vascularized, making surgical stitching more difficult than in the upper segment.", options: ["True", "False"], correct: 1, rationale: "The uterine wall of the lower segment is thin and less vascularized, which actually leads to better stitching." },
+                    { id: "q26", question: "Periodic deep breathing exercises post-operatively help prevent the stasis of lung mucus caused by prolonged time in a supine position.", options: ["True", "False"], correct: 0, rationale: "Deep breathing exercises fully aerate the lungs and help prevent the stasis of lung mucus from prolonged supine positioning during surgery." },
+                    { id: "q27", question: "Epidural anesthesia for a cesarean section is usually administered while the woman is lying flat on her back.", options: ["True", "False"], correct: 1, rationale: "Epidural anesthesia is usually administered with the woman lying on her side." },
+                    { id: "q28", question: "Transverse uterine incisions are typically closed in 3 layers because of the extreme thickness of the lower segment.", options: ["True", "False"], correct: 1, rationale: "A transverse uterine incision is closed in 1 or 2 layers. A vertical incision is closed in 3 layers due to upper segment myometrial thickness." },
+                    { id: "q29", question: "Paralytic ileus is recognized as a potential post-operative complication of a cesarean section.", options: ["True", "False"], correct: 0, rationale: "Paralytic ileus, which is an intestinal obstruction, is explicitly listed under the complications of a cesarean section." },
+                    { id: "q30", question: "Antacids are given pre-operatively specifically to reduce stomach acidity in case the patient aspirates material into the lungs.", options: ["True", "False"], correct: 0, rationale: "Antacids are given to reduce the acidity of the stomach contents in the event that the patient aspirates material into the lungs." }
+                ]
+            },
+            {
+                id: 'quiz-4',
+                title: 'Deep Vein Thrombosis',
+                theme: 'purple',
+                data: [
+                    { id: "q1", question: "What percentage of blood clots that cause a pulmonary embolism form in the deep veins of the leg?", options: ["50%", "70%", "90%", "100%"], correct: 2, rationale: "The text states that 90% of blood clots that cause pulmonary embolism form in the deep veins of the leg." },
+                    { id: "q2", question: "Which pathophysiological mechanism initiates the development of most venous thrombi?", options: ["Rapid blood flow through venous valves", "Stagnant hypoxemia behind valve pockets", "Decreased blood viscosity from hemodilution", "Destruction of vessel endothelium by bacteria"], correct: 1, rationale: "Most venous thrombi originate behind valve pockets where flow is slower or stagnant. Stagnant hypoxemia is capable of causing endothelial injury and retaining pro-coagulant factors." },
+                    { id: "q3", question: "Which finding is a classic sign of superficial vein thrombosis rather than deep vein thrombosis?", options: ["Positive Homans sign", "Shortness of breath", "Palpable firm thickened cord", "Bluish skin discoloration"], correct: 2, rationale: "A superficial vein thrombosis presents with redness, warmth, swelling, and the affected vein can be palpated as a firm thickened cord. Positive Homans sign and discoloration are signs of DVT." },
+                    { id: "q4", question: "What is the definition of phlebothrombosis?", options: ["Inflammation of the blood vessel lining", "Formation of blood clots with inflammation", "Formation of blood clots without inflammation", "Movement of a clot into the lung artery"], correct: 2, rationale: "Phlebothrombosis is defined strictly as the formation of blood clots without inflammation in blood vessels." },
+                    { id: "q5", question: "Why does hypercoagulation naturally occur during pregnancy?", options: ["To increase the overall blood volume", "To stop bleeding and achieve hemostasis", "To decrease the viscosity of maternal blood", "To prevent the formation of varicose veins"], correct: 1, rationale: "During pregnancy, blood clotting factors increase and clot dissolving factors decrease for rapid utilization during labor and postpartum to stop bleeding and achieve hemostasis." },
+                    { id: "q6", question: "Which nursing intervention is appropriate for a patient diagnosed with deep vein thrombosis?", options: ["Massage the affected leg gently", "Elevate the affected leg on pillows", "Apply a bed cradle over the affected leg", "Encourage immediate vigorous ambulation"], correct: 2, rationale: "Nursing interventions for DVT include bed rest without elevating the affected leg, not massaging the skin, and using a bed cradle to keep bed linen off the affected leg." },
+                    { id: "q7", question: "Which medication is contraindicated for treating deep vein thrombosis during pregnancy?", options: ["Heparin", "Fibrinolytic agents", "Warfarin", "Acetaminophen"], correct: 2, rationale: "Warfarin is listed under medical management for DVT but is explicitly noted as contraindicated during pregnancy." },
+                    { id: "q8", question: "What is a major limitation of the D-dimer blood test when used to diagnose deep vein thrombosis?", options: ["It requires a radioactive dye injection", "It cannot detect breakdown products", "It produces false positive results in pregnancy", "It fails to visualize veins in the pelvis"], correct: 2, rationale: "The D-dimer test detects breakdown products of a blood clot, but unfortunately, the test can be positive in a number of other situations, such as recent surgery or pregnancy." },
+                    { id: "q9", question: "Which complication affects 29 to 79% of patients who develop a deep vein thrombosis?", options: ["Nephrotic syndrome", "Post-phlebitic syndrome", "Endometritis", "Pulmonary embolism"], correct: 1, rationale: "Even if a vessel reopens, the venous valves may be destroyed by the inflammatory reaction, leading to a chronic venous disorder called post-phlebitic syndrome in 29% to 79% of patients." },
+                    { id: "q10", question: "Which maternal position should be minimized during labor to prevent deep vein thrombosis?", options: ["Lateral recumbent position", "Semi-Fowler position", "Lithotomy position", "Upright standing position"], correct: 2, rationale: "Primary prevention during labor includes avoiding or minimizing the use of the lithotomy position to reduce pressure on the veins." },
+                    { id: "q11", question: "What does a positive Homans sign indicate?", options: ["Chest pain that worsens with deep breaths", "Pain in the calf muscles on dorsiflexion", "Redness and warmth over a superficial vein", "Unexplained rapid heart rate at rest"], correct: 1, rationale: "A positive Homans sign is a clinical sign of deep vein thrombosis characterized by pain in the calf muscles on dorsiflexion." },
+                    { id: "q12", question: "Which item should pregnant women avoid to prevent increasing hypercoagulability?", options: ["Folic acid supplements", "Vitamin E preparations", "Progestin hormone therapy", "Daily prenatal vitamins"], correct: 1, rationale: "Primary prevention during pregnancy includes avoiding drugs that increase hypercoagulability, specifically listing neomycin, vitamin E, chloramphenicol, and green tea." },
+                    { id: "q13", question: "What is the primary objective of secondary prevention for deep vein thrombosis?", options: ["Specific protection for every pregnant woman", "Early detection and recurrence prevention", "Managing long-term complications of clots", "Providing resources for patient rehabilitation"], correct: 1, rationale: "The objective of secondary prevention is defined as early detection and recurrence prevention." },
+                    { id: "q14", question: "Which diagnostic procedure uses high-frequency sound waves to produce images of blood vessels?", options: ["Venography", "D-dimer blood test", "Duplex ultrasound", "Magnetic resonance imaging"], correct: 2, rationale: "During a duplex ultrasound, high-frequency sound waves bounce off the inside of the body, producing images of blood vessels." },
+                    { id: "q15", question: "How long does the state of hypercoagulation typically continue after giving birth?", options: ["2 weeks", "4 weeks", "6 weeks", "8 weeks"], correct: 2, rationale: "The text states that hypercoagulation will continue up to 6 weeks postpartum." },
+                    { id: "q16", question: "Which medical condition is recognized as a risk factor for developing a blood clot?", options: ["Nephrotic syndrome", "Hyperthyroidism", "Gestational diabetes", "Bronchial asthma"], correct: 0, rationale: "The kidney disorder called nephrotic syndrome is specifically listed under medical conditions that act as risk factors for developing a blood clot." },
+                    { id: "q17", question: "What factor contributes significantly to increased blood viscosity during the postpartum period?", options: ["Prolonged time in stirrups", "Increased blood and fluid loss", "Enlarging uterus pressing on veins", "Rapid utilization of dissolving factors"], correct: 1, rationale: "Predisposing factors during the postpartum period include increased viscosity of blood due to increased blood and fluid loss." },
+                    { id: "q18", question: "Which symptom suggests that a patient on blood thinners is experiencing a bleed into the stomach?", options: ["Very heavy recurrent nosebleeds", "Sudden weakness and slurred speech", "Vomiting material resembling coffee grounds", "Dark black and sticky tarry bowel movements"], correct: 2, rationale: "Vomiting of bright red blood or something that looks like coffee grounds may indicate a bleed in the esophagus or stomach." },
+                    { id: "q19", question: "What is the correct anatomical definition of a pulmonary embolism?", options: ["A blood clot that forms directly in the deep calf veins", "An inflammation of the lining of the pulmonary vessels", "A blood clot that breaks off and lodges in the lung", "A failure of venous valves causing backward blood flow"], correct: 2, rationale: "Pulmonary Embolism is a complication occurring when a blood clot breaks off, travels through the blood stream, and lodges in the lung." },
+                    { id: "q20", question: "Which physiological change contributes directly to venous stasis during pregnancy?", options: ["Decreased estrogen and progestin levels", "Compression of large vessels by the uterus", "Increased systemic blood clotting factors", "Use of well padded labor and delivery tables"], correct: 1, rationale: "During pregnancy, the greater pressures of the growing uterus on lower extremities lead to compression of large vessels and vascular dilatation, causing venous stasis." },
+                    { id: "q21", question: "A thigh vein is the most common site for a deep vein thrombosis to develop in the body.", options: ["True", "False"], correct: 1, rationale: "False. A calf vein is the common site for a DVT, while a thigh vein is less commonly affected." },
+                    { id: "q22", question: "Massaging the skin of an affected leg can cause the blood clot to break off and lead to a pulmonary embolism.", options: ["True", "False"], correct: 0, rationale: "True. The nursing interventions state to never massage the skin in the affected leg because it can cause the clot to break off and result in a pulmonary embolism." },
+                    { id: "q23", question: "Venography involves injecting a radioactive dye into a vein on the top of the foot to visualize the anatomy of the veins.", options: ["True", "False"], correct: 0, rationale: "True. During a venography, a doctor injects a radioactive dye into a vein on the top of the foot to highlight the veins on an X-ray." },
+                    { id: "q24", question: "Patients diagnosed with deep vein thrombosis should elevate the affected leg while on bed rest to improve circulation.", options: ["True", "False"], correct: 1, rationale: "False. The nursing interventions specify bed rest and advise not to elevate the affected leg to prevent movement of the clot, which can cause complications." },
+                    { id: "q25", question: "Thrombophlebitis is defined as the formation of blood clots without any accompanying inflammation in the blood vessels.", options: ["True", "False"], correct: 1, rationale: "False. Thrombophlebitis is defined as inflammation plus clots formation. Phlebothrombosis is the formation of clots without inflammation." },
+                    { id: "q26", question: "The use of the lithotomy position during labor is encouraged because it reduces pressure on the veins of the lower extremities.", options: ["True", "False"], correct: 1, rationale: "False. Primary prevention during labor involves avoiding or minimizing the use of the lithotomy position to reduce pressure on the veins." },
+                    { id: "q27", question: "Endometritis is a predisposing factor that can lead to pelvic thrombophlebitis during the postpartum period.", options: ["True", "False"], correct: 0, rationale: "True. The presence of endometritis is listed as a predisposing factor for pelvic thrombophlebitis during the postpartum period." },
+                    { id: "q28", question: "Duplex ultrasound is highly sensitive and easily detects blood clots located very deep inside the pelvis.", options: ["True", "False"], correct: 1, rationale: "False. The text explicitly notes that the duplex ultrasound test is less sensitive in finding blood clots that are very deep inside the body, such as in the pelvis." },
+                    { id: "q29", question: "Tertiary prevention for deep vein thrombosis focuses on managing long-term complications to improve the patient's quality of life.", options: ["True", "False"], correct: 0, rationale: "True. The objective of tertiary prevention is to manage the complications of existing DVT to prevent long-term consequences and improve quality of life." },
+                    { id: "q30", question: "Pregnant women are advised to drink green tea frequently as a primary prevention method against hypercoagulability.", options: ["True", "False"], correct: 1, rationale: "False. Primary prevention during pregnancy specifically advises avoiding drugs that increase hypercoagulability, which includes green tea." }
+                ]
+            },
+            {
+                id: 'quiz-5',
+                title: 'Exercise During Postpartum Period',
+                theme: 'purple',
+                data: [
+                    { question: "How long should a mother wait to start breastfeeding after completing postpartum exercises?", options: ["1 hour", "2 hours", "30 minutes", "4 hours"], correct: 0, rationale: "Breastfeeding should start at least 1 hour after exercise because lactic acid produced during exertion may pass into the milk and cause ketoacidosis in the infant." },
+                    { question: "The buttocks lift exercise is recommended to be performed on the very first day immediately after giving birth.", options: ["False", "True"], correct: 0, rationale: "The buttocks lift is categorized under Day 2-7 Exercises. Day 1 exercises primarily include Kegel's, pelvic tilt, abdominal breathing, arm raises, and leg rolls." },
+                    { question: "What is the primary purpose of performing the huffing exercise after a Cesarean delivery?", options: ["To dislodge mucus from the lungs", "To strengthen the abdominal wall", "To prevent deep vein thrombosis", "To improve pelvic floor muscle tone"], correct: 0, rationale: "Huffing is a quick outward breath designed to dislodge mucus produced in the lungs in response to general anesthesia, preventing small air sacs from closing." },
+                    { question: "Postpartum exercise is performed exclusively to help the mother regain her pre-pregnancy weight as quickly as possible.", options: ["False", "True"], correct: 0, rationale: "The text emphasizes that the most important initial focus is resting and getting to know the baby without rushing to regain shape. The primary physiological goal is restoring abdominal and pelvic muscles." },
+                    { question: "How should the mother position her legs at the start of the single knee roll exercise?", options: ["One leg straight and the other leg bent at the knee", "Both legs completely straight against the floor", "Both knees bent with feet flat on the floor", "Both legs tightly drawn up toward the abdomen"], correct: 0, rationale: "The single knee roll begins by lying on the back with one leg straight and the other leg bent at the knee before rolling the bent knee over." },
+                    { question: "Deep vein thrombosis is a contraindication for postnatal exercises because the physical activity may dislodge the thrombus and cause a pulmonary embolism.", options: ["True", "False"], correct: 0, rationale: "Deep vein thrombosis is an absolute contraindication for postnatal exercise because the thrombus may dislodge, leading to a life-threatening pulmonary embolism." },
+                    { question: "Which condition is an absolute contraindication for performing postnatal exercises?", options: ["Uncontrolled diabetes mellitus", "Mild pre-eclampsia", "1st degree heart disease", "Minor postpartum hemorrhage"], correct: 0, rationale: "Uncontrolled diabetes mellitus, deep vein thrombosis, severe hemorrhage, severe pre-eclampsia, and 3rd or 4th degree heart disease are absolute contraindications for postnatal exercises." },
+                    { question: "What action should be strictly avoided when performing the pelvic tilt exercise on the first day postpartum?", options: ["Arching the back", "Bending the knees", "Flattening the lower back", "Exhaling slowly"], correct: 0, rationale: "When performing the pelvic tilt, the mother should roll the pelvis back by flattening the lower back, and caution must be taken not to arch the back, bulge the abdomen, or push with the feet." },
+                    { question: "Mothers who have undergone a Cesarean delivery under general anesthesia should perform coughing rather than huffing to clear mucus from the lungs.", options: ["False", "True"], correct: 0, rationale: "The text explicitly states that mothers should perform huffing instead of coughing because huffing pulls the abdominal wall in and is much more comfortable." },
+                    { question: "Which specific circulatory complication do postpartum exercises help prevent?", options: ["Deep vein thrombosis", "Varicose veins", "Arterial hypertension", "Severe chronic anemia"], correct: 0, rationale: "Postpartum exercises are specifically noted to prevent circulatory complications such as deep vein thrombosis (DVT)." },
+                    { question: "During the abdominal breathing exercise on the first day, the mother should inhale deeply through the nose and allow the abdomen to expand upward.", options: ["True", "False"], correct: 0, rationale: "The correct technique for abdominal breathing involves inhaling deeply through the nose and allowing the abdomen to physically expand upward." },
+                    { question: "How many days after a Cesarean delivery should the head-up lift exercise be added to the routine?", options: ["7 days", "3 days", "14 days", "1 day"], correct: 0, rationale: "The text specifies that the head-up lift exercise should be added 7 days after surgery, performing it 3 to 5 times, twice a day." },
+                    { question: "How often should postnatal exercises typically be performed each day during the first 6 weeks?", options: ["Twice daily", "Once daily", "Three times weekly", "Every hour while awake"], correct: 0, rationale: "Postnatal exercise should start within 24 hours of delivery, be done twice daily, and continued for 6 weeks." },
+                    { question: "The back exercise performed after the first week involves lying on the floor like a cat and making the back concave one time and convex another time.", options: ["True", "False"], correct: 0, rationale: "The back exercise is performed by acting like a cat on the floor, alternating between a concave and convex back position." },
+                    { question: "When performing the bilateral leg squeeze after a Cesarean delivery, what action should the mother take with her ankles?", options: ["Cross the ankles", "Keep the ankles parallel", "Point the ankles outward", "Rotate the ankles in circles"], correct: 0, rationale: "When doing the bilateral leg squeeze, both legs should be straight with the ankles crossed while tightening all the leg and buttock muscles." },
+                    { question: "Post-partum exercise is defined as an unstructured, random physical activity performed whenever the mother feels energetic.", options: ["False", "True"], correct: 0, rationale: "Post-partum exercise is formally defined as a planned, structured and repetitive physical activity done to restore abdominal and pelvic muscles." },
+                    { question: "Which symptom indicates that a mother should immediately stop performing postpartum exercises?", options: ["Blurred vision", "Mild abdominal cramping", "Increased appetite", "Normal lochial discharge"], correct: 0, rationale: "Blurred vision is listed as a critical danger sign of exercises, indicating that the mother should stop the physical activity immediately." },
+                    { question: "What is the target number of Kegel exercises a woman should gradually work up to doing each day?", options: ["50 to 100", "10 to 20", "200 to 300", "5 to 10"], correct: 0, rationale: "The mother should begin with 3-second squeezes, 3 times a day, and gradually increase repetitions to work up to doing 50 to 100 Kegels each day." },
+                    { question: "The mother should ensure she drinks an adequate amount of fluids before, during, and after her postnatal exercise routine.", options: ["True", "False"], correct: 0, rationale: "One of the fundamental principles of postnatal exercises is to drink adequate amounts of fluids before, during, and after exercise." },
+                    { question: "What is a recommended principle regarding the environment and clothing for postnatal exercises?", options: ["Wear loose cotton clothes and maintain a stable environment", "Exercise in a dimly lit room to promote deep relaxation", "Wear tight synthetic clothing for maximum muscle support", "Exercise immediately after eating a full heavy meal"], correct: 0, rationale: "Principles of postnatal exercises include wearing loose, supportive cotton clothes and maintaining a stable environment, actively avoiding dark places or slippery floors." },
+                    { question: "Which movement describes the proper technique for the abdominal wall during huffing?", options: ["The abdominal wall is pulled inward", "The abdominal wall is pushed outward", "The abdominal wall remains entirely still", "The abdominal wall is bulged upward"], correct: 0, rationale: "With huffing, the abdominal wall is pulled in instead of out, which makes the movement much more comfortable than deep breathing after surgery." },
+                    { question: "A severe frontal headache during postpartum physical activity is considered a normal discomfort and the mother should continue exercising.", options: ["False", "True"], correct: 0, rationale: "A severe frontal headache is explicitly listed as a danger sign of exercises, indicating that the mother should stop immediately." },
+                    { question: "Which alteration in lochia indicates a danger sign requiring the cessation of postpartum exercise?", options: ["Heavy lochia", "Scanty lochia", "Serous lochia", "Mucous lochia"], correct: 0, rationale: "Heavy lochia and bleeding are specific danger signs that indicate the mother should stop exercising immediately." },
+                    { question: "What is a specific physiological benefit of performing postpartum exercises?", options: ["Hastening the involution process", "Decreasing lochial discharge", "Delaying milk production", "Increasing postpartum weight retention"], correct: 0, rationale: "Postpartum exercises hasten the involution process, increase milk production, and increase (rather than decrease) lochial discharge." },
+                    { question: "Exercising immediately before breastfeeding is highly recommended because it increases the nutritional value of the milk.", options: ["False", "True"], correct: 0, rationale: "Breastfeeding should start at least 1 hour after exercise because lactic acid produced during exertion may pass into the milk and cause ketoacidosis." },
+                    { question: "What is the guideline regarding eating before starting postpartum exercises?", options: ["Do not exercise if hungry to avoid fainting", "Exercise on a full stomach after eating", "Fast for 12 hours prior to exercising", "Consume a meal between each exercise"], correct: 0, rationale: "Mothers should not exercise if hungry to avoid fainting and hypoglycemia, and they should also avoid exercising immediately after feeding on a full stomach." },
+                    { question: "During the straight curl-up exercise performed after the first week, when should the mother raise her head and shoulder?", options: ["While exhaling slowly", "While inhaling deeply", "Before lowering the chin", "After returning to the start"], correct: 0, rationale: "During the reach for the knees exercise (straight curl-up), the mother should raise her head and shoulder slowly and smoothly while exhaling." },
+                    { question: "During the arm raises exercise on the first day, at what angle should the arms initially be extended from the body?", options: ["90 degrees", "45 degrees", "180 degrees", "60 degrees"], correct: 0, rationale: "The mother should lie on her back with arms extended at a 90-degree angle from the body before raising them so they are perpendicular." },
+                    { question: "How often should the deep breathing exercise be performed by a mother immediately following a Cesarean delivery?", options: ["5 times every hour awake", "2 times every hour awake", "10 times a day", "3 times every hour awake"], correct: 0, rationale: "Deep breathing should be performed 5 times every hour the mother is awake following a Cesarean delivery." },
+                    { question: "Which degrees of heart disease are strictly contraindicated for postnatal exercises to prevent heart failure?", options: ["3rd and 4th degree", "1st and 2nd degree", "2nd and 3rd degree", "1st and 4th degree"], correct: 0, rationale: "3rd and 4th degree heart diseases are contraindications to avoid fluid overload on the heart and potential heart failure." }
+                ]
+            },
+            {
+                id: 'quiz-6',
+                title: 'Hygiene During Postpartum Period',
+                theme: 'purple',
+                data: [
+                    { id: "q1", question: "Obesity and diabetes mellitus are considered risk factors that increase a woman's susceptibility to postpartum infections.", options: ["True", "False"], correct: 0, rationale: "Preexisting conditions like diabetes mellitus and obesity are specific factors that increase the risk for postpartum infections." },
+                    { id: "q2", question: "What is the recommended method for drying an episiotomy incision to promote proper healing?", options: ["Patting the area gently with a soft or baby towel", "Wiping the area vigorously with a paper towel", "Using a hairdryer on the lowest heat setting", "Rubbing the stitches in a circular motion"], correct: 0, rationale: "Mothers are advised to avoid wiping the area to prevent tugging the stitches, and should instead pat the area dry using a soft or baby towel, while avoiding paper towels." },
+                    { id: "q3", question: "It is recommended to use soap, alcohol, and scented cleansers on the breasts to ensure proper hygiene and prevent infection.", options: ["True", "False"], correct: 1, rationale: "The guidelines specifically state to avoid using soap, alcohol, and scented cleansers on the breasts to prevent irritation." },
+                    { id: "q4", question: "Which concentration of alcohol is recommended for cleaning the newborn's umbilical cord?", options: ["50% alcohol", "70% alcohol", "90% alcohol", "100% alcohol"], correct: 1, rationale: "Proper newborn cord care involves cleaning the cord with 70% alcohol to keep it clean and dry." },
+                    { id: "q5", question: "What severe maternal complication can be minimized during the postpartum period by maintaining good hygiene?", options: ["Postpartum hemorrhage", "Gestational diabetes", "Ectopic pregnancy", "Placenta previa"], correct: 0, rationale: "The text states that passing the postpartum period with good hygiene leads to minimal complications, specifically mentioning postpartum hemorrhage." },
+                    { id: "q6", question: "Postpartum hygiene only refers to the cleanliness practices of the mother, completely excluding the baby.", options: ["True", "False"], correct: 1, rationale: "Postpartum hygiene is defined as a series of practices related to the cleanliness of both the mother and her baby that prevent the spread of infection." },
+                    { id: "q7", question: "How frequently should a postpartum woman change her sanitary pad to maintain proper perineal hygiene?", options: ["Once every 12 hours", "At least 4 times a day or every 2 to 4 hours", "Only when it is completely saturated", "Every 8 to 10 hours during the day"], correct: 1, rationale: "Proper perineal hygiene requires changing the sanitary pad frequently, at least 4 times a day or every 2 to 4 hours." },
+                    { id: "q8", question: "Which of the following is a recognized sign of infection in a cesarean section wound?", options: ["Reduced swelling around the incision", "Separating edges of the wound", "Fading redness of the skin", "Absence of wound discharge"], correct: 1, rationale: "Signs of a cesarean wound infection to assess for include redness, discharge, separating edges of the wound, and tenderness." },
+                    { id: "q9", question: "Mothers should use any cleansing product on a cesarean wound, even if it makes wound healing slow.", options: ["True", "False"], correct: 1, rationale: "The guidelines strictly state not to use cleansing products that make wound healing slow." },
+                    { id: "q10", question: "Why is it advisable to limit the number of visitors during the postnatal period?", options: ["To ensure the mother has time to prepare large meals", "To prevent the mother and baby from picking up infections", "To encourage the baby to sleep for longer consecutive hours", "To reduce the financial burden of hosting family and friends"], correct: 1, rationale: "Visitor hygiene guidelines suggest limiting numbers because both the mother and the baby can easily pick up infections from visiting friends and family." },
+                    { id: "q11", question: "How long does the postpartum period typically last after childbirth?", options: ["The first 2 weeks", "The first 4 weeks", "The first 6 weeks", "The first 8 weeks"], correct: 2, rationale: "The postpartum period is explicitly defined as referring to the first 6 weeks after childbirth." },
+                    { id: "q12", question: "When cleaning the perineum, the mother should always wash from front to back.", options: ["True", "False"], correct: 0, rationale: "Keeping the perineum area clean involves strict instructions to wash and dry it from front to back to prevent infection." },
+                    { id: "q13", question: "Which of the following obstetric factors significantly increases a woman's risk for postpartum infection?", options: ["Having a history of a rapid vaginal delivery", "Premature rupture of membranes", "Giving birth to a high birth weight infant", "Having infrequent cervical examinations"], correct: 1, rationale: "Premature rupture of membranes is listed among the specific factors that increase the risk for postpartum infections." },
+                    { id: "q14", question: "What should a mother apply to her breasts to relieve postpartum pain and swelling?", options: ["Warm oil massages", "Ice packs and cold compresses", "Heating pads on a high setting", "Scented cleansing lotions"], correct: 1, rationale: "Applying ice packs and cold compresses is the recommended practice to relieve pain and swelling of the breast." },
+                    { id: "q15", question: "Using paper towels is the preferred method for drying an episiotomy incision after cleaning.", options: ["True", "False"], correct: 1, rationale: "Mothers are explicitly instructed to avoid using paper towels and should instead pat the area dry with a soft or baby towel." },
+                    { id: "q16", question: "During the first 12 hours after delivery, what intervention is recommended for an episiotomy site?", options: ["Applying covered ice packs", "Administering a vaginal douche", "Soaking in boiling water", "Applying scented rubbing alcohol"], correct: 0, rationale: "During the first 12 hours after delivery, it is recommended to apply covered ice packs to the episiotomy site to reduce pain and swelling." },
+                    { id: "q17", question: "What is a key recommendation for maternal food hygiene during the postpartum period?", options: ["Consuming mostly raw meats", "Washing fruits and vegetables properly and ensuring food is fully cooked", "Avoiding all fresh produce", "Boiling all drinking water for at least an hour"], correct: 1, rationale: "Food hygiene guidelines instruct the mother to wash all fruits and vegetables properly and ensure the food is fully cooked before eating." },
+                    { id: "q18", question: "Episiotomy stitches should be cleaned and soaked using warm sitz baths.", options: ["True", "False"], correct: 0, rationale: "The use of sitz baths, where water covers the vulva area, is recommended to soak the stitches and keep them clean." },
+                    { id: "q19", question: "Which practice is strictly prohibited during the first 6 weeks of the postpartum period to maintain perineal hygiene?", options: ["Using warm water in a bathtub", "Washing the vulva with an antiseptic solution", "Using vaginal douches and tampons", "Changing sanitary pads frequently"], correct: 2, rationale: "The guidelines explicitly state not to use vaginal douches and to avoid using tampons for the first 6 weeks." },
+                    { id: "q20", question: "Why is frequent showering highly recommended for a mother after delivery?", options: ["It cures existing pelvic infections", "It replaces the need for proper sleep", "It brings a wide range of emotional and physical benefits", "It prevents postpartum hemorrhage entirely"], correct: 2, rationale: "Taking a bath or showering after delivery is known to bring a wide range of benefits to the mother, from emotional to physical." },
+                    { id: "q21", question: "Newborns should be breastfed strictly on a rigid schedule rather than on demand.", options: ["True", "False"], correct: 1, rationale: "Newborn care guidelines encourage early on-demand breastfeeding rather than strict scheduling." },
+                    { id: "q22", question: "What is the proper procedure for cleaning the mother's nipple before baby feeding?", options: ["Clean with water and dry it", "Wash vigorously with antibacterial soap", "Wipe with an alcohol pad", "Apply a scented moisturizer"], correct: 0, rationale: "The mother should clean her breast before feeding and clean the nipple by using only water and then drying it." },
+                    { id: "q23", question: "Which condition related to vaginal discharge increases the risk of postpartum infections?", options: ["Absence of lochia", "Presence of lochia", "Decreased cervical mucus", "Completely dry vaginal canal"], correct: 1, rationale: "The presence of vaginal discharge, specifically lochia, is listed as a factor that increases the risk for postpartum infections." },
+                    { id: "q24", question: "Mothers are instructed to wash their teeth after each meal to avoid dental problems during the postpartum period.", options: ["True", "False"], correct: 0, rationale: "General hygiene guidelines recommend washing teeth after each meal to avoid teeth problems." },
+                    { id: "q25", question: "When should an episiotomy incision ideally be cleaned to maintain proper hygiene?", options: ["Once a day before bedtime", "Only while showering in the morning", "After each urination and bowel movement", "Every time the baby is breastfed"], correct: 2, rationale: "Guidelines state to clean the episiotomy incision after each urination and bowel movement to maintain hygiene." },
+                    { id: "q26", question: "Which newborn care practice strongly facilitates the initial bonding between mother and infant?", options: ["Immediate artificial formula feeding", "Keeping the infant in a separate nursery", "Early skin to skin contact", "Delaying the infant's first bath for a week"], correct: 2, rationale: "Encouraging early skin-to-skin contact is listed as a key practice for promoting bonding between the mother and newborn." },
+                    { id: "q27", question: "A partial or complete bath is recommended for the newborn to ensure cleanliness and comfort.", options: ["True", "False"], correct: 0, rationale: "Carrying out a partial or complete bath is part of newborn care to ensure cleanliness and comfort." },
+                    { id: "q28", question: "How should uncleaned clothes be treated to maintain postpartum hygiene?", options: ["Stored in a plastic bag for a month", "Washed and exposed to sun rays", "Ironed without washing", "Discarded completely"], correct: 1, rationale: "General hygiene instructs the mother to frequently change her clothes, wash uncleaned clothes, and expose them to sun rays." },
+                    { id: "q29", question: "If a mother uses breast pads, what is the specific recommendation regarding their hygiene?", options: ["Wash and reuse the same pad for a week", "Change them frequently when they become wet", "Keep them dry by avoiding water intake", "Spray them with alcohol before wearing"], correct: 1, rationale: "If a mother uses breast pads, she is instructed to change them frequently when they become wet to maintain breast hygiene." },
+                    { id: "q30", question: "What type of clothing should a mother avoid after a cesarean section to promote wound healing?", options: ["Cotton clothes", "Loose-fitting dresses", "Tight clothes", "Light, breathable fabrics"], correct: 2, rationale: "Mothers recovering from a cesarean section are instructed to avoid tight clothes to protect the wound and ensure proper healing." }
+                ]
+            },
+            {
+                id: 'quiz-7',
+                title: 'Minor Discomforts During the Postpartum Period',
+                theme: 'purple',
+                data: [
+                    { question: "What is a primary cause of bladder atony leading to postpartum urinary retention?", options: ["Pressure from the fetal head on the bladder and urethra", "Excessive administration of intravenous fluids during labor", "Rapid reduction in maternal progesterone levels", "General laxity of the abdominal wall muscles"], correct: 0, rationale: "Atony of the bladder is caused by the fetal head leading to pressure on the bladder and urethra." },
+                    { question: "Which patient is most likely to experience the most severe after-pains?", options: ["A primipara with a small baby", "A multipara with polyhydramnios", "A mother who chooses formula feeding", "A woman with a completely empty uterus"], correct: 1, rationale: "After-pains are more common and severe in multiparas, multiple pregnancies, polyhydramnios, and large size babies because the uterus was overstretched, increasing intra-abdominal pressure." },
+                    { question: "Which intervention is most appropriate for a postpartum woman experiencing constipation 72 hours after delivery?", options: ["Administer a glycerin suppository", "Administer an immediate cleansing enema", "Restrict daily fluid intake", "Recommend complete bed rest"], correct: 0, rationale: "After 72 hours of constipation, a glycerin suppository or mild laxative may be given to assist with evacuation." },
+                    { question: "Mastitis typically occurs during which timeframe of the postpartum period?", options: ["First 24 hours", "First 2 to 3 days", "First 2 to 3 weeks", "First 2 to 3 months"], correct: 2, rationale: "Mastitis usually occurs within the first 2 to 3 weeks of the postpartum period." },
+                    { question: "Mastitis is an infection that generally affects both breasts simultaneously.", options: ["True", "False"], correct: 1, rationale: "Mastitis appears suddenly and only affects one breast at a time." },
+                    { question: "According to recent research, which intervention significantly increases breast milk secretion among postnatal mothers after a cesarean section?", options: ["Almond oil breast massage", "Coconut oil breast massage", "Olive oil breast massage", "Sesame oil breast massage"], correct: 0, rationale: "New research recommends the application of almond oil breast massage to increase breast milk secretion among postnatal mothers after a cesarean section." },
+                    { question: "Which assessment scale should be documented when inspecting perineal lacerations and healing?", options: ["APGAR scale", "REEDA scale", "Glasgow scale", "Braden scale"], correct: 1, rationale: "The REEDA scale is used to assess the perineum and document the degree of laceration and healing process." },
+                    { question: "After-pains are typically less severe in multiparous women compared to primiparous women.", options: ["True", "False"], correct: 1, rationale: "After-pains are actually more common and more severe in multiparas due to weak muscle tone, which requires the uterus to contract with more force to regain its pre-pregnant size." },
+                    { question: "Why does breastfeeding increase the intensity of after-pains?", options: ["Sucking stimulates the release of oxytocin which strengthens uterine contractions", "Sucking stimulates the release of prolactin which decreases pain tolerance", "Sucking decreases intra-abdominal pressure causing uterine spasms", "Sucking relaxes the uterine muscle tone leading to colicky pain"], correct: 0, rationale: "Sucking stimulates the release of oxytocin from the posterior pituitary gland, which stimulates and strengthens uterine contractions." },
+                    { question: "Urinary retention is suspected if the postpartum urinary output is less than:", options: ["50 ml", "100 ml", "200 ml", "500 ml"], correct: 1, rationale: "If urinary output or void volume is less than 100 ml, urinary retention is suspected by the nursing staff." },
+                    { question: "Engorged breasts frequently occur around the 3rd or 4th day postpartum primarily due to:", options: ["Lymphatic and venous engorgement", "Accumulation of colostrum only", "Overgrowth of mammary gland tissue", "Bacterial infection in the milk ducts"], correct: 0, rationale: "Engorged breasts occur due to lymphatic and venous engorgement causing congestion and possible interstitial edema." },
+                    { question: "Epidural and spinal anesthesia can contribute to urinary retention by eliminating sensation in the bladder area.", options: ["True", "False"], correct: 0, rationale: "The effect of epidural, spinal, and general anesthesia leads to a lack of sensation in the bladder area, which is a cause of urinary retention." },
+                    { question: "Anorexia during and after labor is listed as a potential cause of postpartum constipation.", options: ["True", "False"], correct: 0, rationale: "Anorexia during and after labor is one of the physiological causes contributing to postpartum constipation." },
+                    { question: "If a postpartum mother develops mastitis, what is the proper nursing instruction regarding feeding?", options: ["Stop breastfeeding entirely", "Feed only from the unaffected breast", "Continue breastfeeding or pump the affected breast", "Switch exclusively to formula feeding"], correct: 2, rationale: "Breastfeeding should be continued, or the mother should pump to empty the affected side to relieve engorgement." },
+                    { question: "Physiological variations in milk secretion are sometimes perceived by the mother as milk insufficiency.", options: ["True", "False"], correct: 0, rationale: "Physiological variations in milk secretion are often perceived as milk insufficiency by nursing mothers." },
+                    { question: "Approximately what percentage of nursing mothers experience cracked nipples at some point?", options: ["10 percent", "25 percent", "50 percent", "75 percent"], correct: 2, rationale: "Fissured or cracked nipples occur in about 50 percent of nursing mothers at one time or another." },
+                    { question: "How many hours after delivery should a postpartum woman ideally pass urine before additional interventions are required?", options: ["2 to 4 hours", "8 to 12 hours", "14 to 18 hours", "20 to 24 hours"], correct: 1, rationale: "Urine should be passed approximately 8 to 12 hours after delivery; if not, specific nursing measures should be attempted." },
+                    { question: "Which of the following conditions is an anatomical cause of true insufficient milk supply?", options: ["Previous breast surgery", "Frequent breastfeeding", "Reduced physical activity", "High fluid intake"], correct: 0, rationale: "Insufficient glandular tissue, such as from previous breast surgery, is a structural cause of insufficient milk supply." },
+                    { question: "Warm compresses should be applied to the perineum during the first 24 hours postpartum to reduce edema.", options: ["True", "False"], correct: 1, rationale: "Cold compresses or ice packs are used during the first 24 hours to reduce edema. Warm compresses are recommended only after 24 hours." },
+                    { question: "Which medical intervention must be strictly avoided for a patient with a 4th degree perineal laceration?", options: ["Magnesium sulfate compresses", "Use of cotton underwear", "Sitz bath with running water", "Rectal temperature measurement"], correct: 3, rationale: "For 3rd and 4th degree lacerations, avoiding an enema, suppository, or rectal temperature measurement is critical to prevent injury." },
+                    { question: "In severe cases of engorged breasts, which pharmacological treatment might be effective?", options: ["Two doses of diuretics", "Continuous intravenous oxytocin", "High doses of broad spectrum antibiotics", "Two doses of systemic corticosteroids"], correct: 0, rationale: "In severe cases of engorged breasts, the administration of 2 doses of diuretics, such as Lasix 40 mg, is effective." },
+                    { question: "Receiving an enema during labor can contribute to postpartum constipation.", options: ["True", "False"], correct: 0, rationale: "An enema administered in labor is listed as one of the contributing causes of postpartum constipation." },
+                    { question: "After-pains are defined as spasmodic colicky pain in the lower abdomen that usually lasts for:", options: ["2 to 4 hours", "2 to 4 days", "2 to 4 weeks", "2 to 4 months"], correct: 1, rationale: "After-pains are spasmodic colicky pain in the lower abdomen during the early postpartum days, usually lasting 2 to 4 days." },
+                    { question: "Which action facilitates attachment by relieving areolar engorgement before feeding?", options: ["Massage and manual expression of milk", "Applying ice packs for 10 minutes", "Using strong soap to clean the nipple", "Administering systemic analgesics"], correct: 0, rationale: "Massage and manual expression of milk relieve areolar engorgement before feeding, which facilitates infant attachment." },
+                    { question: "Engorged breasts only involve the accumulation of breast milk without any extra blood or body fluids.", options: ["True", "False"], correct: 1, rationale: "Engorged breasts involve an accumulation of increased amounts of blood and other body fluids, as well as milk." },
+                    { question: "Which characteristics predispose a woman to cracked nipples?", options: ["Dark complexion and oily skin", "Blond and redhead with delicate skin", "Olive skin and thick dermal layers", "Brunette hair and resistant skin"], correct: 1, rationale: "Blond and redhead women usually have delicate skin that may be predisposed to cracking." },
+                    { question: "What is a recommended nursing management for a mother experiencing leaking of breast milk?", options: ["Restrict all fluid intake", "Put clean pieces of gauze inside the bra", "Wear tight restrictive clothing", "Apply ice packs continuously"], correct: 1, rationale: "The mother should put clean pieces of gauze or cloth inside the bra to soak up the leaking milk and change clothes frequently." },
+                    { question: "A postpartum woman should only attempt to void when she has a strong desire to urinate.", options: ["True", "False"], correct: 1, rationale: "Women should be encouraged to void every 2 to 3 hours postpartum, even if they do not have the explicit desire to do so." },
+                    { question: "What is an appropriate position to teach a client for perineal self-care to avoid discomfort?", options: ["Supine with legs elevated", "Lateral with a pillow between the thighs", "Prone with arms extended", "Sitting upright on a hard surface"], correct: 1, rationale: "For perineal self-care and comfort, the lateral position with a pillow between the thighs is recommended." },
+                    { question: "Women with active milk ejection reflexes often find that their breasts leak milk during the first few weeks after delivery.", options: ["True", "False"], correct: 0, rationale: "Women who have active ejection reflexes often experience milk leakage during the first few weeks after delivery." }
+                ]
+            },
+            {
+                id: 'quiz-8',
+                title: 'Nutrition During Postpartum Period',
+                theme: 'purple',
+                data: [
+                    { question: "What is the definition of a nutrient according to the provided text?", options: ["A substance in food that provides structural or functional components or energy", "The process of taking in food and using it for growth and metabolism", "A diet containing proper proportions of macronutrients and micronutrients", "A synthetic medical supplement used to treat acute dietary deficiencies"], correct: 0, rationale: "A nutrient is defined as a substance in food that provides structural or functional components or energy to the body." },
+                    { question: "One of the reasons nutrition is important during the postpartum period is to replenish stores of calcium, vitamin B12, and folate.", options: ["True", "False"], correct: 1, rationale: "The text specifies replenishing nutrient stores of calcium, vitamin B6 (not B12), and folate." },
+                    { question: "What is the recommended total daily caloric intake for a lactating woman feeding twins?", options: ["2600 to 3000 calories", "2300 to 2500 calories", "1500 to 2000 calories", "3000 to 3500 calories"], correct: 0, rationale: "The text states that total caloric intake when lactating is 2300 to 2500 calories for a singleton and 2600 to 3000 calories for twins." },
+                    { question: "Which maternal age group puts a woman at specific risk for poor nutrition during the postpartum period?", options: ["Less than 17 years or more than 35 years", "Between 20 and 25 years", "Between 25 and 30 years", "Less than 20 years or more than 40 years"], correct: 0, rationale: "Women at risk for poor nutrition include those with a maternal age less than 17 years or more than 35 years." },
+                    { question: "Plant proteins are considered complete protein sources because they contain all 9 essential amino acids in adequate amounts.", options: ["True", "False"], correct: 1, rationale: "Plant proteins are incomplete proteins because they have one or more of the essential amino acids missing or in only minute amounts. Animal proteins are complete." },
+                    { question: "According to the body mass index classification, which range indicates that a woman is overweight?", options: ["25 to 30", "18.5 to 25", "Less than 18.5", "Greater than 30"], correct: 0, rationale: "The anthropometrics section categorizes a body mass index of 25 to 30 as overweight." },
+                    { question: "During a clinical examination, which physical sign may specifically indicate a zinc deficiency?", options: ["Decreased taste and smell", "Easily plucked and thin hair", "Temporal wasting", "Tongue fissuring"], correct: 0, rationale: "Decreased taste and smell are clinical signs associated with zinc deficiency, whereas tongue fissuring is linked to niacin and thin hair to protein or biotin deficiency." },
+                    { question: "A woman with a short birth interval is at risk for poor nutrition because her body does not have a chance to build up nutritional stores between pregnancies.", options: ["True", "False"], correct: 0, rationale: "A close inter-conceptual period (short birth interval) does not give the body a chance to build up nutritional stores, increasing the risk of poor nutrition." },
+                    { question: "How much water and other liquids should a woman be encouraged to drink every 24 hours after a vaginal birth?", options: ["3000 ml", "1000 ml", "2000 ml", "4000 ml"], correct: 0, rationale: "Women should be encouraged to drink 3000 ml of water and other liquids every 24 hours to restore the fluid balance altered during labor and birth." },
+                    { question: "What is the recommended daily dose of protein for a postpartum woman?", options: ["65 grams", "45 grams", "55 grams", "75 grams"], correct: 0, rationale: "The text specifies that the daily dose of protein is 65 grams." },
+                    { question: "For each 20 calories of breast milk produced, a woman must consume an additional 30 calories.", options: ["True", "False"], correct: 0, rationale: "The text explicitly states that for each 20 calories of breast milk produced, the woman must consume an additional 30 calories." },
+                    { question: "How much iron is recommended daily for a breastfeeding woman?", options: ["27 mg", "18 mg", "12 mg", "35 mg"], correct: 0, rationale: "The recommended dose for iron is 27 mg per day if breastfeeding, and 18 mg per day if not breastfeeding." },
+                    { question: "What is the daily calcium requirement for a non-breastfeeding postpartum woman?", options: ["1000 mg", "1200 mg", "1500 mg", "800 mg"], correct: 0, rationale: "The calcium dose is 1200 mg per day if breastfeeding and 1000 mg per day if non-breastfeeding." },
+                    { question: "If calcium levels in the blood drop, the body initiates a process to remove calcium from the bones to support blood levels.", options: ["True", "False"], correct: 0, rationale: "If calcium levels in the blood drop, the body undergoes a process to remove calcium from the bones to restore blood calcium levels." },
+                    { question: "Which types of fish should be avoided during breastfeeding due to high levels of mercury?", options: ["Swordfish, Shark, King Mackerel, and Tilefish", "Light tuna, Salmon, Cod, and Catfish", "Tilapia, Sardines, Trout, and Flounder", "Shrimp, Crab, Lobster, and Clams"], correct: 0, rationale: "Swordfish, Shark, King Mackerel, and Tilefish have high levels of mercury, which is a toxin harmful to a growing baby's brain." },
+                    { question: "What is the primary importance of iodine in the postpartum period?", options: ["It regulates the thyroid gland and metabolism", "It regulates the amount of calcium and phosphate", "It helps the immune system fight off viruses", "It provides amino acids needed for bone development"], correct: 0, rationale: "Iodine plays an important role in regulating the thyroid gland and metabolism, and supports infant growth and brain development." },
+                    { question: "Non-heme iron from plant foods is absorbed by the body about 10 times better than heme iron from animal foods.", options: ["True", "False"], correct: 1, rationale: "The text states that heme iron from animal sources is taken up by the body about 10 times better than non-heme iron, not the other way around." },
+                    { question: "Which of the following medications should be avoided during breastfeeding?", options: ["Thiazide diuretics", "Acetaminophen", "Prenatal vitamins", "Probiotics"], correct: 0, rationale: "Medications to avoid include Acebutolol, Antihistamine and decongestant, Narcotics, and Thiazide diuretics." },
+                    { question: "A deficiency in which vitamin can cause visual impairment in the form of night blindness?", options: ["Vitamin A", "Vitamin B12", "Vitamin D", "Vitamin C"], correct: 0, rationale: "Vitamin A is important for visual health, and its deficiency can cause visual impairment in the form of night blindness." },
+                    { question: "Biochemical laboratory tests are purely indicators of nutritional status and are never influenced by non-nutritional factors like stress or medications.", options: ["True", "False"], correct: 1, rationale: "Lab results can be altered by non-nutritional factors such as medications, hydration status, disease states, or metabolic processes like stress." },
+                    { question: "Which vitamin is crucial for nerve tissue health, brain function, and the production of red blood cells?", options: ["Vitamin B12", "Vitamin A", "Vitamin D", "Vitamin C"], correct: 0, rationale: "Vitamin B12 is needed for nerve tissue health, brain function, and the production of red blood cells." },
+                    { question: "Which of the following is listed as a consequence of poor nutrition during the postpartum period?", options: ["Slow recovery and infection", "Excessive weight loss and hyperthyroidism", "Increased bone density and muscle mass", "Accelerated healing of traumatized tissues"], correct: 0, rationale: "Consequences of poor nutrition include low quality breast milk, poor growth, slow recovery, infection, and impaired overall health." },
+                    { question: "For most mothers, drinking 8 cups of water per day is recommended to support breastfeeding and avoid constipation.", options: ["True", "False"], correct: 0, rationale: "Getting enough water supports breastfeeding and helps avoid constipation, with 8 cups per day being the specific recommendation." },
+                    { question: "Which substances can block plant iron from being taken up by the body?", options: ["Tea, coffee, and alcohol", "Citrus fruits and fruit juices", "Milk and dairy products", "Green leafy vegetables and nuts"], correct: 0, rationale: "Tea, coffee, alcohol, herbal, and other medications can block plant iron from being absorbed by the body." },
+                    { question: "What is the main dietary source of unsaturated fats?", options: ["Plant products such as soybean, olive, and sunflower oil", "Animal products such as butter, cheese, and whole milk", "Fried foods and processed meats", "High-mercury seafood like swordfish and shark"], correct: 0, rationale: "Most unsaturated fats are found in plant products such as soybean oil, olive oil, and sunflower oil." },
+                    { question: "Vitamin D is primarily found in green leafy vegetables, carrots, and potatoes.", options: ["True", "False"], correct: 1, rationale: "Vitamin D is found in red meat, liver, egg yolk, and oily fish. Carrots and potatoes are sources of Vitamin A." },
+                    { question: "During a diet history assessment, a reduced food intake for 5 days becomes clinically significant at what percentage of normal?", options: ["Less than 50", "Less than 25", "Less than 75", "Less than 90"], correct: 0, rationale: "A reduced food intake of less than 50 percent of normal for 5 days is considered a significant finding in a diet history assessment." },
+                    { question: "What is the typical dietary progression for a woman after a cesarean birth?", options: ["Clear liquids until bowel sounds are present, then advancing to solid foods", "Solid foods immediately after surgery to promote healing", "Nothing by mouth for 48 hours, followed directly by soft foods", "High-fiber diet immediately to prevent postoperative constipation"], correct: 0, rationale: "After a cesarean birth, a woman usually receives clear liquids until bowel sounds are present and then advances to solid foods." },
+                    { question: "Excessive weight gain during pregnancy is a factor that puts a woman at risk for poor nutrition during the postpartum period.", options: ["True", "False"], correct: 0, rationale: "Excessive weight gain during pregnancy is explicitly listed in the text as a risk factor for poor nutrition." },
+                    { question: "Which of the following foods is categorized as a simple carbohydrate?", options: ["Sugars found in fruits and honey", "Whole-grain breads", "Macaroni and rice", "Starchy vegetables like potatoes"], correct: 0, rationale: "Simple carbohydrates include sugars found in fruits, sugars added during processing, honey, and jam." }
+                ]
+            },
+            {
+                id: 'quiz-9',
+                title: 'Postpartum Visits',
+                theme: 'purple',
+                data: [
+                    { id: 1, question: "Which of the following is identified as a barrier to completing postpartum visits?", options: ["Discontinuation of insurance coverage", "Overabundance of childcare options", "High continuity of care", "Extensive birth spacing"], correct: 0, rationale: "Barriers to completing visits include discontinuation of insurance coverage, lack of child care, dissatisfaction with care, and perception of poor continuity of care." },
+                    { id: 2, question: "The 3rd postpartum visit takes place on the 7th postpartum day.", options: ["True", "False"], correct: 0, rationale: "The schedule states that the 3rd postpartum visit is scheduled to occur on the 7th postpartum day." },
+                    { id: 3, question: "Which of the following is one of the 3 mandatory components of a complete postpartum visit?", options: ["Physical examination", "Infant immunization", "Cord drop assessment", "Car seat safety testing"], correct: 0, rationale: "The 3 components of a complete visit that must be performed are a complete history, physical examination, and health education." },
+                    { id: 4, question: "Which specific activity is performed for the baby during the 2nd postpartum visit?", options: ["Baby bath", "Compulsory vaccination", "Hernia assessment", "Cord drop check"], correct: 0, rationale: "During the 2nd visit on the 4th postpartum day, activities for the baby include taking the temperature, cord care, and a baby bath." },
+                    { id: 5, question: "Postpartum care is an indicator for preconception health because it can improve the health of a future pregnancy.", options: ["True", "False"], correct: 0, rationale: "Postpartum visits are considered an indicator for preconception health because the care a woman receives can improve the health of a future pregnancy." },
+                    { id: 6, question: "Which symptom is a typical manifestation of the postpartum blues?", options: ["Irritability", "Hallucinations", "High fever", "Seizures"], correct: 0, rationale: "Postpartum women typically exhibit symptoms of the postpartum blues, which are demonstrated by tearfulness, irritability, and sometimes insomnia." },
+                    { id: 7, question: "Within how many hours after delivery should the return of urination normally occur?", options: ["6 to 8 hours", "2 to 4 hours", "8 to 10 hours", "10 to 12 hours"], correct: 0, rationale: "The return of urination should normally occur within 6 to 8 hours of delivery." },
+                    { id: 8, question: "When assessing lochia during the 1st visit, the provider only checks the amount and color.", options: ["False", "True"], correct: 0, rationale: "When assessing lochia, the provider must ask about the amount, odor, consistency, and color." },
+                    { id: 9, question: "When is the 4th postpartum visit scheduled to occur?", options: ["On the 14th day", "On the 7th day", "On the 21st day", "During the 6th week"], correct: 0, rationale: "The 4th postpartum visit is scheduled to take place on the 14th postpartum day." },
+                    { id: 10, question: "Checking the flow of milk is an activity performed for the mother during the 2nd postpartum visit.", options: ["True", "False"], correct: 0, rationale: "Checking the flow of milk is explicitly listed as an activity for the mother during the 2nd visit on the 4th postpartum day." },
+                    { id: 11, question: "Within what time frame is a postpartum visit generally recommended to occur after giving birth?", options: ["4 to 6 weeks", "1 to 2 weeks", "2 to 4 weeks", "6 to 8 weeks"], correct: 0, rationale: "A postpartum visit is a woman's visit to a health care provider within the recommended 4 to 6 weeks after giving birth to check the mother and baby." },
+                    { id: 12, question: "Postpartum visits are considered unnecessary for women who have experienced a miscarriage or stillbirth.", options: ["False", "True"], correct: 0, rationale: "Postpartum visits are especially important for women who have experienced a loss, including miscarriages, stillbirths, and neonatal deaths." },
+                    { id: 13, question: "Which scale is explicitly mentioned to assess the episiotomy?", options: ["REEDA scale", "Pain intensity scale", "Wound healing scale", "Visual analog scale"], correct: 0, rationale: "According to the components of the complete postpartum examination, the episiotomy is assessed using the REEDA scale." },
+                    { id: 14, question: "During which postpartum visit is the BCG immunization scheduled for the baby?", options: ["The 5th visit", "The 2nd visit", "The 3rd visit", "The 4th visit"], correct: 0, rationale: "The BCG immunization is administered to the baby during the 5th postpartum visit, which occurs during the 6th week after delivery." },
+                    { id: 15, question: "Emotions are considered an essential element of the postpartum physical examination.", options: ["True", "False"], correct: 0, rationale: "Emotions are an essential element of the postpartum assessment and are evaluated under the BUBBLE-LE framework." },
+                    { id: 16, question: "Which condition is an indicator of heavy bleeding during the postpartum period?", options: ["Uterine atony", "Mastitis", "Gestational diabetes", "Deep vein thrombosis"], correct: 0, rationale: "Heavy bleeding can be an indicator of a retained placenta, uterine atony, lacerations, hematoma, or coagulation disorders." },
+                    { id: 17, question: "What milestone is expected for the mother by the 3rd postpartum visit?", options: ["She assumes her normal activities", "She receives her compulsory vaccination", "She undergoes the required newborn assessment", "She begins her family planning phase"], correct: 0, rationale: "By the 3rd postpartum visit on the 7th day, the mother should assume her normal activities." },
+                    { id: 18, question: "Postpartum visits provide opportunities to give appropriate referrals for preexisting chronic conditions such as hypertension.", options: ["True", "False"], correct: 0, rationale: "Postpartum visits give appropriate referrals for preexisting or developing chronic conditions such as diabetes, hypertension, or obesity." },
+                    { id: 19, question: "When do the majority of postnatal maternal deaths that happen in the 1st week occur?", options: ["During the 1st 24 hours", "During the 1st 48 hours", "During the 4th day", "During the 7th day"], correct: 0, rationale: "Half of all postnatal maternal deaths occur during the 1st week after the baby is born, and the majority of these occur during the 1st 24 hours after childbirth." },
+                    { id: 20, question: "Around which postpartum days do signs of breast engorgement typically manifest?", options: ["Days 3 and 4", "Days 1 and 2", "Days 5 and 6", "Days 7 and 8"], correct: 0, rationale: "Signs of breast engorgement, including fullness, typically appear around postpartum days 3 and 4." },
+                    { id: 21, question: "Mothers with complications like gestational diabetes might avoid postpartum care due to fear of a negative prognosis.", options: ["True", "False"], correct: 0, rationale: "Mothers with complications such as gestational diabetes may not recognize the importance of postpartum care due to the fear of a negative prognosis." },
+                    { id: 22, question: "Which set of terms correctly represents the 4 parameters used to assess postpartum hemorrhage?", options: ["Tone, trauma, tissue, thrombin", "Temperature, tearing, tissue, tension", "Tone, tension, thrombin, trauma", "Temperature, trauma, testing, thrombin"], correct: 0, rationale: "To assess postpartum hemorrhage, providers use the 4 Ts which stand for tone, trauma, tissue, and thrombin." },
+                    { id: 23, question: "When is the 1st postpartum visit scheduled to take place?", options: ["On the 2nd day", "On the 4th day", "On the 7th day", "On the 14th day"], correct: 0, rationale: "The schedule designates the 1st postpartum visit to occur on the 2nd postpartum day." },
+                    { id: 24, question: "The health care provider weighs the baby as a standard activity during the 2nd postpartum visit on the 4th day.", options: ["False", "True"], correct: 0, rationale: "Weighing the baby is done in the 1st, 3rd, and 4th visits, but it is not listed as a standard activity for the baby during the 2nd visit." },
+                    { id: 25, question: "What percentage of women who develop gestational diabetes mellitus during pregnancy go on to develop type 2 diabetes?", options: ["50 to 70 percent", "10 to 30 percent", "30 to 50 percent", "70 to 90 percent"], correct: 0, rationale: "50 to 70 percent of women who developed gestational diabetes mellitus during their pregnancy will go on to develop type 2 diabetes." },
+                    { id: 26, question: "During which visit is the baby assessed for the cord drop?", options: ["The 3rd visit", "The 1st visit", "The 2nd visit", "The 4th visit"], correct: 0, rationale: "Checking the cord drop is an activity exclusively done for the baby during the 3rd postpartum visit on the 7th day." },
+                    { id: 27, question: "Family members cannot be taught how to perform a fundus massage for a boggy uterus.", options: ["False", "True"], correct: 0, rationale: "A woman or a family member can be taught to assess the firmness of the fundus and to provide massage in the event of a boggy uterus or excessive bleeding." },
+                    { id: 28, question: "Which characteristic is assessed in the lower extremities to identify deep vein thrombosis?", options: ["Edematous areas", "Cold skin", "Decreased pulses", "Pale discoloration"], correct: 0, rationale: "To assess for deep vein thrombosis, the lower extremities should be examined for the presence of hot, red, painful, and edematous areas." },
+                    { id: 29, question: "In the BUBBLE-LE postpartum assessment, what does the first letter B represent?", options: ["Breasts", "Blood", "Back", "Belly"], correct: 0, rationale: "The BUBBLE-LE assessment includes Breasts, Uterus, Bowel function, Bladder, Lochia, Episiotomy, Lower extremities, and Emotions." },
+                    { id: 30, question: "During which visit is family planning first introduced in the health education schedule?", options: ["The 4th visit", "The 1st visit", "The 2nd visit", "The 3rd visit"], correct: 0, rationale: "Family planning is first listed under health education starting at the 4th postpartum visit on the 14th day." }
+                ]
+            }
+        ];
+
+        let currentQuiz = null;
+        let score = 0;
+        let answeredCount = 0;
+        let activeQuizData = [];
+
+        function initPortal() {
+            const menuContainer = document.getElementById('quiz-menu');
+            menuContainer.innerHTML = '';
+            
+            allQuizzes.forEach(quiz => {
+                const card = document.createElement('div');
+                card.className = `portal-card bg-white rounded-xl p-6 border cursor-pointer flex flex-col justify-between h-full ${quiz.theme === 'blue' ? 'border-blue-200' : 'border-purple-300'}`;
+                card.onclick = () => startQuiz(quiz.id);
+                
+                const iconColor = quiz.theme === 'blue' ? 'text-blue-500' : 'text-purple-600';
+                const btnColor = quiz.theme === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <i class="fas fa-notes-medical text-3xl ${iconColor}"></i>
+                            <span class="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-1 rounded-full">${quiz.data.length} Qs</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-2 font-cairo">${quiz.title}</h2>
+                    </div>
+                    <button class="mt-6 w-full text-white py-2 rounded-lg transition ${btnColor}">Start Quiz</button>
+                `;
+                menuContainer.appendChild(card);
+            });
+        }
+
+        function startQuiz(quizId) {
+            currentQuiz = allQuizzes.find(q => q.id === quizId);
+            if(!currentQuiz) return;
+            
+            // Randomize active data while preserving original code array
+            activeQuizData = currentQuiz.data.map(q => {
+                const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+                for (let i = opts.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [opts[i], opts[j]] = [opts[j], opts[i]];
+                }
+                return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+            });
+
+            score = 0;
+            answeredCount = 0;
+            
+            document.getElementById('portal-container').classList.add('hidden-content');
+            document.getElementById('active-quiz-container').classList.remove('hidden-content');
+            document.getElementById('result-summary').classList.add('hidden-content');
+            
+            renderQuizHeader();
+            renderQuizQuestions();
+            updateBodyTheme();
+        }
+
+        function updateBodyTheme() {
+            const body = document.getElementById('main-body');
+            body.className = 'pb-12 theme-' + currentQuiz.theme;
+            if (currentQuiz.theme === 'blue') {
+                body.classList.add('bg-gray-50');
+            } else {
+                body.classList.add('bg-violet-200');
+            }
+        }
+
+        function renderQuizHeader() {
+            const headerContainer = document.getElementById('quiz-header');
+            
+            if (currentQuiz.theme === 'blue') {
+                headerContainer.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">${currentQuiz.title}</h1>
+                    <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                        <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+                    </div>
+                </div>`;
+            } else {
+                headerContainer.innerHTML = `
+                <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+                    <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">${currentQuiz.title}</h1>
+                    <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                        <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+                    </div>
+                </div>`;
+            }
+        }
+
+        function renderQuizQuestions() {
+            const container = document.getElementById('quiz-questions');
+            document.getElementById('total-display').innerText = `/ ${activeQuizData.length}`;
+            
+            container.innerHTML = activeQuizData.map((q, index) => {
+                if (currentQuiz.theme === 'blue') {
+                    return `
+                    <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                             ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                        </div>
+                        <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                        <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                            ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                        </div>
+                        <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                            <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                        </div>
+                    </div>`;
+                } else {
+                    return `
+                    <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                        <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                            <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                            ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                        </div>
+                        <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                        <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                            ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                        </div>
+                        <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                            <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                        </div>
+                    </div>`;
+                }
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = activeQuizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            
+            if (!feedback.classList.contains('hidden-content')) return;
+            
+            feedback.classList.remove('hidden-content');
+            
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            if (optIndex === q.correct) {
+                score++;
+                if (currentQuiz.theme === 'purple') feedback.classList.add('correct-answer');
+            } else {
+                if (currentQuiz.theme === 'purple') feedback.classList.add('wrong-answer');
+            }
+            
+            answeredCount++;
+            
+            if (answeredCount === activeQuizData.length) {
+                showResultSummary();
+            }
+        };
+
+        function showResultSummary() {
+            const summary = document.getElementById('result-summary');
+            summary.classList.remove('hidden-content');
+            
+            if(currentQuiz.theme === 'blue') {
+                summary.className = "bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100";
+                document.getElementById('rs-title').className = "text-2xl font-bold text-gray-800";
+                document.getElementById('rs-score-wrapper').className = "mt-4 text-4xl font-bold text-blue-600 mb-2";
+                document.getElementById('total-display').className = "text-xl text-gray-400";
+                document.getElementById('score-message').className = "text-gray-500 mb-6";
+                document.getElementById('btn-restart').className = "bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200 flex items-center justify-center";
+            } else {
+                summary.className = "bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300";
+                document.getElementById('rs-title').className = "text-2xl font-bold text-purple-950";
+                document.getElementById('rs-score-wrapper').className = "mt-4 text-4xl font-bold text-purple-700 mb-2";
+                document.getElementById('total-display').className = "text-xl text-purple-500";
+                document.getElementById('score-message').className = "text-purple-800 mb-6";
+                document.getElementById('btn-restart').className = "bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300 flex items-center justify-center";
+            }
+
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('score-message').innerText = (score / activeQuizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+            setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+        }
+
+        function restartCurrentQuiz() {
+            startQuiz(currentQuiz.id);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function returnToPortal() {
+            currentQuiz = null;
+            document.getElementById('active-quiz-container').classList.add('hidden-content');
+            document.getElementById('portal-container').classList.remove('hidden-content');
+            
+            // Reset to portal theme
+            const body = document.getElementById('main-body');
+            body.className = 'pb-12 bg-slate-50';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Initialize App
+        initPortal();
+    </script>
+</body>
+</html>
