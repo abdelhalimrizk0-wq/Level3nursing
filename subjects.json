@@ -120,10 +120,13 @@
     "file": "quizzes/Family Planning Quizzes.html",
     "questions": 0
   },
+      {
       "name": "Gynecological Quizs",
     "file": "quizzes/Gynecological Quizs.html",
     "questions": 0
-       {
+       
+           }
+    ]
   },
   {
     "id": "critical-care-2-practical",
