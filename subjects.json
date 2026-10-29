@@ -100,11 +100,7 @@
     "department": "obgyn",
     "lectures": [
         {
-    "name": "Gynecological Quizs",
-    "file": "quizzes/Gynecological Quizs.html",
-    "questions": 0
-  },
-       {
+    
     "name": "Antenatal Quizzes",
     "file": "quizzes/Antenatal Quizzes.html",
     "questions": 0
@@ -123,7 +119,11 @@
     "name": "Family Planning Quizzes",
     "file": "quizzes/Family Planning Quizzes.html",
     "questions": 0
-  }
+  },
+      "name": "Gynecological Quizs",
+    "file": "quizzes/Gynecological Quizs.html",
+    "questions": 0
+       {
     ]
   },
   {
