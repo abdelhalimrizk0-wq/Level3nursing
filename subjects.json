@@ -113,6 +113,16 @@
     "name": "Labor Quizzes",
     "file": "quizzes/Labor Quizzes.html",
     "questions": 0
+  },
+        {
+    "name": "Postpartum Quizzes",
+    "file": "quizzes/Postpartum Quizzes.html",
+    "questions": 0
+  },
+  {
+    "name": "Family Planning Quizzes",
+    "file": "quizzes/Family Planning Quizzes.html",
+    "questions": 0
   }
     ]
   },
