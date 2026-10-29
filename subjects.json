@@ -108,6 +108,11 @@
     "name": "Antenatal Quizzes",
     "file": "quizzes/Antenatal Quizzes.html",
     "questions": 0
+  },
+        {
+    "name": "Labor Quizzes",
+    "file": "quizzes/Labor Quizzes.html",
+    "questions": 0
   }
     ]
   },
