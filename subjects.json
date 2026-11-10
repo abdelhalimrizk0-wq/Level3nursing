@@ -61,6 +61,32 @@
     "name": "شامل اول 10 محاضرات",
     "file": "quizzes/شامل اول 10 محاضرات.html",
     "questions": 0
+  },
+      
+  {
+    "name": "Postpartum hemorrhage",
+    "file": "quizzes/Postpartum hemorrhage.html",
+    "questions": 0
+  },
+  {
+    "name": "Pregnancy induced hypertension",
+    "file": "quizzes/Pregnancy induced hypertension.html",
+    "questions": 0
+  },
+  {
+    "name": "Infertility",
+    "file": "quizzes/Infertility.html",
+    "questions": 0
+  },
+  {
+    "name": "Abnormal Labor",
+    "file": "quizzes/Abnormal Labor.html",
+    "questions": 0
+  },
+  {
+    "name": "Bleeding In Pregnancy",
+    "file": "quizzes/Bleeding In Pregnancy.html",
+    "questions": 0
   }
     ]
   },
