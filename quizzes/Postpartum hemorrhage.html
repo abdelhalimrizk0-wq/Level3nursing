@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Postpartum hemorrhage</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 30 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which hormone combination contributes to the softening and relaxation of pelvic structures, thereby increasing susceptibility to traumatic postpartum hemorrhage?",
+                options: [
+                    "Progesterone and relaxin",
+                    "Estrogen and oxytocin",
+                    "Prolactin and progesterone",
+                    "Relaxin and prostaglandin"
+                ],
+                correct: 0,
+                rationale: "Trauma during labor easily results in postpartum hemorrhage due to the softening and relaxation of pelvic structures caused by progesterone and relaxin hormones."
+            },
+            {
+                id: 2,
+                question: "Around day 10 of the puerperium, severe secondary postpartum hemorrhage may occur specifically due to:",
+                options: [
+                    "Separation of a slough from a tear",
+                    "Formation of a placental polyp",
+                    "Backward displacement of the uterus",
+                    "Use of estrogens to stop lactation"
+                ],
+                correct: 0,
+                rationale: "Severe hemorrhage may occur about day 10 of the puerperium due to the separation of a slough from a tear."
+            },
+            {
+                id: 3,
+                question: "In the medical management of atonic postpartum hemorrhage, uterine packing with gauze should be left in position for at least 12 hours.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "In Step 4 of medical management for atonic postpartum hemorrhage, the uterus is firmly packed with gauze and left in position for at least 12 hours."
+            },
+            {
+                id: 4,
+                question: "Which of the following local findings characterizes traumatic postpartum hemorrhage rather than atonic postpartum hemorrhage?",
+                options: [
+                    "Continuous flow of fresh red blood starting immediately after delivery of the baby",
+                    "Gushes of dark clotted blood coming down through the cervical canal",
+                    "Large flabby uterus with deficient contractions upon abdominal palpation",
+                    "Expulsion of dark blood clots when squeezing the uterine fundus"
+                ],
+                correct: 0,
+                rationale: "In traumatic postpartum hemorrhage, the uterus is small, firm, and well contracted, squeezing has no effect on flow, and bleeding is a continuous flow of fresh red blood starting as soon as the baby is delivered."
+            },
+            {
+                id: 5,
+                question: "What is the estimated number of maternal deaths that occurred globally in the year 2020?",
+                options: [
+                    "287,000",
+                    "140,000",
+                    "500,000",
+                    "600,000"
+                ],
+                correct: 0,
+                rationale: "Global estimates indicate that there were 287,000 maternal deaths in 2020, most of which occurred in the least developed countries."
+            },
+            {
+                id: 6,
+                question: "Which surgical intervention is specifically performed to control atonic postpartum hemorrhage while preserving future fertility?",
+                options: [
+                    "Ligation of the anterior division of the internal iliac artery",
+                    "Complete abdominal hysterectomy as a life-saving measure",
+                    "Bimanual compression with the fist in the anterior fornix",
+                    "Insertion of an intrauterine Bakri balloon for 24 hours"
+                ],
+                correct: 0,
+                rationale: "In Step 5 surgical measures for atonic postpartum hemorrhage, ligation of the anterior division of the internal iliac artery is used for the preservation of future fertility."
+            },
+            {
+                id: 7,
+                question: "According to the clinical presentation of postpartum hemorrhage, the term amaurosis refers to:",
+                options: [
+                    "Temporary complete blindness",
+                    "Difficulty breathing and air hunger",
+                    "Partial necrosis of the pituitary gland",
+                    "Progressive rapid pulse of small volume"
+                ],
+                correct: 0,
+                rationale: "Amaurosis is defined in the clinical picture of postpartum hemorrhage as temporary complete blindness."
+            },
+            {
+                id: 8,
+                question: "During the third stage of labor, massaging the uterus before the separation of the placenta is recommended to prevent postpartum hemorrhage.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "To prevent postpartum hemorrhage in delivery units, staff must avoid massaging the uterus before separation of the placenta."
+            },
+            {
+                id: 9,
+                question: "A deep lateral tear of the perineal body involving the hind part of the labia majora typically causes bleeding from the:",
+                options: [
+                    "Artery to the bulb",
+                    "Large artery of the clitoris",
+                    "Anterior division of the internal iliac artery",
+                    "Vessels within the broad ligament"
+                ],
+                correct: 0,
+                rationale: "In vulval injuries, the artery to the bulb may be lacerated by a deep lateral tear of the perineal body involving the hind part of the labia majora."
+            },
+            {
+                id: 10,
+                question: "What is the average volume of circulating blood supplied to the uterus and placenta per minute at term?",
+                options: [
+                    "600 ml",
+                    "500 ml",
+                    "250 ml",
+                    "800 ml"
+                ],
+                correct: 0,
+                rationale: "The average circulating blood to the uterus and placenta at term is about 600 ml per minute."
+            },
+            {
+                id: 11,
+                question: "Which condition is a known complication of postpartum hemorrhage resulting from partial necrosis of the anterior pituitary gland?",
+                options: [
+                    "Sheehan syndrome",
+                    "Puerperal inversion",
+                    "Placenta succenturiate",
+                    "Hypofibrinogenemia"
+                ],
+                correct: 0,
+                rationale: "Sheehan syndrome occurs as a complication of postpartum hemorrhage due to partial necrosis of the anterior pituitary gland and results in failure of lactation."
+            },
+            {
+                id: 12,
+                question: "What is the maximum duration a Bakri balloon should be left indwelling inside the uterine cavity?",
+                options: [
+                    "24 hours",
+                    "12 hours",
+                    "48 hours",
+                    "36 hours"
+                ],
+                correct: 0,
+                rationale: "A Bakri balloon inserted into the uterine cavity to press against bleeding vessels should not be left indwelling for more than 24 hours."
+            },
+            {
+                id: 13,
+                question: "Although vaginal tears may be extensive during traumatic postpartum hemorrhage, the resulting bleeding is usually not serious.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Regarding sites of injuries causing traumatic postpartum hemorrhage, although vaginal tears may be extensive, bleeding is usually not serious."
+            },
+            {
+                id: 14,
+                question: "Which of the following is considered the most powerful uterine muscle stimulant used in Step 2 of managing atonic postpartum hemorrhage?",
+                options: [
+                    "Prostaglandin",
+                    "Syntocinon",
+                    "Methergine",
+                    "Estrogen"
+                ],
+                correct: 0,
+                rationale: "In Step 2 of medical management, intravenous oxytocic administration should be accompanied by prostaglandin administration because it is the most powerful uterine muscle stimulant."
+            },
+            {
+                id: 15,
+                question: "How is bimanual compression properly performed in Step 3 of the active management of atonic postpartum hemorrhage?",
+                options: [
+                    "Fist in the anterior fornix against the anterior uterine wall and the other hand on the abdomen behind the fundus",
+                    "Fist in the posterior fornix against the cervix and the other hand pressing directly over the pubic symphysis",
+                    "Both hands placed on the abdominal wall squeezing the lateral borders of the uterine corpus together",
+                    "Fingers inside the cervical canal removing clots while the other hand massages the lower uterine segment"
+                ],
+                correct: 0,
+                rationale: "Step 3 specifies that bimanual compression is done by placing the fist in the anterior fornix against the anterior uterine wall and the other hand upon the abdominal wall over and behind the fundus."
+            },
+            {
+                id: 16,
+                question: "Obstetric hemorrhage is the leading cause of maternal mortality worldwide, accounting for what percentage of all annual maternal deaths?",
+                options: [
+                    "27%",
+                    "14%",
+                    "24%",
+                    "50%"
+                ],
+                correct: 0,
+                rationale: "Obstetric hemorrhage is the leading cause of maternal mortality, accounting for 27% of all maternal deaths occurring worldwide each year."
+            },
+            {
+                id: 17,
+                question: "Which clinical findings specifically indicate hemorrhage due to hypofibrinogenemia?",
+                options: [
+                    "Hematuria, petechial hemorrhage, and oozing from puncture sites with blood that fails to clot",
+                    "Fresh red blood flowing continuously from a cervical laceration extending to the broad ligament",
+                    "Dark clotted blood expelled in gushes when a large and flabby uterus is squeezed",
+                    "Sudden recurrence of bright bleeding after lochia has become serous during the puerperal period"
+                ],
+                correct: 0,
+                rationale: "Clinical signs of hemorrhage due to hypofibrinogenemia include oozing from puncture, cannulation, or injection sites, hematuria, petechial, subconjunctival, and mucosal hemorrhage, and blood that no longer clots."
+            },
+            {
+                id: 18,
+                question: "Secondary postpartum hemorrhage is defined as genital tract bleeding that occurs within the first 24 hours after labor.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Primary postpartum hemorrhage occurs within the first 24 hours after labor, whereas secondary postpartum hemorrhage starts after the lapse of the first 24 hours and within the puerperal period."
+            },
+            {
+                id: 19,
+                question: "Which factor causes reflex inhibition of uterine contractions, thereby contributing to atonic postpartum hemorrhage?",
+                options: [
+                    "A full bladder or excessive fear and pain",
+                    "Overdistension from polyhydramnios",
+                    "Weakened musculature from fibromyoma",
+                    "Rapid succession of multiple pregnancies"
+                ],
+                correct: 0,
+                rationale: "Reflex inhibition of uterine contractions is specifically caused by a full bladder, excessive fear, or pain."
+            },
+            {
+                id: 20,
+                question: "According to the World Health Organization estimates, approximately how many women experience postpartum hemorrhage each year?",
+                options: [
+                    "14 million",
+                    "27 million",
+                    "5 million",
+                    "28 million"
+                ],
+                correct: 0,
+                rationale: "The World Health Organization estimates that about 14 million women experience postpartum hemorrhage each year."
+            },
+            {
+                id: 21,
+                question: "Which of the following is classified as a cause of placental site hemorrhage during the third stage of labor?",
+                options: [
+                    "Uterine inertia and placental anomalies such as placenta succenturiate",
+                    "Delivery of a poorly flexed head through a partly dilated cervical os",
+                    "Backward displacement of the uterus leading to severe uterine congestion",
+                    "Administration of estrogens to suppress lactation after placental delivery"
+                ],
+                correct: 0,
+                rationale: "Third stage placental site hemorrhage due to partial separation or retention of a separated placenta is caused by bad management of the third stage, uterine inertia, placental anomalies like placenta succenturiate, or membrane adhesions."
+            },
+            {
+                id: 22,
+                question: "In the management of secondary postpartum hemorrhage, what should be done with retained placental or membrane parts?",
+                options: [
+                    "They should be removed and biopsied",
+                    "They should be compressed with a Bakri balloon",
+                    "They should be packed with sterile gauze for 12 hours",
+                    "They should be treated solely with fresh plasma transfusion"
+                ],
+                correct: 0,
+                rationale: "In the management of secondary postpartum hemorrhage, retained parts should be removed and biopsied."
+            },
+            {
+                id: 23,
+                question: "Atonic postpartum hemorrhage is the most common cause of postpartum hemorrhage and originates from an extrauterine source.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Atonic postpartum hemorrhage is the most common cause of postpartum hemorrhage, but it is classified as a uterine source, whereas traumatic postpartum hemorrhage is an extrauterine source."
+            },
+            {
+                id: 24,
+                question: "Which vascular structure is most likely to be lacerated by a tear in the anterior part of the vulva?",
+                options: [
+                    "Large artery of the clitoris",
+                    "Artery to the bulb",
+                    "Internal iliac artery",
+                    "Vaginal venous plexus"
+                ],
+                correct: 0,
+                rationale: "In vulval trauma, the large artery of the clitoris may be lacerated by a tear of the anterior part of the vulva."
+            },
+            {
+                id: 25,
+                question: "How do vital signs typically change in a patient experiencing acute excessive blood loss from postpartum hemorrhage?",
+                options: [
+                    "Pulse rate becomes progressively more rapid with small volume, temperature is subnormal, and blood pressure falls",
+                    "Pulse rate becomes progressively slower with bounding volume, temperature is elevated, and blood pressure rises",
+                    "Pulse rate remains stable with normal tension, temperature is elevated, and blood pressure falls rapidly",
+                    "Pulse rate becomes rapid with high tension, temperature remains normal, and blood pressure rises initially"
+                ],
+                correct: 0,
+                rationale: "General signs of acute excessive blood loss include a progressively more rapid pulse rate of small volume and low tension, subnormal temperature, and falling blood pressure."
+            },
+            {
+                id: 26,
+                question: "Which preventive measure belongs specifically to the nursing role in antenatal clinics rather than in the delivery unit?",
+                options: [
+                    "Routine blood grouping and typing along with correction of anemia",
+                    "Prophylactic administration of oxytocic drugs with delivery of the anterior shoulder",
+                    "Early detection of prolonged or obstructed labor using a partogram",
+                    "Examination of the placenta and membranes for completeness after expulsion"
+                ],
+                correct: 0,
+                rationale: "In antenatal clinics, the nursing role includes complete history taking, raising hemoglobin levels and correcting anemia, hospital delivery planning for high-risk patients, and routine blood grouping and typing."
+            },
+            {
+                id: 27,
+                question: "By quantitative definition, postpartum hemorrhage is genital tract bleeding during or after the third stage of labor or within 24 hours of placental expulsion exceeding:",
+                options: [
+                    "500 ml",
+                    "600 ml",
+                    "300 ml",
+                    "1000 ml"
+                ],
+                correct: 0,
+                rationale: "Postpartum hemorrhage is defined as bleeding from the genital tract during or after the third stage of labor or within 24 hours of expulsion of the placenta to an amount of more than 500 ml of blood."
+            },
+            {
+                id: 28,
+                question: "Cervical lacerations during traumatic postpartum hemorrhage may extend to the broad ligament and open large vessels that cause profuse bleeding.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Cervical lacerations may extend to the broad ligament, opening vessels of considerable size and giving rise to profuse bleeding."
+            },
+            {
+                id: 29,
+                question: "Which of the following conditions is directly associated with postpartum hemorrhage caused by blood clotting defects?",
+                options: [
+                    "Intrauterine fetal death and abruptio placentae",
+                    "Polyhydramnios and fetal malpresentation",
+                    "Vulval varicose veins and maternal obesity",
+                    "Puerperal uterine inversion and placental polyp"
+                ],
+                correct: 0,
+                rationale: "Hemorrhage due to blood clotting defects is associated with intrauterine fetal death, anticoagulant therapy, abruptio placentae, placenta previa, thrombocytopenia, and hypofibrinogenemia."
+            },
+            {
+                id: 30,
+                question: "What is the first step in the medical management to control bleeding in a patient with atonic postpartum hemorrhage?",
+                options: [
+                    "Gentle massage of the uterus to contract followed by squeezing to expel clots",
+                    "Immediate intravenous administration of syntocinon and prostaglandin",
+                    "Bimanual compression of the uterus using the fist in the anterior fornix",
+                    "Firm packing of the uterine cavity with sterile gauze for 12 hours"
+                ],
+                correct: 0,
+                rationale: "Step 1 of medical management for atonic postpartum hemorrhage is gentle massage of the uterus to make it contract, and when contracted, squeezing the uterus to expel any blood clots."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>

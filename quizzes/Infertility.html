@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Infertility</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 30 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "During the Sims-Huhner test, within what specific timeframe after sexual intercourse should the cervical mucus specimen be collected for microscopic examination?",
+                options: [
+                    "Within 1 to 2 hours after intercourse",
+                    "Between 4 to 10 hours after intercourse",
+                    "Between 12 to 24 hours after intercourse",
+                    "Exactly 48 hours after intercourse"
+                ],
+                correct: 1,
+                rationale: "According to the assessment of couples section, the Sims-Huhner test should be performed 4 to 10 hours after intercourse, obtaining a sample from the cervical mucus rather than the vagina."
+            },
+            {
+                id: 2,
+                question: "According to the study conducted by the Egyptian Fertility Care Society, what percentage of Egyptian couples are affected by primary and secondary infertility respectively?",
+                options: [
+                    "4.3% primary and 7.7% secondary",
+                    "7.7% primary and 4.3% secondary",
+                    "5.0% primary and 7.0% secondary",
+                    "6.2% primary and 5.8% secondary"
+                ],
+                correct: 0,
+                rationale: "The lecture states that infertility in Egypt affects 12% of Egyptian couples, of which 4.3% suffer from primary infertility and 7.7% suffer from secondary infertility."
+            },
+            {
+                id: 3,
+                question: "In a normal seminal fluid analysis, a testicular biopsy revealing normal spermatogenesis indicates non-obstructive azoospermia.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "According to the male investigations section, testicular biopsy differentiates between obstructive and non-obstructive azoospermia, and normal spermatogenesis means obstructive azoospermia."
+            },
+            {
+                id: 4,
+                question: "Which hormone assay result specifically indicates primary testicular failure during the diagnostic evaluation of male infertility?",
+                options: [
+                    "Low serum follicle-stimulating hormone level",
+                    "High serum follicle-stimulating hormone level",
+                    "Elevated serum prolactin concentration",
+                    "Decreased serum thyroid-stimulating hormone level"
+                ],
+                correct: 1,
+                rationale: "Under hormonal assay for male infertility, high FSH levels occur in primary testicular failure, whereas low FSH levels indicate a hypothalamic-pituitary dysfunction."
+            },
+            {
+                id: 5,
+                question: "How do vaginal and cervical infections such as trichomoniasis vaginitis chemically impair the survival of viable motile sperm before entering the cervical canal?",
+                options: [
+                    "They decrease vaginal fluid acidity and increase cervical mucus alkalinity",
+                    "They increase vaginal fluid acidity and reduce cervical mucus alkalinity",
+                    "They neutralize both vaginal fluid acidity and cervical mucus alkalinity",
+                    "They increase both vaginal fluid alkalinity and cervical mucus acidity"
+                ],
+                correct: 1,
+                rationale: "The text explains that vaginal-cervical infections increase the acidity of the vaginal fluid and reduce the alkalinity of the cervical mucus, which destroys or reduces viable motile sperm."
+            },
+            {
+                id: 6,
+                question: "When scheduling a hysterosalpingography to evaluate tubal patency, during which days of the menstrual cycle is the test usually performed?",
+                options: [
+                    "Between cycle days 1 and 5",
+                    "Between cycle days 6 and 11",
+                    "Between cycle days 12 and 16",
+                    "Between cycle days 26 and 28"
+                ],
+                correct: 1,
+                rationale: "Hysterosalpingography is usually performed before ovulation between cycle days 6 and 11 so that the dye does not disrupt an egg or developing embryo."
+            },
+            {
+                id: 7,
+                question: "What is the expected percentage of motile sperm 8 hours after ejaculation in a normal seminal fluid vitality assessment?",
+                options: [
+                    "80% motile",
+                    "60% motile",
+                    "40% motile",
+                    "10% motile"
+                ],
+                correct: 2,
+                rationale: "Under seminal fluid analysis vitality criteria, sperm motility is expected to be 80-90% within 1 hour, 60% after 4 hours, 40% after 8 hours, and 10% after 24 hours."
+            },
+            {
+                id: 8,
+                question: "Secondary infertility means that at least 1 conception has occurred previously, whether that conception ended by abortion or delivery.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The definitions section explicitly defines secondary infertility as meaning that at least 1 conception has occurred, whether the conception ended by abortion or delivery."
+            },
+            {
+                id: 9,
+                question: "Which medication and dosage are specifically indicated for an infertile patient experiencing anovulation due to hyperprolactinemia?",
+                options: [
+                    "Bromocriptine administered as 2.5 mg tablets",
+                    "Clomid administered as 5.0 mg tablets",
+                    "Progesterone administered as 10 mg tablets",
+                    "Corticosteroid administered as 2.5 mg tablets"
+                ],
+                correct: 0,
+                rationale: "In the medical treatment section, Bromocriptine is specified for patients with anovulation due to hyperprolactinemia and is administered as 2.5 mg tablets."
+            },
+            {
+                id: 10,
+                question: "Which nursing intervention belongs specifically to the diagnostic role rather than the therapeutic or educational role when caring for an infertile woman?",
+                options: [
+                    "Assisting with tests to determine tubal patency",
+                    "Giving instructions on how to use basal body temperature",
+                    "Recording results of various procedures and microscopic examinations",
+                    "Reinforcing the physician interpretation of test results"
+                ],
+                correct: 2,
+                rationale: "Recording the results of various procedures, tests, and microscopic examinations is listed under the nurse's diagnostic role, whereas assisting with patency tests is therapeutic and teaching BBT or reinforcing results is educational."
+            },
+            {
+                id: 11,
+                question: "According to the World Health Organization statistics cited in the lecture, what percentage of global infertility cases are attributed to combined male and female factors?",
+                options: [
+                    "12% of all infertility cases",
+                    "17.5% of all infertility cases",
+                    "20% of all infertility cases",
+                    "50% of all infertility cases"
+                ],
+                correct: 2,
+                rationale: "According to the WHO statistics note, male factors account for 20 to 30% of all infertility cases, 50% are attributed to female factors, and 20% are combined."
+            },
+            {
+                id: 12,
+                question: "What is the most common local cause of male infertility identified in the lecture?",
+                options: [
+                    "Retrograde ejaculation into the bladder",
+                    "A low sperm count",
+                    "Spermatic cord occlusion from vasectomy",
+                    "Testicular atrophy following mumps"
+                ],
+                correct: 1,
+                rationale: "Under local male causes of infertility, the lecture explicitly states under sperm defects that a low sperm count is the most common cause of male infertility."
+            },
+            {
+                id: 13,
+                question: "Excessive exercise is recommended as a non-medical treatment for infertility because it improves hormone balances and boosts sperm production.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture recommends moderate exercise because excessive exercise can lead to menstrual disorders in women and negatively affect sperm production in men due to heat build-up around the testicles."
+            },
+            {
+                id: 14,
+                question: "When a semen sample is collected at home for seminal fluid analysis, how must it be handled to ensure accurate evaluation?",
+                options: [
+                    "Collected in a glass jar and chilled before delivery within 120 minutes",
+                    "Collected in a sterile plastic container and delivered at body temperature within 60 minutes",
+                    "Collected in a standard spermicidal condom and delivered within 30 minutes",
+                    "Collected after 10 days of sexual abstinence and kept warm for 4 hours"
+                ],
+                correct: 1,
+                rationale: "If collected at home, the semen sample must be collected in a sterile plastic container and delivered to the lab at body temperature no more than 60 minutes after ejaculation."
+            },
+            {
+                id: 15,
+                question: "What proportion of female infertility cases is accounted for by tubal and peritoneal factors?",
+                options: [
+                    "10% to 20% of cases",
+                    "20% to 30% of cases",
+                    "30% to 40% of cases",
+                    "50% to 60% of cases"
+                ],
+                correct: 2,
+                rationale: "Both tubal/peritoneal factors and ovarian factors are documented as accounting for approximately 30% to 40% of cases of female infertility."
+            },
+            {
+                id: 16,
+                question: "During which phase and cycle days is a premenstrual endometrial biopsy obtained for histological evaluation?",
+                options: [
+                    "Early follicular phase on cycle days 2 to 5",
+                    "Pre-ovulatory phase on cycle days 12 to 13",
+                    "Mid-luteal phase on cycle days 18 to 21",
+                    "Late luteal phase on cycle days 26 to 28"
+                ],
+                correct: 3,
+                rationale: "Premenstrual endometrial biopsies are obtained in the late luteal phase on days 26 to 28 of the cycle, or 2 to 3 days before expected menses."
+            },
+            {
+                id: 17,
+                question: "Which hormonal abnormality is specifically associated with polycystic ovaries as an ovarian cause of female infertility?",
+                options: [
+                    "High levels of androgen and estrogen",
+                    "Low levels of prolactin and progesterone",
+                    "High levels of thyroid-stimulating hormone",
+                    "Complete absence of follicle-stimulating hormone"
+                ],
+                correct: 0,
+                rationale: "Under ovarian factors, the text notes that polycystic ovaries contain lots of small cysts and are associated with high levels of androgen and estrogen."
+            },
+            {
+                id: 18,
+                question: "Which medical treatment is specifically used as suppression therapy for an infertile woman diagnosed with endometriosis?",
+                options: [
+                    "Androgen and progesterone drugs",
+                    "Corticosteroid and antifungal drugs",
+                    "Clomid and thyroid-stimulating hormone",
+                    "Bromocriptine and antibiotic agents"
+                ],
+                correct: 0,
+                rationale: "Under medical treatment of infertility, the lecture states to use androgen and progesterone drugs as a suppression therapy in cases of endometriosis."
+            },
+            {
+                id: 19,
+                question: "According to the World Health Organization criteria listed in the lecture, normal sperm morphology must be greater than 30% and agglutination should not exceed 10%.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The seminal fluid analysis parameters state that normal sperm morphology > 30% is considered normal according to WHO criteria, and agglutination should not exceed 10%."
+            },
+            {
+                id: 20,
+                question: "For male factors necessary for conception, what quantity and volume of spermatozoa must be available?",
+                options: [
+                    "60 to 80 million in 2 to 6 ml",
+                    "100 to 150 million in 1 to 2 ml",
+                    "200 to 400 million in 2 to 4 ml",
+                    "400 to 600 million in 4 to 6 ml"
+                ],
+                correct: 2,
+                rationale: "Under male factors necessary for conception, the text states that spermatozoa must be available in sufficient quantity and quality of 200-400 million in 2-4 ml."
+            },
+            {
+                id: 21,
+                question: "Which diagnostic test is utilized both to identify tubal obstruction under female assessment and to release tubal blockage under surgical treatment?",
+                options: [
+                    "Laparoscopy",
+                    "Hysteroscopy",
+                    "Hysterosalpingography",
+                    "Magnetic resonance imaging"
+                ],
+                correct: 2,
+                rationale: "Hysterosalpingography is listed under female diagnostic investigations and again under surgical treatment for the identification of tubal obstruction and also for the release of blockage."
+            },
+            {
+                id: 22,
+                question: "What is the specific medical term for the absolute inability to conceive?",
+                options: [
+                    "Primary infertility",
+                    "Secondary infertility",
+                    "Sterility",
+                    "Anovulation"
+                ],
+                correct: 2,
+                rationale: "In the definitions section, sterility is defined as the absolute inability to conceive, whereas infertility is the failure to conceive after 1 year of regular unprotected intercourse."
+            },
+            {
+                id: 23,
+                question: "In vitro fertilization and embryo transfer is commonly indicated for women with blocked uterine tubes, unexplained infertility, or men with a very low sperm count.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Under reproductive alternative management, IVF-ET is noted as common for women with blocked uterine tubes or unexplained infertility and for men with a very low sperm count."
+            },
+            {
+                id: 24,
+                question: "How do benign growths on the uterine wall, such as fibroids or polyps, cause female infertility?",
+                options: [
+                    "They increase the acidity of the cervical mucus",
+                    "They interfere with the attachment of the embryo onto the uterine wall",
+                    "They prevent the graafian follicle from releasing a mature ovum",
+                    "They stimulate the production of antisperm antibodies"
+                ],
+                correct: 1,
+                rationale: "Under uterine factors, benign growths on the uterine wall such as fibroids or polyps contribute to infertility because they interfere with the attachment of the embryo onto the uterine wall."
+            },
+            {
+                id: 25,
+                question: "Which test is specifically used in male infertility investigations to detect the presence of antisperm antibodies on the surface of spermatozoa?",
+                options: [
+                    "Sims-Huhner test",
+                    "Mixed agglutination reaction",
+                    "Testicular biopsy",
+                    "Serum testosterone assay"
+                ],
+                correct: 1,
+                rationale: "Under male investigations, immunological test and mixed agglutination reaction can detect the presence of antisperm antibodies on the surface of spermatozoa."
+            },
+            {
+                id: 26,
+                question: "During which specific cycle days and after how many days of sexual abstinence should the Sims-Huhner test be performed?",
+                options: [
+                    "Days 6 or 11 of the cycle after 1 to 2 days of abstinence",
+                    "Days 12 or 13 of the cycle after 3 to 5 days of abstinence",
+                    "Days 14 or 15 of the cycle after 7 to 10 days of abstinence",
+                    "Days 26 or 28 of the cycle after 3 to 5 days of abstinence"
+                ],
+                correct: 1,
+                rationale: "The Sims-Huhner test is performed immediately pre-ovulatory on day 12 or 13 of the cycle following a period of 3 to 5 days of abstinence before coitus."
+            },
+            {
+                id: 27,
+                question: "According to the World Health Organization data from 2023, approximately what percentage of the global adult population is affected by infertility?",
+                options: [
+                    "7.7% of the adult population",
+                    "12.0% of the adult population",
+                    "17.5% of the adult population",
+                    "25.0% of the adult population"
+                ],
+                correct: 2,
+                rationale: "Under the incidence section, globally according to WHO in 2023, around 17.5% of the adult population, or roughly 1 in 6 people, are affected by infertility."
+            },
+            {
+                id: 28,
+                question: "When advising a couple on non-medical management of infertility, during what timeframe should all women increase their folic acid intake?",
+                options: [
+                    "Only after the 3rd month of pregnancy",
+                    "Prior to and during the 1st 3 months of pregnancy",
+                    "Only during the 3 to 5 days prior to ovulation",
+                    "Throughout the final 6 months of pregnancy"
+                ],
+                correct: 1,
+                rationale: "Under non-medical treatment, all women should increase folic acid intake prior to and during the first 3 months of pregnancy."
+            },
+            {
+                id: 29,
+                question: "Which condition is classified as an ejaculation disorder where semen is ejaculated backwards into the bladder?",
+                options: [
+                    "Premature ejaculation",
+                    "Retrograde ejaculation",
+                    "Testicular varicocele",
+                    "Spermatic cord occlusion"
+                ],
+                correct: 1,
+                rationale: "Under local male causes of infertility, retrograde ejaculation is defined as a disorder where the semen is ejaculated backwards into the bladder."
+            },
+            {
+                id: 30,
+                question: "In the medical treatment of male infertility, corticosteroids are administered primarily to stimulate follicle-stimulating hormone release in hypothalamic dysfunction.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "According to the medical treatment section, corticosteroids are used in cases with circulating antisperm antibodies, while bromocriptine is used to improve spermatogenesis."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>

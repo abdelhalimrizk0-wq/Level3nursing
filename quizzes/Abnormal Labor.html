@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Abnormal Labor</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "What is the incidence of breech presentation at 28 weeks of gestation?",
+                options: [
+                    "20% of pregnancies",
+                    "15% of pregnancies",
+                    "10% of pregnancies",
+                    "3.5% of pregnancies"
+                ],
+                correct: 0,
+                rationale: "Breech presentation occurs in 20% of pregnancies at 28 weeks of gestation, 15% at 32 weeks, and 3.5% at 40 weeks."
+            },
+            {
+                id: 2,
+                question: "Which mechanism of labor occurs in 65% of occipito-posterior position cases?",
+                options: [
+                    "Long anterior rotation of 3/8 of a circle",
+                    "Short posterior rotation of 1/8 of a circle",
+                    "Short anterior rotation of 1/8 of a circle",
+                    "Complete non-rotation of the fetal occiput"
+                ],
+                correct: 0,
+                rationale: "In 65% of occipito-posterior cases, long anterior rotation occurs where the occiput rotates forwards 3/8 of a circle and is delivered normally."
+            },
+            {
+                id: 3,
+                question: "Prolonged labor is twice as common among multiparae than among primigravidae.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Prolonged labor has an incidence of 5% to 8% and is twice as common among primigravidae than among multiparae."
+            },
+            {
+                id: 4,
+                question: "Which drug and dosage are used in the 3rd stage of labor to relax an hour-glass contraction ring?",
+                options: [
+                    "Inhalation of 1 ampoule of amyl nitrite",
+                    "Intramuscular injection of 150 mg of pethidine",
+                    "Intravenous administration of 500 mg of ampicillin",
+                    "Intramuscular injection of 50 mg of promazine"
+                ],
+                correct: 0,
+                rationale: "In the 3rd stage of labor, a constriction ring is known as an hour-glass contraction ring and is treated by inhalation of 1 ampoule of amyl nitrite."
+            },
+            {
+                id: 5,
+                question: "What defines a prolonged active phase of labor in a multiparous woman?",
+                options: [
+                    "More than 5.2 hours or less than 1.5 cm/hr",
+                    "More than 6 hours or less than 1.2 cm/hr",
+                    "More than 14 hours or less than 1.5 cm/hr",
+                    "More than 20 hours or less than 1.2 cm/hr"
+                ],
+                correct: 0,
+                rationale: "In a multipara, a prolonged active phase is defined as lasting more than 5.2 hours or progressing at less than 1.5 cm/hr."
+            },
+            {
+                id: 6,
+                question: "Which condition describes the umbilical cord lying in front of the presenting part while the membranes are still intact?",
+                options: [
+                    "Cord presentation",
+                    "Cord prolapse",
+                    "Compound presentation",
+                    "Vasa praevia"
+                ],
+                correct: 0,
+                rationale: "Cord presentation occurs when the cord lies in front of the presenting part when the membranes are intact, whereas cord prolapse occurs after the membranes rupture."
+            },
+            {
+                id: 7,
+                question: "In which type of breech presentation are the hip joints flexed and the knee joints extended with both feet in front of the head?",
+                options: [
+                    "Frank breech presentation",
+                    "Complete breech presentation",
+                    "Footling breech presentation",
+                    "Knee breech presentation"
+                ],
+                correct: 0,
+                rationale: "Frank breech presentation is characterized by flexed hip joints and extended knee joints with both feet positioned in front of the head."
+            },
+            {
+                id: 8,
+                question: "In a colicky uterus, pain stops completely between uterine contractions.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "In a colicky uterus, different parts of the uterus contract independently, resting tone is high, and pain continues between contractions."
+            },
+            {
+                id: 9,
+                question: "At what gestational age should a woman with a history of precipitate labor be admitted to the hospital for induction?",
+                options: [
+                    "At 38 weeks of gestation",
+                    "At 34 weeks of gestation",
+                    "At 35 weeks of gestation",
+                    "At 40 weeks of gestation"
+                ],
+                correct: 0,
+                rationale: "A woman with a history of precipitate labor should be admitted to the hospital before the expected date of delivery at 38 weeks for induction of labor."
+            },
+            {
+                id: 10,
+                question: "Which finding is characteristic of hypertonic lower uterine segment action?",
+                options: [
+                    "Contractions start and last longer in the lower segment",
+                    "Uterine contractions are weak, short, and very infrequent",
+                    "Different parts of the uterus contract quite independently",
+                    "An annular spasm forms around the narrow fetal neck"
+                ],
+                correct: 0,
+                rationale: "In hypertonic lower uterine segment with reversed polarity, the function of the upper segment is lost and contractions start and last longer in the lower uterine segment."
+            },
+            {
+                id: 11,
+                question: "What is the recommended antibiotic regimen during labor for premature rupture of membranes after 35 weeks if labor does not start within 12 to 16 hours?",
+                options: [
+                    "Ampicillin 500 mg every 6 hours",
+                    "Ampicillin 250 mg every 8 hours",
+                    "Penicillin 500 mg every 12 hours",
+                    "Erythromycin 250 mg every 6 hours"
+                ],
+                correct: 0,
+                rationale: "If pregnancy is more than 35 weeks and labor does not start within 12 to 16 hours after premature rupture of membranes, oxytocin infusion is started and ampicillin 500 mg every 6 hours is given during labor."
+            },
+            {
+                id: 12,
+                question: "Which complication may occur if prolonged labor lasts for more than 48 hours?",
+                options: [
+                    "Vesico-vaginal fistula",
+                    "Annular cervical detachment",
+                    "Deep transverse arrest",
+                    "Hour-glass contraction"
+                ],
+                correct: 0,
+                rationale: "If prolonged labor lasts more than 48 hours, it may lead to vesico-vaginal fistula, ruptured uterus, maternal mortality, and fetal hypoxia or intracranial hemorrhage."
+            },
+            {
+                id: 13,
+                question: "In a left occipito-posterior position, the woman should be encouraged to lie on her right side.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "For side-lying positioning in occipito-posterior labor, the woman should lie on the right side in case of left occipito-posterior and on the left side in case of right occipito-posterior."
+            },
+            {
+                id: 14,
+                question: "What is the primary cause of secondary uterine inertia among the following options?",
+                options: [
+                    "Full bladder or rectum",
+                    "Unknown idiopathic factors",
+                    "Being a primigravida",
+                    "Lumbar spinal kyphosis"
+                ],
+                correct: 0,
+                rationale: "Causes of secondary inertia include cephalo-pelvic disproportion, malpresentation, malposition, maternal distress, epidural analgesia, anxiety and fear, and a full bladder or rectum. Primigravidae and unknown causes are linked to primary inertia."
+            },
+            {
+                id: 15,
+                question: "What happens when the occiput rotates forwards 1/8 of a circle in 20% of occipito-posterior cases with slight head deflexion?",
+                options: [
+                    "Deep transverse arrest",
+                    "Face to pubis delivery",
+                    "Persistent oblique arrest",
+                    "Normal anterior delivery"
+                ],
+                correct: 0,
+                rationale: "In 20% of occipito-posterior cases, when deflexion of the head is slight, the occiput rotates forwards 1/8 of a circle and becomes arrested in the transverse diameter of the pelvis, called deep transverse arrest."
+            },
+            {
+                id: 16,
+                question: "Which classification category includes precipitate labor, tetanic uterine action, and pathological retraction ring?",
+                options: [
+                    "Over-efficient uterine action",
+                    "In-efficient uterine action",
+                    "Soft tissue passage abnormality",
+                    "Fetal passenger abnormality"
+                ],
+                correct: 0,
+                rationale: "Over-efficient uterine action is classified into precipitate labor, tetanic uterine action, and pathological retraction ring."
+            },
+            {
+                id: 17,
+                question: "How long can a retained aftercoming head in a breech delivery be tolerated before causing fetal asphyxia?",
+                options: [
+                    "No more than 10 minutes",
+                    "No more than 20 minutes",
+                    "No more than 30 minutes",
+                    "No more than 45 minutes"
+                ],
+                correct: 0,
+                rationale: "Fetal asphyxia in breech presentation can be caused by a retained aftercoming head lasting more than 10 minutes."
+            },
+            {
+                id: 18,
+                question: "Pathological retraction ring is an annular spasm that can form at any level of the uterus and is most common in the 3rd stage of labor.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Constriction ring dystocia can form at any level and is more common in the 3rd stage of labor, whereas pathological retraction ring forms at the junction of the thick upper and thin lower segments during obstructed labor."
+            },
+            {
+                id: 19,
+                question: "Where are the fetal heart sounds heard on auscultation in a direct occipito-posterior position during pregnancy?",
+                options: [
+                    "In the middle line between the umbilicus and symphysis pubis",
+                    "Away from the midline near the anterior superior iliac spine",
+                    "Above the level of the umbilicus on the side of the fetal back",
+                    "In the upper uterine fundus near the maternal xiphoid process"
+                ],
+                correct: 0,
+                rationale: "In direct occipito-posterior position, the fetal heart sounds are heard in the middle line between the umbilicus and symphysis pubis."
+            },
+            {
+                id: 20,
+                question: "What is the initial immediate nursing action in the management of tetanic uterine action?",
+                options: [
+                    "Stop oxytocics infusion",
+                    "Prepare for hysterectomy",
+                    "Perform artificial rupture",
+                    "Apply an abdominal binder"
+                ],
+                correct: 0,
+                rationale: "The first step in managing tetanic uterine action is to stop the oxytocics infusion, place the woman on her left side, and monitor fetal heart rate continuously."
+            },
+            {
+                id: 21,
+                question: "What percentage of direct obstetric maternal deaths is constituted by prolonged labor?",
+                options: [
+                    "8% of maternal deaths",
+                    "5% of maternal deaths",
+                    "10% of maternal deaths",
+                    "15% of maternal deaths"
+                ],
+                correct: 0,
+                rationale: "Prolonged labor constitutes 8% of maternal deaths of direct obstetric causes."
+            },
+            {
+                id: 22,
+                question: "Which drug combination is administered intramuscularly for pain relief in hypertonic in-coordinate uterine action?",
+                options: [
+                    "Pethidine 150 mg with promazine 50 mg",
+                    "Pethidine 50 mg with promazine 150 mg",
+                    "Ampicillin 500 mg with promazine 50 mg",
+                    "Pethidine 100 mg with amyl nitrite 50 mg"
+                ],
+                correct: 0,
+                rationale: "Pain relief in in-coordinate uterine action includes epidural analgesia or an intramuscular injection of pethidine 150 mg combined with a sedative such as promazine 50 mg."
+            },
+            {
+                id: 23,
+                question: "Why is a warm towel used to cover the baby's trunk before expulsion of the head during breech delivery?",
+                options: [
+                    "To maintain body temperature and prevent inhalation of amniotic fluid",
+                    "To lubricate the fetal skin and facilitate downward traction on the legs",
+                    "To prevent umbilical cord prolapse and avoid fracture of the clavicle",
+                    "To stimulate early fetal respiration before the fetal head is delivered"
+                ],
+                correct: 0,
+                rationale: "Covering the baby's trunk with a warm towel before expulsion of the head maintains the baby's body temperature and prevents premature stimulation of respiration and inhalation of amniotic fluid."
+            },
+            {
+                id: 24,
+                question: "In premature rupture of membranes, routine vaginal examination should be performed frequently to assess cervical dilation.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "In premature rupture of membranes, vaginal examination should be avoided to prevent infection, and liquor presence is confirmed by a sterile speculum and nitrazine test."
+            },
+            {
+                id: 25,
+                question: "After how many hours of non-progressing labor on Syntocinon is a cesarean section performed for in-coordinate uterine action?",
+                options: [
+                    "After 4 to 6 hours",
+                    "After 1 to 2 hours",
+                    "After 8 to 10 hours",
+                    "After 12 to 16 hours"
+                ],
+                correct: 0,
+                rationale: "In the management of in-coordinate uterine action, if labor is not progressing after 4 to 6 hours of Syntocinon infusion, a cesarean section is performed."
+            },
+            {
+                id: 26,
+                question: "Which inter-pregnancy interval is a risk factor for the rupture of a weak uterine scar during pregnancy?",
+                options: [
+                    "Less than 6 months",
+                    "More than 12 months",
+                    "More than 18 months",
+                    "More than 24 months"
+                ],
+                correct: 0,
+                rationale: "Rupture of a weak uterine scar from a previous cesarean section or myomectomy during pregnancy can occur due to impaired healing or an inter-pregnancy interval of less than 6 months."
+            },
+            {
+                id: 27,
+                question: "What causes the strong urge to push down at the end of the 1st stage of labor in an occipito-posterior position?",
+                options: [
+                    "The fetal occiput is pressing on the maternal rectum",
+                    "The anterior fontanelle is pressing on the symphysis",
+                    "The umbilical cord is prolapsed into the vaginal canal",
+                    "The fetal buttocks are distending the pelvic floor"
+                ],
+                correct: 0,
+                rationale: "During labor in an occipito-posterior position, the woman feels a strong urge to push down at the end of the 1st stage because the occiput is pressing on the rectum."
+            },
+            {
+                id: 28,
+                question: "Which abdominal inspection finding is unique to a frank breech presentation during pregnancy?",
+                options: [
+                    "The abdomen looks long and narrow",
+                    "A transverse groove appears below the umbilicus",
+                    "A visible depression rises in the abdomen",
+                    "Fetal movements appear on both sides of the midline"
+                ],
+                correct: 0,
+                rationale: "On abdominal inspection during pregnancy, the abdomen looks normal in breech presentations except in frank breech, where the abdomen looks long and narrow."
+            },
+            {
+                id: 29,
+                question: "If the umbilical cord is not pulsating and the fetus is dead in a cord prolapse case, the woman is left to deliver spontaneously.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "In the management of cord prolapse, if the cord is not pulsating and the fetus is dead, the woman is left to deliver spontaneously."
+            },
+            {
+                id: 30,
+                question: "What defines a prolonged latent phase of labor in a primiparous woman?",
+                options: [
+                    "More than 20 hours",
+                    "More than 14 hours",
+                    "More than 6 hours",
+                    "More than 5.2 hours"
+                ],
+                correct: 0,
+                rationale: "A prolonged latent phase is defined as lasting more than 20 hours in a primipara and more than 14 hours in a multipara."
+            },
+            {
+                id: 31,
+                question: "Which method of breech delivery involves delivering the entire fetus by applying traction under anesthesia?",
+                options: [
+                    "Breech extraction",
+                    "Assisted breech delivery",
+                    "Spontaneous breech delivery",
+                    "External cephalic version"
+                ],
+                correct: 0,
+                rationale: "Breech extraction is the delivery of the entire fetus by applying traction under anesthesia, whereas assisted breech delivery involves spontaneous delivery of the buttocks with assistance for the legs, arms, and head."
+            },
+            {
+                id: 32,
+                question: "Which complication is specifically associated with cervical dystocia?",
+                options: [
+                    "Annular detachment of the cervix",
+                    "Retained placenta in the 3rd stage",
+                    "Premature separation of the placenta",
+                    "Dislocation of the fetal shoulder"
+                ],
+                correct: 0,
+                rationale: "Complications of cervical dystocia include prolonged labor with fetal and maternal distress, rupture of the uterus, annular detachment of the cervix, and cervical tear."
+            },
+            {
+                id: 33,
+                question: "During abdominal palpation of an occipito-posterior position, the fetal head on pelvic grip is usually engaged and well flexed.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "On pelvic grip palpation of an occipito-posterior position during pregnancy, the fetal head is usually not engaged and is deflexed."
+            },
+            {
+                id: 34,
+                question: "In precipitate labor, rapid progress of labor results in delivery within what timeframe?",
+                options: [
+                    "Within 1 or 2 hours",
+                    "Within 4 or 6 hours",
+                    "Within 5 or 8 hours",
+                    "Within 12 or 16 hours"
+                ],
+                correct: 0,
+                rationale: "In precipitate labor, uterine contractions are strong and frequent, resulting in rapid progress of labor within 1 or 2 hours."
+            },
+            {
+                id: 35,
+                question: "Which vaginal examination finding is detected during labor in an occipito-posterior position?",
+                options: [
+                    "Anterior fontanelle is felt easily towards the ileopectineal eminence",
+                    "Posterior fontanelle is felt easily towards the ileopectineal eminence",
+                    "Ischial tuberosities and sacrum are felt in the lower uterine segment",
+                    "An annular muscular spasm is felt embracing the narrow fetal neck"
+                ],
+                correct: 0,
+                rationale: "On vaginal examination during occipito-posterior labor, the anterior fontanelle is felt easily towards the ileopectineal eminence, while the posterior fontanelle is felt with difficulty towards the sacro-iliac joint."
+            },
+            {
+                id: 36,
+                question: "Why is an abdominal binder applied during the management of umbilical cord prolapse?",
+                options: [
+                    "To maintain the presenting part in place and avoid crushing the cord",
+                    "To increase uterine resting tone and accelerate cervical dilatation",
+                    "To prevent annular detachment of the cervix during strong contractions",
+                    "To correct maternal hypotension and prevent postpartum hemorrhage"
+                ],
+                correct: 0,
+                rationale: "In cord prolapse management, an abdominal binder is applied to maintain the presenting part in place and to avoid crushing of the umbilical cord."
+            },
+            {
+                id: 37,
+                question: "Which statement accurately describes the treatment of premature rupture of membranes before 35 weeks of gestation?",
+                options: [
+                    "Rest, sedation, antibiotics, high vaginal swab, and corticosteroids",
+                    "Immediate oxytocin infusion and ampicillin 500 mg every 6 hours",
+                    "Artificial rupture of remaining membranes and immediate forceps delivery",
+                    "Deep general anesthesia followed by immediate cesarean section"
+                ],
+                correct: 0,
+                rationale: "If pregnancy is less than 35 weeks in premature rupture of membranes, it is treated conservatively with rest, sedation, antibiotics, a high vaginal swab, and corticosteroids for fetal lung maturity."
+            },
+            {
+                id: 38,
+                question: "What is the incidence of occipito-posterior position among all labors?",
+                options: [
+                    "10% of labors",
+                    "3.5% of labors",
+                    "15% of labors",
+                    "20% of labors"
+                ],
+                correct: 0,
+                rationale: "Occipito-posterior position is a vertex presentation in which the fetal back is directed posteriorly and occurs in 10% of labors."
+            },
+            {
+                id: 39,
+                question: "Oral food intake is permitted during labor for a woman with an occipito-posterior position to prevent maternal exhaustion.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "No food is permitted during the nursing care of a woman with an occipito-posterior position because general anesthesia may be used."
+            },
+            {
+                id: 40,
+                question: "Which structure is felt on fundal grip palpation during pregnancy in a breech presentation?",
+                options: [
+                    "A rounded, small, hard, tender, ballottable head separated by a sulcus",
+                    "An irregular, larger, firm, non-ballottable mass occupying the pole",
+                    "A soft, irregular mass with palpable ischial tuberosities and sacrum",
+                    "A transverse depression located directly below the maternal umbilicus"
+                ],
+                correct: 0,
+                rationale: "On fundal grip palpation in breech presentation, the head is located as a rounded, small, hard, tender, ballottable mass separated from the trunk by a sulcus."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>

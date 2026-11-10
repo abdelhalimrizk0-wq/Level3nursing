@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Pregnancy induced hypertension</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 30 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "During which stage of an eclamptic fit does breathing cease and the patient become cyanotic with generalized muscular rigidity lasting 30 seconds?",
+                options: [
+                    "Premonitory stage",
+                    "Tonic stage",
+                    "Clonic stage",
+                    "Coma stage"
+                ],
+                correct: 1,
+                rationale: "The tonic stage lasts 30 seconds and is characterized by loss of consciousness, generalized muscular rigidity, tonic spasm, arched back, clenched hands, ceased breathing, and cyanosis."
+            },
+            {
+                id: 2,
+                question: "Diuretics are routinely recommended in the management of mild pre-eclampsia to rapidly reduce maternal fluid retention.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Diuretics should be avoided in the management of mild pre-eclampsia because hypovolaemia and haemoconcentration already exist."
+            },
+            {
+                id: 3,
+                question: "What is the primary pathophysiological defect occurring during the 1st stage of pre-eclampsia development?",
+                options: [
+                    "Failure of trophoblastic invasion of maternal spiral arteries",
+                    "Widespread maternal glomerular capillary endotheliosis",
+                    "Systemic activation of the maternal coagulation cascade",
+                    "Acute subcapsular hepatic hemorrhage and cellular necrosis"
+                ],
+                correct: 0,
+                rationale: "In the 1st stage of pre-eclampsia, the condition is linked with the failure of trophoblastic invasion of maternal spiral arteries, leading to higher vascular resistance and lower uteroplacental blood flow."
+            },
+            {
+                id: 4,
+                question: "Which serum laboratory value is a diagnostic component of the hemolysis aspect of HELLP syndrome?",
+                options: [
+                    "Lactic dehydrogenase level over 600 IU/l",
+                    "Serum creatinine level over 1.1 mg/dl",
+                    "Platelet count below 150000 /ml",
+                    "Urine protein to creatinine ratio of 0.3 mg/dl"
+                ],
+                correct: 0,
+                rationale: "Hemolysis in HELLP syndrome results in red blood cell breakdown in vessels under vasospasm, causing an increased bilirubin level of 1.2 mg/dl and an increased lactic dehydrogenase level over 600 IU/l."
+            },
+            {
+                id: 5,
+                question: "Which type of eclampsia is the rarest and most serious form, occurring up to 48 hours after delivery?",
+                options: [
+                    "Postpartum eclampsia",
+                    "Antepartum eclampsia",
+                    "Intrapartum eclampsia",
+                    "Intercurrent eclampsia"
+                ],
+                correct: 0,
+                rationale: "Postpartum eclampsia accounts for 15% to 20% of cases, occurs up to 48 hours after delivery, and is described as the rare but most serious type."
+            },
+            {
+                id: 6,
+                question: "How many times more liable are primigravidae to develop pre-eclampsia compared to multigravidae?",
+                options: [
+                    "15 times",
+                    "5 times",
+                    "10 times",
+                    "20 times"
+                ],
+                correct: 0,
+                rationale: "Primigravidae are 15 times more liable to develop pre-eclampsia than multigravidae."
+            },
+            {
+                id: 7,
+                question: "Termination of pregnancy is the only curative therapy for pre-eclampsia.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Medical or conservative treatment is symptomatic rather than curative, whereas termination of pregnancy is the only curative therapy for pre-eclampsia."
+            },
+            {
+                id: 8,
+                question: "When administering intravenous magnesium sulfate for seizure control in eclampsia, what target serum level should be maintained?",
+                options: [
+                    "About 4 mg/100ml",
+                    "About 2 mg/100ml",
+                    "About 8 mg/100ml",
+                    "About 12 mg/100ml"
+                ],
+                correct: 0,
+                rationale: "The intravenous magnesium sulfate regimen uses a loading dose of 4 to 6 g slowly followed by a continuous infusion of 2 g/hr adjusted to maintain a serum level of about 4 mg/100ml."
+            },
+            {
+                id: 9,
+                question: "Which finding indicates magnesium sulfate intoxication and requires administration of an intravenous antidote?",
+                options: [
+                    "Respiratory rate below 12 c/m",
+                    "Urine output above 50 ml/hr",
+                    "Exaggerated knee-jerk tendon reflex",
+                    "Severe maternal hypertension"
+                ],
+                correct: 0,
+                rationale: "Signs of magnesium sulfate intoxication include absent knee-jerk reflex, respiratory rate below 12 c/m, urine output below 30 ml/hr, hypotension, sweating, and flushing."
+            },
+            {
+                id: 10,
+                question: "What daily caloric and protein intake is recommended in the dietary management of mild pre-eclampsia?",
+                options: [
+                    "1600 cal/day and 100 gram/day protein",
+                    "1200 cal/day and 50 gram/day protein",
+                    "2200 cal/day and 80 gram/day protein",
+                    "2500 cal/day and 120 gram/day protein"
+                ],
+                correct: 0,
+                rationale: "The recommended diet for mild pre-eclampsia consists of low calories at 1600 cal/day, high protein at 100 gram/day, low carbohydrate, low fat, and poor salt."
+            },
+            {
+                id: 11,
+                question: "In the presence of medical or obstetric disorders such as hydatidiform mole, pre-eclampsia may develop in the 1st half of pregnancy.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Although pre-eclampsia typically occurs after the 20th week, in cases of medical or obstetric disorders it may develop in the 1st half of pregnancy."
+            },
+            {
+                id: 12,
+                question: "According to the World Health Organization 2020 data, what is the reported incidence rate of pre-eclampsia in developed countries?",
+                options: [
+                    "0.4%",
+                    "1.8%",
+                    "2%",
+                    "10%"
+                ],
+                correct: 0,
+                rationale: "According to the World Health Organization 2020, pre-eclampsia ranges between 2% and 10% worldwide, 1.8% to 16.7% in developing countries, and 0.4% in developed countries."
+            },
+            {
+                id: 13,
+                question: "Which criterion differentiates severe pre-eclampsia from mild pre-eclampsia?",
+                options: [
+                    "Urine output less than 500 ml/24hrs",
+                    "Proteinuria between 0.3 and 3 g/l",
+                    "Systolic blood pressure between 140 and 160 mmHg",
+                    "Localized non-dependent edema in the lower leg"
+                ],
+                correct: 0,
+                rationale: "Severe pre-eclampsia is characterized by blood pressure above 160/110 mmHg, proteinuria greater than 3 g/l, oliguria less than 500 ml/24hrs, pulmonary edema or cyanosis, HELLP syndrome, and generalized edema."
+            },
+            {
+                id: 14,
+                question: "What causes severe persistent right upper quadrant or epigastric pain in patients with imminent eclampsia?",
+                options: [
+                    "Subcapsular hepatic hemorrhage",
+                    "Acute renal cortical necrosis",
+                    "Generalized cerebral vasospasm",
+                    "Premature placental abruption"
+                ],
+                correct: 0,
+                rationale: "In imminent eclampsia, epigastric pain or right upper quadrant pain occurs due to subcapsular hepatic hemorrhage."
+            },
+            {
+                id: 15,
+                question: "How is chronic hypertension with superimposed pre-eclampsia defined in terms of blood pressure elevation and urinary findings?",
+                options: [
+                    "Exacerbation greater than 30 mmHg systolic or 15 mmHg diastolic with significant proteinuria",
+                    "Exacerbation greater than 15 mmHg systolic or 10 mmHg diastolic without proteinuria",
+                    "Pre-pregnancy blood pressure greater than 140/90 mmHg resolving within 6 weeks postpartum",
+                    "Blood pressure greater than 160/110 mmHg before the 20th week without renal involvement"
+                ],
+                correct: 0,
+                rationale: "Chronic hypertension with superimposed pre-eclampsia is defined by an exacerbation of hypertension greater than 30 mmHg systolic or 15 mmHg diastolic accompanied by significant proteinuria."
+            },
+            {
+                id: 16,
+                question: "In the absence of proteinuria, pre-eclampsia can be diagnosed when hypertension after 20 weeks of gestation is accompanied by which platelet count?",
+                options: [
+                    "Less than 150000 /ml",
+                    "Less than 250000 /ml",
+                    "Less than 300000 /ml",
+                    "Less than 400000 /ml"
+                ],
+                correct: 0,
+                rationale: "In the absence of proteinuria, pre-eclampsia can be diagnosed if hypertension is accompanied by thrombocytopenia defined as platelets less than 150000 /ml."
+            },
+            {
+                id: 17,
+                question: "Antepartum eclampsia is the most common type of eclampsia, accounting for 50% to 65% of cases.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Antepartum eclampsia occurs during pregnancy and is the commonest type, representing 50% to 65% of all eclampsia cases."
+            },
+            {
+                id: 18,
+                question: "What is the recommended daily low dose of aspirin used in the preventive treatment of pregnancy induced hypertension?",
+                options: [
+                    "60 mg",
+                    "150 mg",
+                    "300 mg",
+                    "500 mg"
+                ],
+                correct: 0,
+                rationale: "A daily dose of aspirin 60 mg is recommended as part of the preventive treatment regimen for pregnancy induced hypertension."
+            },
+            {
+                id: 19,
+                question: "During which stage of an eclamptic fit does the whole body jerk for 1 to 4 minutes while frothy saliva fills the mouth?",
+                options: [
+                    "Clonic stage",
+                    "Premonitory stage",
+                    "Tonic stage",
+                    "Coma stage"
+                ],
+                correct: 0,
+                rationale: "The clonic stage lasts 1 to 4 minutes and involves episodes of muscular contractions and relaxations, whole body jerking, tongue biting, irregular breathing, and frothy saliva filling the mouth."
+            },
+            {
+                id: 20,
+                question: "Which drug is administered intravenously as the specific antidote for magnesium sulfate toxicity?",
+                options: [
+                    "Calcium gluconate",
+                    "Sodium bicarbonate",
+                    "Hydralazine sulfate",
+                    "Lactated ringer"
+                ],
+                correct: 0,
+                rationale: "The specific antidote for magnesium sulfate intoxication is intravenous calcium gluconate or calcium chloride."
+            },
+            {
+                id: 21,
+                question: "What is the reported maternal mortality rate associated with eclampsia?",
+                options: [
+                    "10% to 15%",
+                    "1% to 5%",
+                    "25% to 30%",
+                    "40% to 50%"
+                ],
+                correct: 0,
+                rationale: "Maternal complications of eclampsia carry a maternal mortality rate of 10% to 15%, while perinatal mortality is more than 50%."
+            },
+            {
+                id: 22,
+                question: "In the postpartum period, a woman who received magnesium sulfate therapy is at risk for large lochia flow due to decreased uterine tone.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Large lochia flow can result from magnesium sulfate therapy, requiring the nurse to assess uterine tone and use oxytocin to control bleeding."
+            },
+            {
+                id: 23,
+                question: "To prevent pregnancy induced hypertension, weight gain during the 2nd half of pregnancy should be restricted to approximately what amount per week?",
+                options: [
+                    "0.5 kg per week",
+                    "1.5 kg per week",
+                    "2.0 kg per week",
+                    "2.5 kg per week"
+                ],
+                correct: 0,
+                rationale: "Preventive management includes restricting weight gain in the 2nd half of pregnancy to about 0.5 kg per week by recommending a low carbohydrate, low fat, poor-salt diet."
+            },
+            {
+                id: 24,
+                question: "In severe pre-eclampsia after the 36th week of gestation, which medication is given 24 hours prior to termination of pregnancy after testing fetal lung maturity?",
+                options: [
+                    "Corticosteroids",
+                    "Plasma volume expanders",
+                    "Antioxidant supplements",
+                    "Calcium gluconate"
+                ],
+                correct: 0,
+                rationale: "After the 36th week in severe pre-eclampsia, termination of pregnancy is recommended, fetal lung maturity is tested, and corticosteroids are given 24 hours prior to termination."
+            },
+            {
+                id: 25,
+                question: "Which clinical manifestations characterize the premonitory stage of an eclamptic fit lasting 30 to 60 seconds?",
+                options: [
+                    "Dissociation from surroundings, upward rolling of eyes, and twitching of facial and hand muscles",
+                    "Loss of consciousness, generalized rigidity, arched back, clenched hands, and ceased breathing",
+                    "Violent muscular contractions, tongue biting, irregular breathing, and frothy saliva in the mouth",
+                    "Deep unconsciousness lasting for several hours with complete cessation of motor activity"
+                ],
+                correct: 0,
+                rationale: "The premonitory stage lasts 30 to 60 seconds and is characterized by dissociation of the patient from her surroundings, upward rolling of the eyes, and twitching of facial and hand muscles."
+            },
+            {
+                id: 26,
+                question: "When managing a patient with mild pre-eclampsia that responds well to treatment with no fetal compromise, pregnancy is allowed to continue up to a maximum of which week?",
+                options: [
+                    "40th week",
+                    "34th week",
+                    "36th week",
+                    "42nd week"
+                ],
+                correct: 0,
+                rationale: "In mild pre-eclampsia with a good response to treatment and no deterioration of fetal wellbeing, pregnancy is allowed to continue to term, but not more than the 40th week."
+            },
+            {
+                id: 27,
+                question: "What serum glutamic oxaloacetic transaminase level indicates elevated liver enzymes in HELLP syndrome?",
+                options: [
+                    "Over 72 IU/l",
+                    "Over 15 IU/l",
+                    "Over 25 IU/l",
+                    "Over 40 IU/l"
+                ],
+                correct: 0,
+                rationale: "In HELLP syndrome, elevated liver enzymes are characterized by an increased serum glutamic oxaloacetic transaminase level of over 72 IU/l."
+            },
+            {
+                id: 28,
+                question: "Why must central venous pressure and intake and output charts be closely monitored when administering plasma volume expanders in severe pre-eclampsia?",
+                options: [
+                    "To avoid fluid overload and heart failure",
+                    "To prevent acute magnesium sulfate intoxication",
+                    "To accelerate trophoblastic invasion of spiral arteries",
+                    "To stimulate endogenous prostaglandin synthesis"
+                ],
+                correct: 0,
+                rationale: "Plasma volume expanders are given to balance hemoconcentration and hypovolemia, and an intake/output chart and central venous pressure measurement are used to avoid overload and heart failure."
+            },
+            {
+                id: 29,
+                question: "Chronic hypertension is defined only by elevated blood pressure occurring after the 20th week of gestation and resolving completely within 48 hours after birth.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Chronic hypertension is characterized by pre-pregnancy blood pressure greater than 140/90 mmHg, hypertension before the 20th week of gestation, and hypertension persisting after 6 weeks postpartum."
+            },
+            {
+                id: 30,
+                question: "How frequently must blood pressure be measured during the first 48 hours postpartum in a patient recovering from pre-eclampsia or eclampsia?",
+                options: [
+                    "At least every 4 hours",
+                    "At least every 12 hours",
+                    "Once daily in the morning",
+                    "Twice weekly during visits"
+                ],
+                correct: 0,
+                rationale: "During postpartum care for pre-eclampsia or eclampsia, blood pressure is measured at least every 4 hours for 48 hours."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>

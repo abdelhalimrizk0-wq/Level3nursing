@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Bleeding In Pregnancy (Early & Late)</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 50 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which degree of placenta previa involves the placenta covering the closed internal os but not covering it completely upon further dilatation?",
+                options: [
+                    "Placenta previa lateralis",
+                    "Placenta previa marginalis",
+                    "Placenta previa incomplete centralis",
+                    "Placenta previa complete centralis"
+                ],
+                correct: 2,
+                rationale: "In placenta previa incomplete centralis, the placenta covers the closed or incompletely dilated internal os, but does not cover it completely with further dilatation."
+            },
+            {
+                id: 2,
+                question: "In which specific segment of the fallopian tube does 55% of tubal ectopic implantation occur?",
+                options: [
+                    "The ampulla",
+                    "The isthmus",
+                    "The fimbria",
+                    "The interstitial part"
+                ],
+                correct: 0,
+                rationale: "Tubal pregnancy accounts for more than 95% of ectopic cases, with implantation occurring in the ampulla in 55% of cases."
+            },
+            {
+                id: 3,
+                question: "Abortion causes less vaginal bleeding and more abdominal pain than ectopic pregnancy.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "According to the lecture notes, abortion causes more bleeding and less pain than ectopic pregnancy, and pain follows bleeding in abortion whereas it precedes bleeding in ectopic pregnancy."
+            },
+            {
+                id: 4,
+                question: "During the investigation of a vesicular mole, a routine urinary pregnancy test will be positive at which high urine dilution?",
+                options: [
+                    "Dilution of 1 to 100",
+                    "Dilution of 1 to 500",
+                    "Dilution of 1 to 1000",
+                    "Dilution of 1 to 5000"
+                ],
+                correct: 3,
+                rationale: "In a vesicular mole, the routine urinary pregnancy test is positive in a high dilution of 1:5000, whereas in a normal pregnancy it is positive in a dilution of 1:100."
+            },
+            {
+                id: 5,
+                question: "What is the minimum hourly urinary output that fluid replacement therapy aims to maintain in a patient with abruptio placenta?",
+                options: [
+                    "At least 15 ml per hour",
+                    "At least 30 ml per hour",
+                    "At least 50 ml per hour",
+                    "At least 60 ml per hour"
+                ],
+                correct: 1,
+                rationale: "Nursing intervention for abruptio placenta includes administering fluids for replacement to maintain urinary output at least 30 ml/hour."
+            },
+            {
+                id: 6,
+                question: "Which type of abortion is defined by the dead fetus being retained inside the uterus with its placenta for 2 months or longer?",
+                options: [
+                    "Threatened abortion",
+                    "Incomplete abortion",
+                    "Missed abortion",
+                    "Inevitable abortion"
+                ],
+                correct: 2,
+                rationale: "Missed abortion occurs when the fetus dies and is not expelled, remaining retained in the uterus for 2 months or longer with its placenta."
+            },
+            {
+                id: 7,
+                question: "In a tubal pregnancy, the right fallopian tube is more commonly affected than the left fallopian tube.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Tubal pregnancy is the commonest type of extra-uterine pregnancy, and the right tube is more affected than the left tube."
+            },
+            {
+                id: 8,
+                question: "What is the most important primary cause of abruptio placenta?",
+                options: [
+                    "Traction on a short umbilical cord",
+                    "Hypertension due to toxemia of pregnancy",
+                    "Maternal trauma and domestic violence",
+                    "Sudden reduction of uterine size"
+                ],
+                correct: 1,
+                rationale: "The most important cause of abruptio placenta is hypertension due to toxemia of pregnancy, while trauma or domestic violence is the second common cause."
+            },
+            {
+                id: 9,
+                question: "Which chromosomal and fetal profile characterizes a partial vesicular mole according to the lecture diagram?",
+                options: [
+                    "2 sets of paternal genes and no maternal genes",
+                    "1 set of paternal genes and 1 set of maternal genes",
+                    "2 sets of paternal genes and 1 set of maternal genes",
+                    "1 set of paternal genes and 2 sets of maternal genes"
+                ],
+                correct: 2,
+                rationale: "The diagram of vesicular mole types shows that a partial mole has 3 sets of genes totaling 69 chromosomes, consisting of 1 maternal set and 2 paternal sets."
+            },
+            {
+                id: 10,
+                question: "When providing pre-hospital home treatment for a patient with placenta previa prior to hospital transfer, which medication and dose are given intramuscularly?",
+                options: [
+                    "Morphine sulphate 5 to 10 mg",
+                    "Morphine sulphate 15 to 20 mg",
+                    "Prostaglandin 15 to 20 mg",
+                    "Magnesium sulphate 10 to 15 mg"
+                ],
+                correct: 1,
+                rationale: "At-home treatment for placenta previa consists of morphine sulphates 15-20 mg I.M., applying a sterile vulval pad, and transferring the patient to the hospital."
+            },
+            {
+                id: 11,
+                question: "How long should a woman be advised to avoid pregnancy during follow-up care after the evacuation of a vesicular mole?",
+                options: [
+                    "For at least 2 months",
+                    "For at least 6 months",
+                    "For at least 1 year",
+                    "For at least 2 years"
+                ],
+                correct: 3,
+                rationale: "Health education for a woman with a vesicular mole includes monitoring HCG levels for 2 years and using birth spacing methods to prevent pregnancy for 2 years."
+            },
+            {
+                id: 12,
+                question: "Which clinical finding differentiates revealed accidental hemorrhage from concealed accidental hemorrhage?",
+                options: [
+                    "The uterus is very hard and larger than expected",
+                    "The uterus is lax between contractions and of normal size",
+                    "Shock is always severe and out of proportion to visible blood",
+                    "Fetal heart sounds are completely absent in all cases"
+                ],
+                correct: 1,
+                rationale: "In revealed accidental hemorrhage, the uterus is of normal size and lax between contractions, whereas in concealed accidental hemorrhage the uterus is very hard and larger than expected."
+            },
+            {
+                id: 13,
+                question: "Vaginal bleeding in the first trimester occurs in approximately 25% of all pregnancies.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Vaginal bleeding is common in the first half of pregnancy and occurs in approximately 25% (up to 1 out of 4) of pregnancies in the first trimester."
+            },
+            {
+                id: 14,
+                question: "According to the definition of abortion, the products of conception weigh less than how many grams?",
+                options: [
+                    "Less than 250 grams",
+                    "Less than 500 grams",
+                    "Less than 750 grams",
+                    "Less than 1000 grams"
+                ],
+                correct: 1,
+                rationale: "Abortion is defined as termination of pregnancy before 24 weeks, with products of conception weighing less than 500 grams and fetal length less than 25 cm."
+            },
+            {
+                id: 15,
+                question: "In a missed abortion, hysterectomy is specifically considered if uterine perforation occurs or if infection develops due to which organism?",
+                options: [
+                    "Rubella virus",
+                    "Clostridium welchii",
+                    "Neisseria gonorrhoeae",
+                    "Mycobacterium tuberculosis"
+                ],
+                correct: 1,
+                rationale: "In the management of missed abortion, hysterectomy is considered in case of perforation or Clostridium welchii infection, which can cause uterine gangrene."
+            },
+            {
+                id: 16,
+                question: "What is the correct sequence of events in the mechanism of abortion?",
+                options: [
+                    "Detachment of conceptus, decidual hemorrhage, tissue necrosis, uterine contractions",
+                    "Decidual hemorrhage, tissue necrosis, detachment of conceptus, uterine contractions",
+                    "Uterine contractions, detachment of conceptus, decidual hemorrhage, tissue necrosis",
+                    "Tissue necrosis, decidual hemorrhage, uterine contractions, detachment of conceptus"
+                ],
+                correct: 1,
+                rationale: "The mechanism of abortion starts with hemorrhage into the decidua basalis, followed by necrotic changes in adjacent tissue, detachment of the conceptus, and finally stimulation of uterine contractions resulting in expulsion."
+            },
+            {
+                id: 17,
+                question: "Which cervical and uterine findings are characteristic of an incomplete abortion?",
+                options: [
+                    "Closed cervix and empty hard uterus",
+                    "Closed cervix and uterus larger than expected",
+                    "Soft purplish partly closed cervix and smaller uterus",
+                    "Fully dilated cervix and firm contracting uterus"
+                ],
+                correct: 2,
+                rationale: "In incomplete abortion, the cervix is soft, purplish in color, and partly closed, while the uterus is smaller than the expected period of pregnancy with no uterine involution."
+            },
+            {
+                id: 18,
+                question: "Conservative hospital management of placenta previa aims to prolong the pregnancy until which gestational week?",
+                options: [
+                    "Until the 34th week",
+                    "Until the 36th week",
+                    "Until the 37th week",
+                    "Until the 40th week"
+                ],
+                correct: 2,
+                rationale: "Conservative treatment of placenta previa at the hospital aims to prolong pregnancy to the 37th week."
+            },
+            {
+                id: 19,
+                question: "Prophylactic chemotherapy is indicated after a molar pregnancy if the HCG level remains above 5 IU/L at 8 weeks postpartum.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Under nursing care and health education for vesicular mole, if the HCG level remains more than 5 international units per liter 8 weeks postpartum, prophylactic chemotherapy is indicated."
+            },
+            {
+                id: 20,
+                question: "Why does shoulder pain occur in a patient with a ruptured tubal ectopic pregnancy?",
+                options: [
+                    "Collection of blood inside the pouch of Douglas",
+                    "Stretching of the broad ligament by a cyst",
+                    "Irritation of the diaphragm by collected intraperitoneal blood",
+                    "Acute spasm of the fallopian tube musculature"
+                ],
+                correct: 2,
+                rationale: "Shoulder pain in tubal pregnancy indicates intraperitoneal bleeding due to irritation of the diaphragm with the collected blood, whereas collection of blood in Douglas pouch causes dyspareunia."
+            },
+            {
+                id: 21,
+                question: "What is the overall incidence of placenta previa among all pregnancies according to the lecture?",
+                options: [
+                    "Occurs in 1% of all pregnancies",
+                    "Occurs in 5% of all pregnancies",
+                    "Occurs in 10% of all pregnancies",
+                    "Occurs in 25% of all pregnancies"
+                ],
+                correct: 1,
+                rationale: "The lecture explicitly states that the incidence of placenta previa is 5% of all pregnancies."
+            },
+            {
+                id: 22,
+                question: "Which of the following is classified as an incidental cause of bleeding in early pregnancy?",
+                options: [
+                    "Incompetent cervix",
+                    "Ruptured varicose veins of the vagina",
+                    "Deficient progesterone from corpus luteum",
+                    "Bicornuate uterine malformation"
+                ],
+                correct: 1,
+                rationale: "Incidental bleeding in early pregnancy is caused by cervical erosion, ulceration, polyp, or carcinoma, ruptured varicose veins of the cervix, vagina, or vulva, or trauma to the vulva or vagina."
+            },
+            {
+                id: 23,
+                question: "After admission to the hospital for placenta previa, bed rest and restriction of physical activity are required for at least how many hours?",
+                options: [
+                    "At least 12 hours",
+                    "At least 24 hours",
+                    "At least 27 hours",
+                    "At least 48 hours"
+                ],
+                correct: 2,
+                rationale: "Nursing intervention for placenta previa specifies bed rest and restriction of physical activity for at least 27 hours after admission."
+            },
+            {
+                id: 24,
+                question: "Primary abdominal ectopic pregnancy is more common than secondary abdominal ectopic pregnancy.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Secondary abdominal pregnancy is commoner than the primary type and occurs after the rupture of a tubal pregnancy."
+            },
+            {
+                id: 25,
+                question: "In a woman with vesicular mole, what percentage of cases develop hyperemesis gravidarum due to high HCG levels?",
+                options: [
+                    "1% to 5% of cases",
+                    "10% to 15% of cases",
+                    "20% to 30% of cases",
+                    "50% to 60% of cases"
+                ],
+                correct: 2,
+                rationale: "Signs and symptoms of hyperemesis gravidarum due to high HCG levels occur in 20-30% of vesicular mole cases, while pregnancy-induced hypertension occurs in 10-30% of cases."
+            },
+            {
+                id: 26,
+                question: "When an Rh-negative woman experiences an abortion, within how many hours must she receive an intramuscular injection of Rh immunoglobulin?",
+                options: [
+                    "Within 12 hours",
+                    "Within 24 hours",
+                    "Within 48 hours",
+                    "Within 72 hours"
+                ],
+                correct: 3,
+                rationale: "If the woman is Rh negative, she is given an I.M. injection of Rh immunoglobulin within 72 hours of the abortion."
+            },
+            {
+                id: 27,
+                question: "Which maternal complication of abruptio placenta involves pituitary necrosis?",
+                options: [
+                    "Carneous mole",
+                    "Sheehan syndrome",
+                    "Consumptive coagulopathy",
+                    "Choriocarcinoma"
+                ],
+                correct: 1,
+                rationale: "Maternal complications of abruptio placenta include hypovolemic shock, postpartum hemorrhage, acute renal failure, and pituitary necrosis known as Sheehan's syndrome."
+            },
+            {
+                id: 28,
+                question: "What is the minimum number of consecutive spontaneous abortions required to diagnose habitual abortion?",
+                options: [
+                    "2 or more consecutive abortions",
+                    "3 or more consecutive abortions",
+                    "4 or more consecutive abortions",
+                    "5 or more consecutive abortions"
+                ],
+                correct: 1,
+                rationale: "Habitual abortion is defined as a patient having had 3 or more successive spontaneous abortions."
+            },
+            {
+                id: 29,
+                question: "In revealed accidental hemorrhage, fetal heart sounds remain audible if less than half of the placenta has separated.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "In revealed accidental hemorrhage, fetal heart sounds are heard if less than half of the placenta is separated."
+            },
+            {
+                id: 30,
+                question: "Which surgical evacuation method can be used for a vesicular mole when the uterine size is larger than 24 weeks?",
+                options: [
+                    "Salpingectomy",
+                    "Hysterostomy",
+                    "Amniocentesis",
+                    "Dilatation only"
+                ],
+                correct: 1,
+                rationale: "Surgical evacuation of a vesicular mole is commonly done using suction and curettage, but can also be done with hysterostomy if the size of the uterus is larger than 24 weeks."
+            },
+            {
+                id: 31,
+                question: "Which laboratory criteria are mentioned in the nursing assessment of miscarriage to identify anemia and infection?",
+                options: [
+                    "Hemoglobin less than 12.5 g/dl and white blood cells greater than 10000 /mm",
+                    "Hemoglobin less than 10.5 g/dl and white blood cells greater than 1200 /mm",
+                    "Hemoglobin less than 9.0 g/dl and white blood cells greater than 5000 /mm",
+                    "Hemoglobin less than 11.5 g/dl and white blood cells greater than 8000 /mm"
+                ],
+                correct: 1,
+                rationale: "Under laboratory findings characteristic of miscarriage in the lecture text, the nurse assesses if the Hb level is less than 10.5 g/dl and if infection is present when the white blood cell count is greater than 1200 /mm."
+            },
+            {
+                id: 32,
+                question: "Why does the intake of non-steroidal anti-inflammatory drugs act as a risk factor for abortion?",
+                options: [
+                    "They decrease progesterone secretion from the corpus luteum",
+                    "They cause premature dilatation of the internal cervical os",
+                    "They interfere with the role of prostaglandin in implantation",
+                    "They induce cystic degeneration of the chorionic villi"
+                ],
+                correct: 2,
+                rationale: "Intake of non-steroidal anti-inflammatory drugs is a risk factor for abortion because they interfere with the prostaglandin role in implantation."
+            },
+            {
+                id: 33,
+                question: "What is the incidence range of ectopic pregnancy among pregnancies?",
+                options: [
+                    "Between 1:50 and 1:100 pregnancies",
+                    "Between 1:150 and 1:250 pregnancies",
+                    "Between 1:500 and 1:1000 pregnancies",
+                    "Between 1:1500 and 1:2500 pregnancies"
+                ],
+                correct: 1,
+                rationale: "The incidence of ectopic pregnancy ranges between 1:150 and 1:250 pregnancies."
+            },
+            {
+                id: 34,
+                question: "Which set of conditions must be present to perform artificial rupture of membranes and vaginal delivery in placenta previa?",
+                options: [
+                    "Severe bleeding, third degree placenta, and transverse fetal lie",
+                    "Slight bleeding, first or second degree placenta, and longitudinal fetal lie",
+                    "Moderate bleeding, posterior placenta previa, and closed cervical os",
+                    "Slight bleeding, fourth degree placenta, and breech presentation"
+                ],
+                correct: 1,
+                rationale: "Artificial rupture of membranes and vaginal delivery in placenta previa are indicated when bleeding is slight, the placenta is of the 1st or 2nd degree, the fetus lies longitudinally, the patient is in labor with good contractions, the cervix is effaced and partly dilated, and there is no cephalo-pelvic disproportion."
+            },
+            {
+                id: 35,
+                question: "In a vesicular mole, abdominal examination reveals a uterus that is smaller than expected for the duration of amenorrhea.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "In a vesicular mole, abdominal examination reveals that the uterus is larger than expected for the duration of amenorrhea and is doughy in consistency."
+            },
+            {
+                id: 36,
+                question: "In what percentage of women does infertility occur following an ectopic pregnancy?",
+                options: [
+                    "In 1% to 5% of women",
+                    "In 5% to 10% of women",
+                    "In 10% to 15% of women",
+                    "In 25% to 30% of women"
+                ],
+                correct: 2,
+                rationale: "The lecture notes state that infertility occurs in 10-15% of women who had an ectopic pregnancy."
+            },
+            {
+                id: 37,
+                question: "Which outcome of a tubal pregnancy occurs when the fetus dies inside the fallopian tube and becomes mummified?",
+                options: [
+                    "Tubal abortion",
+                    "Tubal mole",
+                    "Tubal rupture",
+                    "Carneous mole"
+                ],
+                correct: 1,
+                rationale: "A tubal mole occurs when the fetus dies and becomes mummified, whereas a carneous mole is listed in the diagram as an outcome of a missed uterine abortion."
+            },
+            {
+                id: 38,
+                question: "What are the diagnostic levels of serum B-HCG and 24-hour urinary B-HCG in a patient with a vesicular mole?",
+                options: [
+                    "Serum over 10000 IU/L and urinary over 100000 IU/24 hrs",
+                    "Serum over 50000 IU/L and urinary over 500000 IU/24 hrs",
+                    "Serum over 100000 IU/L and urinary over 1000000 IU/24 hrs",
+                    "Serum over 500000 IU/L and urinary over 5000000 IU/24 hrs"
+                ],
+                correct: 2,
+                rationale: "Investigations for vesicular mole show serum B-HCG over 100000 IU/L and urinary B-HCG over 1000000 (one million) IU/24 hrs urine."
+            },
+            {
+                id: 39,
+                question: "How frequently should HCG levels be monitored during the 2-year follow-up period after a vesicular mole?",
+                options: [
+                    "Weekly for 3 months, then monthly for 2 years",
+                    "Monthly for the first 3 months, then every 3 months for 1 year",
+                    "Every 2 months for 6 months, then every 6 months for 1 year",
+                    "Every 3 months for the first year, then annually for 2 years"
+                ],
+                correct: 1,
+                rationale: "Health education for vesicular mole specifies monitoring HCG levels for 2 years: monthly for the first 3 months, then every 3 months for 1 year."
+            },
+            {
+                id: 40,
+                question: "Vaginal and rectal examinations must be avoided in patients with placenta previa because they can precipitate severe uncontrollable hemorrhage.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Vaginal and rectal examinations should be avoided in placenta previa because they may induce severe uncontrollable bleeding."
+            },
+            {
+                id: 41,
+                question: "Which signs and symptoms characterize a septic abortion?",
+                options: [
+                    "Closed cervix, brown discharge, negative pregnancy test, and breast milk secretion",
+                    "Hard contracted uterus, closed cervix, minimal bleeding, and cessation of pain",
+                    "Tender painful uterus, offensive pinkish vaginal discharge, rising pulse, and temperature of 38°C",
+                    "Soft purplish cervix, profuse bright red bleeding, and cessation of abdominal pain"
+                ],
+                correct: 2,
+                rationale: "Septic abortion presents with a tender and painful uterus, offensive vaginal bleeding or pinkish discharge with an offensive odor, a steady rise in pulse, and a high temperature of 38°C."
+            },
+            {
+                id: 42,
+                question: "When evacuating the uterus in a missed abortion without heavy bleeding, how many hours of antibiotic therapy are given prior to evacuation?",
+                options: [
+                    "6 hours of antibiotic therapy",
+                    "12 hours of antibiotic therapy",
+                    "24 hours of antibiotic therapy",
+                    "48 hours of antibiotic therapy"
+                ],
+                correct: 2,
+                rationale: "In the management of missed abortion, evacuation of the uterus is done after 24 hours of antibiotic therapy unless bleeding is heavy, with no curettage to reduce the risk of spreading infection."
+            },
+            {
+                id: 43,
+                question: "Which physical examination sign indicates the presence of free blood in the peritoneal cavity in a ruptured ectopic pregnancy?",
+                options: [
+                    "Doughy consistency of the uterus on palpation",
+                    "Distended abdomen with shifting dullness",
+                    "Hard and well-contracted uterine fundus",
+                    "Absence of adnexal tenderness on pelvic examination"
+                ],
+                correct: 1,
+                rationale: "The lecture notes highlight that a distended abdomen with shifting dullness may indicate free blood in a ruptured ectopic pregnancy."
+            },
+            {
+                id: 44,
+                question: "In missed abortion, medical evacuation may be needed if the gestation has exceeded how many weeks?",
+                options: [
+                    "More than 10 weeks",
+                    "More than 12 weeks",
+                    "More than 14 weeks",
+                    "More than 20 weeks"
+                ],
+                correct: 2,
+                rationale: "In the management of missed abortion, medical evacuation may be needed if gestation is more than 14 weeks."
+            },
+            {
+                id: 45,
+                question: "Bleeding in early pregnancy is defined as any discharge of blood from the vagina before 20 weeks of gestation, whereas antepartum hemorrhage occurs after the 24th week of pregnancy.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture defines bleeding in early pregnancy as any discharge of blood from the vagina before 20 weeks of gestation, and antepartum hemorrhage as bleeding from the genital tract after the 24th week of pregnancy and before the birth of the infant."
+            },
+            {
+                id: 46,
+                question: "During nursing care after an early miscarriage, how long should a woman be advised to postpone attempts at pregnancy?",
+                options: [
+                    "For at least 2 weeks",
+                    "For at least 2 months",
+                    "For at least 6 months",
+                    "For at least 1 year"
+                ],
+                correct: 1,
+                rationale: "Discharge teaching for women after early miscarriage specifies that attempts at pregnancy should be postponed for at least 2 months to allow her body to recover."
+            },
+            {
+                id: 47,
+                question: "Which type of ectopic pregnancy is classified in the lecture as a uterine ectopic pregnancy?",
+                options: [
+                    "Interstitial pregnancy",
+                    "Fimbrial pregnancy",
+                    "Cervical or angular pregnancy",
+                    "Primary peritoneal pregnancy"
+                ],
+                correct: 2,
+                rationale: "Under the types of ectopic pregnancy, extra-uterine includes tubal, ovarian, and abdominal, while uterine ectopic pregnancy includes cervical and angular sites."
+            },
+            {
+                id: 48,
+                question: "What is the pulse rate threshold listed as a sign of bleeding in a ruptured ectopic pregnancy?",
+                options: [
+                    "80 per minute or more",
+                    "90 per minute or more",
+                    "100 per minute or more",
+                    "110 per minute or more"
+                ],
+                correct: 3,
+                rationale: "Symptoms of bleeding in a ruptured ectopic pregnancy include collapse and weakness, hypotension, hypovolemia, and a fast, weak pulse of 110 per minute or more."
+            },
+            {
+                id: 49,
+                question: "Which maternal age groups are at high risk for developing a vesicular mole?",
+                options: [
+                    "Between 20 and 25 years",
+                    "Between 25 and 30 years",
+                    "Between 30 and 35 years",
+                    "Less than 20 years or over 40 years"
+                ],
+                correct: 3,
+                rationale: "High risk factors for vesicular mole include maternal age less than 20 years or over 40 years, genetic predisposition, high parity, protein deficiency malnutrition, and consanguinity."
+            },
+            {
+                id: 50,
+                question: "In complete abortion, the cervical os remains widely dilated and bleeding continues profusely.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "In complete abortion, all contents of the uterus are expelled spontaneously, there is minimal bleeding, pain stops, the uterus is hard and well contracted, and the cervix is closed with an empty uterine cavity."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
