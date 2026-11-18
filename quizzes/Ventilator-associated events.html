@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Ventilator-associated events</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "To meet the Tier 2 criteria for an Infection-Related Ventilator-Associated Complication after a Ventilator-Associated Condition has been established, a new antimicrobial agent must be started and continued for at least how many calendar days?",
+                options: [
+                    "2 calendar days",
+                    "4 calendar days",
+                    "5 calendar days",
+                    "7 calendar days"
+                ],
+                correct: 1,
+                rationale: "Tier 2 criteria require the patient to meet Ventilator-Associated Condition criteria, show evidence of infection or inflammation through abnormal temperature or white blood cell count within the window period, and have a new antimicrobial agent started and continued for at least 4 calendar days."
+            },
+            {
+                id: 2,
+                question: "How early after endotracheal intubation can bacterial biofilm formation begin on the inner surface of the endotracheal tube?",
+                options: [
+                    "As early as 6 hours after intubation",
+                    "As early as 12 hours after intubation",
+                    "As early as 24 hours after intubation",
+                    "As early as 48 hours after intubation"
+                ],
+                correct: 1,
+                rationale: "Upper airway and oral secretions accumulate above the cuff of the endotracheal tube, coat the inner surface of the tube, and can begin forming a bacterial biofilm as early as 12 hours after intubation."
+            },
+            {
+                id: 3,
+                question: "In the management and prevention of ventilator-associated events, oral care with chlorhexidine is preferred over oral care without chlorhexidine because it consistently lowers the risk of complications.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Oral care without chlorhexidine is preferred, and chlorhexidine should be used cautiously because of possible associations with an increased risk of ventilator-associated events."
+            },
+            {
+                id: 4,
+                question: "According to component A of the ABCDEF bundle, how should pain management be coordinated in relation to sedation and painful procedures?",
+                options: [
+                    "Administer sedation prior to assessing pain and performing procedures",
+                    "Give analgesia before painful procedures and prioritize pain control before sedation",
+                    "Withhold analgesia until daily spontaneous awakening trials are completed",
+                    "Administer benzodiazepines before giving analgesia for painful procedures"
+                ],
+                correct: 1,
+                rationale: "Component A focuses on assessing, preventing, and managing pain using validated tools, giving analgesia before painful procedures, and prioritizing pain control before sedation."
+            },
+            {
+                id: 5,
+                question: "Which of the following pathogens is characteristically associated with late-onset ventilator-associated pneumonia occurring more than 96 hours after endotracheal intubation?",
+                options: [
+                    "Streptococcus pneumoniae",
+                    "Haemophilus influenzae",
+                    "Acinetobacter species",
+                    "Serratia marcescens"
+                ],
+                correct: 2,
+                rationale: "Late-onset ventilator-associated pneumonia occurs more than 96 hours after intubation and is commonly associated with antibiotic-resistant organisms including Pseudomonas aeruginosa, methicillin-resistant Staphylococcus aureus, Acinetobacter species, and Enterobacter species."
+            },
+            {
+                id: 6,
+                question: "How is the 5-day surveillance window for identifying a ventilator-associated event structured around the event date?",
+                options: [
+                    "1 day before the event date, the event date, and 3 days after the event date",
+                    "2 days before the event date, the event date, and 2 days after the event date",
+                    "3 days before the event date, the event date, and 1 day after the event date",
+                    "The event date followed by 4 consecutive days after the event date"
+                ],
+                correct: 1,
+                rationale: "The ventilator-associated event window is usually a 5-day period that includes 2 days before the event date, the event date itself, and 2 days after the event date."
+            },
+            {
+                id: 7,
+                question: "According to the 8 elements of the ventilator-associated pneumonia bundle, what is the optimal endotracheal tube cuff pressure and how frequently should cuff pressure be measured?",
+                options: [
+                    "Approximately 15 centimeters of water measured every 2 to 4 hours",
+                    "Approximately 20 centimeters of water measured every 8 to 12 hours",
+                    "Approximately 25 centimeters of water measured every 4 to 6 hours",
+                    "Approximately 35 centimeters of water measured every 6 to 8 hours"
+                ],
+                correct: 2,
+                rationale: "Endotracheal tube cuff pressure should be maintained between 20 and 30 centimeters of water, with an optimal pressure of approximately 25 centimeters of water, and measured at least every 4 to 6 hours."
+            },
+            {
+                id: 8,
+                question: "Unlike ventilator-associated pneumonia, ventilator-associated tracheobronchitis is characterized by the absence of radiological lung infiltrates.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Ventilator-associated tracheobronchitis is an infectious respiratory cause of ventilator-associated events in mechanically ventilated patients, but unlike pneumonia, it is characterized by the absence of radiological lung infiltrates."
+            },
+            {
+                id: 9,
+                question: "When applying lung-protective ventilation to prevent ventilator-associated events, what is the recommended tidal volume range based on predicted body weight, and above what threshold may the risk of events increase?",
+                options: [
+                    "Recommended 2 to 4 milliliters per kilogram, with increased risk above 4 milliliters per kilogram",
+                    "Recommended 4 to 8 milliliters per kilogram, with increased risk above 6 milliliters per kilogram",
+                    "Recommended 6 to 10 milliliters per kilogram, with increased risk above 8 milliliters per kilogram",
+                    "Recommended 8 to 12 milliliters per kilogram, with increased risk above 10 milliliters per kilogram"
+                ],
+                correct: 1,
+                rationale: "Lung-protective ventilation recommends a low tidal volume of 4 to 8 milliliters per kilogram of predicted body weight, and increasing tidal volume above 6 milliliters per kilogram of predicted body weight may increase the risk of ventilator-associated events."
+            },
+            {
+                id: 10,
+                question: "By what factor is the risk of developing pneumonia increased in patients receiving mechanical ventilation compared with patients who are not mechanically ventilated?",
+                options: [
+                    "1 to 2 times higher risk",
+                    "3 to 10 times higher risk",
+                    "12 to 20 times higher risk",
+                    "25 to 50 times higher risk"
+                ],
+                correct: 1,
+                rationale: "Patients receiving mechanical ventilation have a 3- to 10-fold increased risk of developing pneumonia compared with patients who are not mechanically ventilated."
+            },
+            {
+                id: 11,
+                question: "In ventilator-associated event surveillance, how long must the lowest positive end-expiratory pressure or fraction of inspired oxygen value be maintained during a calendar day to qualify as the daily minimum value?",
+                options: [
+                    "Maintained for more than 1 hour",
+                    "Maintained for more than 2 hours",
+                    "Maintained for more than 4 hours",
+                    "Maintained for more than 6 hours"
+                ],
+                correct: 0,
+                rationale: "Both daily minimum positive end-expiratory pressure and daily minimum fraction of inspired oxygen are defined as the lowest value set on the ventilator during a calendar day and maintained for more than 1 hour."
+            },
+            {
+                id: 12,
+                question: "Which of the following nutritional practices is recommended as part of the management strategies to prevent ventilator-associated events?",
+                options: [
+                    "Routine monitoring of gastric residual volume before every enteral feeding",
+                    "Administering early parenteral nutrition instead of early enteral nutrition",
+                    "Considering post-pyloric feeding in patients with gastric intolerance or high aspiration risk",
+                    "Prescribing routine probiotics for patients with compromised immune systems"
+                ],
+                correct: 2,
+                rationale: "Guidelines recommend preferring early enteral over parenteral nutrition, avoiding routine gastric residual volume monitoring, avoiding probiotics in immunocompromised patients, and considering post-pyloric feeding rather than gastric feeding in patients with gastric intolerance or a high risk of aspiration."
+            },
+            {
+                id: 13,
+                question: "Only about 40% of clinically diagnosed ventilator-associated pneumonia cases meet ventilator-associated event criteria because those criteria require a sustained increase in positive end-expiratory pressure or fraction of inspired oxygen.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Although ventilator-associated pneumonia contributes to ventilator-associated events, only about 40% of clinically diagnosed cases meet the surveillance criteria because a sustained increase in positive end-expiratory pressure or fraction of inspired oxygen is required."
+            },
+            {
+                id: 14,
+                question: "How do enteral feeding and the presence of nasogastric or orogastric tubes contribute to the pathogenesis of ventilator-associated pneumonia?",
+                options: [
+                    "They decrease gastric pH and reduce gastric volume while tightening the lower esophageal sphincter",
+                    "They interfere with the gastroesophageal sphincter and increase both gastric pH and gastric volume",
+                    "They eliminate bacterial reservoirs in the stomach while promoting mucociliary clearance",
+                    "They prevent gastrointestinal reflux while directly stimulating the upper airway cough reflex"
+                ],
+                correct: 1,
+                rationale: "Nasogastric and orogastric tubes interfere with the normal function of the gastroesophageal sphincter and increase gastrointestinal reflux, while enteral feeding increases gastric pH and gastric volume, which promotes bacterial colonization and aspiration."
+            },
+            {
+                id: 15,
+                question: "Which group of patients is specifically excluded from standard ventilator-associated event surveillance in intensive care units?",
+                options: [
+                    "Patients receiving mechanical ventilation through a tracheostomy tube",
+                    "Patients admitted to the intensive care unit with preexisting community pneumonia",
+                    "Patients receiving high-frequency ventilation or extracorporeal membrane oxygenation",
+                    "Patients ventilated for more than 96 hours with multidrug-resistant organisms"
+                ],
+                correct: 2,
+                rationale: "Ventilator-associated event surveillance is used in intensive care units for critically ill mechanically ventilated patients, but patients on high-frequency ventilation or extracorporeal membrane oxygenation are excluded."
+            },
+            {
+                id: 16,
+                question: "In Tier 3 surveillance criteria, what distinguishes Probable ventilator-associated pneumonia from Possible ventilator-associated pneumonia?",
+                options: [
+                    "Probable pneumonia requires either purulent secretions alone or a positive tracheal culture alone",
+                    "Probable pneumonia requires purulent secretions combined with a quantitative culture meeting specific thresholds",
+                    "Probable pneumonia requires abnormal temperature for 2 days without starting antimicrobial therapy",
+                    "Probable pneumonia requires chest radiography showing new infiltrates without microbiological testing"
+                ],
+                correct: 1,
+                rationale: "Possible ventilator-associated pneumonia requires purulent respiratory secretions OR a positive respiratory culture, whereas Probable ventilator-associated pneumonia requires stronger evidence consisting of purulent respiratory secretions AND a positive respiratory culture meeting specific quantitative or semi-quantitative thresholds, or other specific confirmatory tests."
+            },
+            {
+                id: 17,
+                question: "To minimize deep or prolonged sedation and reduce the risk of ventilator-associated events, which medications should be minimized and which alternative sedatives may be used?",
+                options: [
+                    "Minimize dexmedetomidine and propofol while preferring benzodiazepines and opioids",
+                    "Minimize benzodiazepines and opioids while considering dexmedetomidine and propofol",
+                    "Minimize propofol and opioids while preferring benzodiazepines and neuromuscular blockers",
+                    "Minimize dexmedetomidine and benzodiazepines while preferring long-acting opioids"
+                ],
+                correct: 1,
+                rationale: "Prevention strategies specify minimizing the use of benzodiazepines and opioids and using alternative sedatives such as dexmedetomidine and propofol."
+            },
+            {
+                id: 18,
+                question: "The ventilator-associated event Date of Event is defined as the final calendar day on which all laboratory and antimicrobial criteria are completely fulfilled.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The Date of Event is not the date on which all criteria are finally met; rather, it is Day 1 of the required 2-day or longer period of worsening oxygenation when the daily minimum positive end-expiratory pressure or fraction of inspired oxygen first increases above threshold."
+            },
+            {
+                id: 19,
+                question: "Which of the following is classified as a host-related risk factor for developing ventilator-associated pneumonia?",
+                options: [
+                    "Presence of condensate in ventilator circuits",
+                    "Failure to change gloves between patient contacts",
+                    "Placement of an orogastric tube for decompression",
+                    "Maintaining the patient in a supine body position"
+                ],
+                correct: 3,
+                rationale: "Host-related risk factors include older age, underlying medical conditions, immunosuppression, chronic obstructive pulmonary disease, adult respiratory distress syndrome, supine body position, decreased level of consciousness, multiple intubations, and certain medications."
+            },
+            {
+                id: 20,
+                question: "After at least 2 days of stable or improving respiratory status, which sustained change for at least 2 calendar days defines a Tier 1 Ventilator-Associated Condition?",
+                options: [
+                    "An increase in daily minimum fraction of inspired oxygen by at least 10 percentage points",
+                    "An increase in daily minimum positive end-expiratory pressure by at least 3 centimeters of water",
+                    "An increase in daily minimum positive end-expiratory pressure by at least 1 centimeter of water",
+                    "An increase in daily minimum fraction of inspired oxygen by at least 5 percentage points"
+                ],
+                correct: 1,
+                rationale: "A Tier 1 Ventilator-Associated Condition is identified by a sustained increase for at least 2 calendar days in daily minimum fraction of inspired oxygen by at least 20 percentage points OR in daily minimum positive end-expiratory pressure by at least 3 centimeters of water."
+            },
+            {
+                id: 21,
+                question: "Which of the following actions can dislodge bacterial biofilm from the inner surface of the endotracheal tube so that it is carried into the lungs?",
+                options: [
+                    "Maintaining cuff pressure at 25 centimeters of water",
+                    "Elevating the head of the bed to 30 degrees",
+                    "Instilling saline into the endotracheal tube",
+                    "Rinsing reusable outer equipment with sterile water"
+                ],
+                correct: 2,
+                rationale: "Biofilm coating the inner surface of the endotracheal tube may become dislodged during saline instillation into the endotracheal tube, endotracheal suctioning, coughing, or repositioning of the endotracheal tube."
+            },
+            {
+                id: 22,
+                question: "According to the 8 elements of the ventilator-associated pneumonia bundle, subglottic suction endotracheal or tracheostomy tubes should be used in patients anticipated to require mechanical ventilation for more than how many hours?",
+                options: [
+                    "More than 12 hours",
+                    "More than 24 hours",
+                    "More than 36 hours",
+                    "More than 72 hours"
+                ],
+                correct: 3,
+                rationale: "Element 1 of the ventilator-associated pneumonia bundle states that subglottic suction endotracheal or tracheostomy tubes should be used in patients who are anticipated to require mechanical ventilation for more than 72 hours."
+            },
+            {
+                id: 23,
+                question: "Ventilator circuits and suction systems should be changed routinely every 48 hours to prevent bacterial colonization and reduce the risk of ventilator-associated events.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Ventilator circuits, tubing, and suction systems should not be changed routinely; they should only be changed when visibly soiled, malfunctioning, or according to manufacturer recommendations, as frequent changes increase the risk of contamination and ventilator-associated events."
+            },
+            {
+                id: 24,
+                question: "Why are chest radiographic findings alone insufficient to confirm a diagnosis of ventilator-associated pneumonia?",
+                options: [
+                    "Pulmonary infiltrates only appear after antimicrobial therapy has been completed",
+                    "Noninfectious conditions such as atelectasis, pulmonary edema, and alveolar hemorrhage can also cause infiltrates",
+                    "Chest radiographs can only detect upper airway colonization rather than lower respiratory tract pathology",
+                    "Up to 90% of patients with severe bacterial pneumonia maintain completely normal chest radiographs"
+                ],
+                correct: 1,
+                rationale: "Chest radiographic findings are not sufficiently reproducible to be used alone because other conditions in mechanically ventilated patients—including atelectasis, aspiration, pulmonary embolism, pulmonary edema, alveolar hemorrhage, pulmonary infarction, and acute respiratory distress syndrome—also cause pulmonary infiltrates."
+            },
+            {
+                id: 25,
+                question: "Which organization introduced the surveillance shift from ventilator-associated pneumonia to ventilator-associated events in 2013?",
+                options: [
+                    "World Health Organization",
+                    "Centers for Disease Control and Prevention",
+                    "Society of Critical Care Medicine",
+                    "American Thoracic Society"
+                ],
+                correct: 1,
+                rationale: "The shift from ventilator-associated pneumonia surveillance to ventilator-associated event surveillance was introduced by the Centers for Disease Control and Prevention in 2013."
+            },
+            {
+                id: 26,
+                question: "Which set of temperature or white blood cell count thresholds satisfies the infection or inflammation requirement for a Tier 2 Infection-Related Ventilator-Associated Complication?",
+                options: [
+                    "Temperature above 37 degrees Celsius or white blood cell count above 10,000 cells per cubic millimeter",
+                    "Temperature above 38 degrees Celsius or below 36 degrees Celsius, or white blood cell count of at least 12,000 or at most 4,000 cells per cubic millimeter",
+                    "Temperature above 39 degrees Celsius or below 35 degrees Celsius, or white blood cell count of at least 15,000 or at most 2,000 cells per cubic millimeter",
+                    "Temperature below 37 degrees Celsius or white blood cell count between 4,500 and 11,000 cells per cubic millimeter"
+                ],
+                correct: 1,
+                rationale: "Tier 2 requires a temperature greater than 38 degrees Celsius or less than 36 degrees Celsius, OR a white blood cell count of at least 12,000 cells per cubic millimeter or at most 4,000 cells per cubic millimeter, along with starting a new antimicrobial agent for at least 4 days."
+            },
+            {
+                id: 27,
+                question: "Under component D of the ABCDEF bundle, which nonpharmacological interventions are recommended to prevent and manage delirium in critically ill patients?",
+                options: [
+                    "Physical restraints, continuous deep sedation, and dark room isolation",
+                    "Early mobility, cognitive stimulation, and minimizing unnecessary sedation",
+                    "Routine benzodiazepine infusions, prolonged bed rest, and fluid restriction",
+                    "Daily circuit changes, routine stress ulcer prophylaxis, and parenteral nutrition"
+                ],
+                correct: 1,
+                rationale: "Component D states that delirium should be assessed regularly with validated tools and prevented and managed through early mobility, cognitive stimulation, and minimizing unnecessary sedation."
+            },
+            {
+                id: 28,
+                question: "Routine stress ulcer prophylaxis directly reduces the incidence of ventilator-associated events in all mechanically ventilated patients regardless of gastrointestinal bleeding risk.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Routine stress ulcer prophylaxis does not reduce ventilator-associated events, although it may reduce gastrointestinal bleeding; it should be prescribed judiciously only for patients at high risk of upper gastrointestinal bleeding."
+            },
+            {
+                id: 29,
+                question: "According to the classification of non-infectious causes of ventilator-associated events, which of the following conditions are specifically noted as less common causes of oxygenation deterioration?",
+                options: [
+                    "Fluid overload and pulmonary edema",
+                    "Acute respiratory distress syndrome and atelectasis",
+                    "Mucous plugging and pulmonary embolism",
+                    "Ventilator-induced lung injury and aspiration"
+                ],
+                correct: 2,
+                rationale: "Under non-infectious causes of ventilator-associated events, mucous plugging and pulmonary embolism are specifically identified as less common causes that may lead to deterioration in oxygenation."
+            },
+            {
+                id: 30,
+                question: "Within what timeframe after endotracheal intubation does early-onset ventilator-associated pneumonia occur, and what type of organisms are usually involved?",
+                options: [
+                    "Within the initial 24 hours after intubation, involving multidrug-resistant organisms",
+                    "Between 48 and 96 hours after intubation, involving antibiotic-susceptible organisms",
+                    "Between 96 and 120 hours after intubation, involving antibiotic-resistant organisms",
+                    "More than 120 hours after intubation, involving opportunistic viral pathogens"
+                ],
+                correct: 1,
+                rationale: "Early-onset ventilator-associated pneumonia occurs 48 to 96 hours after endotracheal intubation and is usually associated with antibiotic-susceptible organisms."
+            },
+            {
+                id: 31,
+                question: "What does the term bacterial colonization mean in the pathophysiology of ventilator-associated pneumonia?",
+                options: [
+                    "Active invasion of lung parenchyma accompanied by systemic septic shock",
+                    "Presence of bacteria in the host without an active host response",
+                    "Complete eradication of normal flora following broad-spectrum antibiotic therapy",
+                    "Viral replication within alveolar macrophages causing purulent secretions"
+                ],
+                correct: 1,
+                rationale: "Bacterial colonization refers to the presence of bacteria without an active host response; subsequent inhalation or microaspiration of these colonized bacteria into the lower airway can trigger an active host response and lead to pneumonia."
+            },
+            {
+                id: 32,
+                question: "What is the proper procedure for handling reusable respiratory equipment and ventilator circuit condensate to prevent equipment contamination?",
+                options: [
+                    "Rinse reusable equipment with tap water and disconnect the circuit to drain condensate",
+                    "Rinse reusable equipment with sterile water and keep the circuit closed while removing condensate",
+                    "Rinse reusable equipment with chlorhexidine and allow condensate to drain toward the patient airway",
+                    "Rinse reusable equipment with normal saline and replace the entire circuit whenever condensate forms"
+                ],
+                correct: 1,
+                rationale: "To prevent equipment contamination, clinicians should use sterile water to rinse reusable respiratory equipment, remove condensate from ventilator circuits, and keep the ventilator circuit closed while removing condensate."
+            },
+            {
+                id: 33,
+                question: "Selective oral or digestive decontamination may be considered in intensive care units that have a low prevalence of antibiotic-resistant organisms.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Selective oral or digestive decontamination may be considered as a preventive strategy in intensive care units with a low prevalence of antibiotic-resistant organisms."
+            },
+            {
+                id: 34,
+                question: "To reduce the risk of aspiration and ventilator-associated events, to what angle should the head of the bed be elevated in mechanically ventilated patients unless contraindicated?",
+                options: [
+                    "5 to 10 degrees",
+                    "10 to 20 degrees",
+                    "30 to 45 degrees",
+                    "60 to 90 degrees"
+                ],
+                correct: 2,
+                rationale: "Mechanically ventilated patients should be nursed in a semi-recumbent position with the head of the bed elevated to 30 to 45 degrees unless contraindicated."
+            },
+            {
+                id: 35,
+                question: "Which of the following is a direct consequence of deep or prolonged sedation that increases the risk of ventilator-associated events?",
+                options: [
+                    "Accelerated clearance of respiratory secretions",
+                    "Reduced duration of mechanical ventilation",
+                    "Increased atelectasis and aspiration risk",
+                    "Decreased incidence of pulmonary bacterial colonization"
+                ],
+                correct: 2,
+                rationale: "Deep or prolonged sedation increases the risk of ventilator-associated events because it prolongs mechanical ventilation, increases atelectasis, increases aspiration risk, reduces clearance of respiratory secretions, and may increase the risk of pneumonia."
+            },
+            {
+                id: 36,
+                question: "When bacterial infection is suspected in a patient with a ventilator-associated event, which antimicrobial agent is specifically noted for empirical use when methicillin-resistant Staphylococcus aureus is suspected, and how should therapy be modified once culture results return?",
+                options: [
+                    "Start vancomycin empirically and narrow the antibiotic spectrum based on sensitivity results",
+                    "Start vancomycin empirically and broaden the antibiotic spectrum regardless of sensitivity results",
+                    "Withhold all antibiotics until quantitative bronchoalveolar lavage cultures are finalized",
+                    "Start antifungal therapy empirically and switch to vancomycin after 7 days of treatment"
+                ],
+                correct: 0,
+                rationale: "Broad-spectrum empirical antibiotics may be started when bacterial infection is suspected, with vancomycin used when methicillin-resistant Staphylococcus aureus is suspected; once culture and sensitivity results are available, therapy should be adjusted and narrowed when possible."
+            },
+            {
+                id: 37,
+                question: "In addition to routine measurements every 4 to 6 hours, when should endotracheal tube cuff pressure be reassessed, and which intubation route is preferred?",
+                options: [
+                    "Reassess after patient transfer or mobilization, and prefer orotracheal over nasotracheal intubation",
+                    "Reassess only when changing ventilator circuits, and prefer nasotracheal over orotracheal intubation",
+                    "Reassess 1 time daily during awakening trials, and prefer nasotracheal over orotracheal intubation",
+                    "Reassess after administering empirical antibiotics, and use nasotracheal and orotracheal routes equally"
+                ],
+                correct: 0,
+                rationale: "Cuff pressure should be measured every 4 to 6 hours and reassessed following any significant movement of the patient, such as patient transfer or mobilization, while orotracheal intubation is preferred over nasotracheal intubation."
+            },
+            {
+                id: 38,
+                question: "By bypassing the upper airway structures, the endotracheal tube directly reduces the body's physiological ability to perform which functions?",
+                options: [
+                    "Exchange gases across the alveolar membrane and perfuse pulmonary capillaries",
+                    "Filter and humidify inspired air and maintain an effective cough reflex",
+                    "Produce surfactant in alveolar cells and regulate bronchial smooth muscle tone",
+                    "Maintain negative pleural pressure and stimulate the diaphragmatic nerve"
+                ],
+                correct: 1,
+                rationale: "Bypassing the protective structures of the upper airway reduces the body's ability to filter inspired air and humidify inspired air, while the presence of the endotracheal tube reduces or eliminates the cough reflex and impairs mucociliary clearance."
+            },
+            {
+                id: 39,
+                question: "When evaluating clinical factors for ventilator-associated pneumonia such as leukocytosis, what is cited as the approximate normal white blood cell count range?",
+                options: [
+                    "Approximately 1,500 to 4,000 cells per cubic millimeter",
+                    "Approximately 4,500 to 11,000 cells per cubic millimeter",
+                    "Approximately 12,000 to 18,000 cells per cubic millimeter",
+                    "Approximately 15,000 to 25,000 cells per cubic millimeter"
+                ],
+                correct: 1,
+                rationale: "Under clinical factors in the diagnosis of ventilator-associated pneumonia, the normal white blood cell count range is approximately 4,500 to 11,000 cells per cubic millimeter."
+            },
+            {
+                id: 40,
+                question: "Administering probiotics to high-risk or immunocompromised patients can lead to serious complications including bacteremia or fungemia.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Probiotics are not recommended for high-risk patients and should be avoided in patients with compromised immune systems or gastrointestinal diseases that increase gut translocation risk, because possible complications include bacteremia or fungemia."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>

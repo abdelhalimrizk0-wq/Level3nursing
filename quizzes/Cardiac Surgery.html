@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">CARDIAC SURGERY</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "How many days prior to cardiac surgery must aspirin and non-steroidal anti-inflammatory products be discontinued?",
+                options: [
+                    "At least 1 to 2 days prior to surgery",
+                    "At least 3 to 5 days prior to surgery",
+                    "At least 7 to 10 days prior to surgery",
+                    "At least 12 to 14 days prior to surgery"
+                ],
+                correct: 2,
+                rationale: "Aspirin and non-steroidal anti-inflammatory products must be discontinued at least 7 to 10 days prior to surgery to prevent the development of perioperative bleeding complications."
+            },
+            {
+                id: 2,
+                question: "Which group of cardiac surgery patients is more prone to developing post-cardiotomy psychosis in the postoperative period?",
+                options: [
+                    "Patients who do not express anxiety before surgery",
+                    "Patients who request a tour of the intensive care unit",
+                    "Patients who express high anxiety before surgery",
+                    "Patients who ask numerous questions during teaching"
+                ],
+                correct: 0,
+                rationale: "An important clinical finding is that patients who do not express anxiety before surgery are more prone to developing psychosis in the postoperative period, so the nurse must monitor for signs of denial."
+            },
+            {
+                id: 3,
+                question: "Closed commissurotomies are performed with direct visualization of the valve while the patient is placed on cardiopulmonary bypass.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Closed commissurotomies are performed without direct visualization of the valve and do not require cardiopulmonary bypass, whereas open commissurotomies require both direct visualization and cardiopulmonary bypass."
+            },
+            {
+                id: 4,
+                question: "Through which anatomical structures is oxygenated blood returned to the patient during a cardiopulmonary bypass procedure?",
+                options: [
+                    "Right atrium or inferior vena cava",
+                    "Femoral artery or ascending aorta",
+                    "Femoral vein or superior vena cava",
+                    "Pulmonary artery or left atrium"
+                ],
+                correct: 1,
+                rationale: "During cardiopulmonary bypass, oxygenated blood returns to the patient through an arterial cannula placed in the femoral artery or the ascending aorta."
+            },
+            {
+                id: 5,
+                question: "A decrease in cardiac output after cardiac surgery is indicated when urinary output falls below which threshold?",
+                options: [
+                    "30 milliliters per hour",
+                    "50 milliliters per hour",
+                    "60 milliliters per hour",
+                    "80 milliliters per hour"
+                ],
+                correct: 0,
+                rationale: "When evaluating restoration of cardiac output, a urinary output falling below 30 milliliters per hour may indicate a decrease in cardiac output."
+            },
+            {
+                id: 6,
+                question: "Which 2 anatomical structures are directly connected by a left ventricular assist device?",
+                options: [
+                    "Left ventricle and the aorta",
+                    "Right atrium and the vena cava",
+                    "Left atrium and the pulmonary vein",
+                    "Right ventricle and the pulmonary artery"
+                ],
+                correct: 0,
+                rationale: "A left ventricular assist device is a mechanical pump that connects the lower left chamber of the heart, the left ventricle, to the main artery, the aorta."
+            },
+            {
+                id: 7,
+                question: "Which coronary artery supplies blood to the left side and back of the heart?",
+                options: [
+                    "Left circumflex artery",
+                    "Right coronary artery",
+                    "Left anterior descending artery",
+                    "Internal mammary artery"
+                ],
+                correct: 0,
+                rationale: "The left circumflex artery supplies the left side and back of the heart, whereas the left anterior descending artery supplies the front of the heart and the right coronary artery supplies the right side."
+            },
+            {
+                id: 8,
+                question: "Digoxin is withheld 1 to 2 days prior to cardiac surgery except in patients with atrial fibrillation.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "During preoperative medication management, digoxin is withheld 1 to 2 days prior to surgery except in patients with atrial fibrillation."
+            },
+            {
+                id: 9,
+                question: "Which pathophysiological consequences result specifically from mitral valve stenosis?",
+                options: [
+                    "High left atrial pressures, pulmonary congestion, and decreased left ventricular output",
+                    "Low right atrial pressures, systemic edema, and increased right ventricular output",
+                    "Fluid overload, backward stretching of valve flaps, and dilatation of the right ventricle",
+                    "Complete absence of a valve opening, low pulmonary pressure, and increased cardiac output"
+                ],
+                correct: 0,
+                rationale: "Valves that resist opening are stenotic and lead to increased pressure within the heart; specifically, mitral stenosis results in high left atrial pressures, pulmonary congestion, and decreased left ventricular output."
+            },
+            {
+                id: 10,
+                question: "Which factor is classified as a non-surgical cause of bleeding in a patient following cardiopulmonary bypass?",
+                options: [
+                    "Reversal of heparin and abnormal clotting factors",
+                    "Uncauterized small blood vessels in the surgical field",
+                    "Osmotic diuresis induced by mannitol administration",
+                    "Disruption of a major suture line at the graft site"
+                ],
+                correct: 0,
+                rationale: "Non-surgical causes of bleeding after cardiopulmonary bypass include 1- Reversal of heparin and 2- Abnormal clotting factors, while uncauterized small vessels and suture line disruption are surgical causes."
+            },
+            {
+                id: 11,
+                question: "Within how many hours of the onset of myocardial infarction symptoms is an emergency coronary artery bypass grafting indicated?",
+                options: [
+                    "Within 6 hours of symptom onset",
+                    "Within 12 hours of symptom onset",
+                    "Within 24 hours of symptom onset",
+                    "Within 48 hours of symptom onset"
+                ],
+                correct: 0,
+                rationale: "Myocardial infarction within 6 hours of the onset of symptoms is a specific indication for emergency coronary artery bypass grafting."
+            },
+            {
+                id: 12,
+                question: "Why is preoperative carotid screening through angiography performed before coronary artery bypass grafting?",
+                options: [
+                    "To detect atherosclerotic carotid disease and identify stroke risk",
+                    "To evaluate baseline valvular function and left ventricular pressure",
+                    "To identify patients at high risk for postoperative respiratory failure",
+                    "To confirm the absence of occult infection prior to valve repair"
+                ],
+                correct: 0,
+                rationale: "Preoperative carotid screening through angiography is important to detect atherosclerotic carotid disease and serves in identifying patients at risk for stroke following coronary artery bypass grafting."
+            },
+            {
+                id: 13,
+                question: "Anti-anginal agents such as nitrates, beta-adrenergic blocking agents, and calcium channel blockers must be discontinued before cardiac surgery.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "All anti-anginal agents such as nitrates, beta-adrenergic blocking agents, and calcium channel blockers are continued preoperatively to prevent exacerbation of ischemic symptoms or myocardial damage."
+            },
+            {
+                id: 14,
+                question: "Which term describes a replacement heart valve obtained from a human cadaver that is seldom used?",
+                options: [
+                    "Homograft valve replacement",
+                    "Heterograft valve replacement",
+                    "Artificial valve replacement",
+                    "Autograft valve replacement"
+                ],
+                correct: 0,
+                rationale: "Among types of valve replacement, a homograft is obtained from a human cadaver and is seldom used, a heterograft is from a cow, and an artificial valve is made of stainless steel."
+            },
+            {
+                id: 15,
+                question: "Which intervention should the nurse perform immediately after a postoperative cardiac surgery patient is extubated?",
+                options: [
+                    "Administer humidified oxygen through a face mask and start physiotherapy",
+                    "Place the patient on cardiopulmonary bypass and monitor chest drainage",
+                    "Obtain a portable chest radiograph to verify endotracheal tube placement",
+                    "Administer a broad-spectrum prophylactic antibiotic and sedative agent"
+                ],
+                correct: 0,
+                rationale: "After extubation, the nurse should administer humidified oxygen through a face mask and start physiotherapy to support gas exchange and prevent respiratory complications."
+            },
+            {
+                id: 16,
+                question: "Which group of medications is specifically noted in the preoperative evaluation for interfering with platelet function?",
+                options: [
+                    "Ampicillin, furosemide, gentamicin, indomethacin, and penicillin",
+                    "Nitrates, beta-adrenergic blockers, digoxin, and calcium blockers",
+                    "Mannitol, heparin, protamine sulfate, and broad-spectrum antibiotics",
+                    "Morphine, midazolam, acetaminophen, and potassium chloride"
+                ],
+                correct: 0,
+                rationale: "In the preoperative medication history, ampicillin, furosemide, gentamicin, indomethacin, and penicillin are specifically identified as interfering with platelet function."
+            },
+            {
+                id: 17,
+                question: "How does an annuloplasty repair a regurgitated heart valve?",
+                options: [
+                    "By placing a flexible or semi-rigid ring or band around the stretched annulus",
+                    "By opening a narrowed and stiffened valve using a mechanical dilating instrument",
+                    "By removing calcified leaflets completely and sewing in a stainless steel valve",
+                    "By sewing an artificial fabric tube directly into the bulging section of the aorta"
+                ],
+                correct: 0,
+                rationale: "In annuloplasty, the surgeon places a flexible or semi-rigid ring or band around the stretched fibrous annulus to restore its correct size and shape so the valve leaflets can meet and close properly."
+            },
+            {
+                id: 18,
+                question: "Acute cerebral vascular accident and bleeding disorders are contraindications for coronary artery bypass grafting.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The contraindications for coronary artery bypass grafting are acute cerebral vascular accident and bleeding disorders."
+            },
+            {
+                id: 19,
+                question: "Following cardiopulmonary bypass, decreased cardiac output is directly related to which 4 factors?",
+                options: [
+                    "Hypothermia, anesthesia, myocardial edema, and electrolyte imbalances",
+                    "Hyperthermia, osmotic diuresis, heparin reversal, and pleural effusion",
+                    "Hypertension, excessive coughing, sleep deprivation, and denial",
+                    "Bradycardia, mitral prolapse, leaflet calcification, and carotid stenosis"
+                ],
+                correct: 0,
+                rationale: "After cardiopulmonary bypass, decreased cardiac output relates to hypothermia, anesthesia, myocardial edema, and electrolyte imbalances."
+            },
+            {
+                id: 20,
+                question: "During coronary artery bypass grafting, where is the harvested blood vessel anastomosed to bypass the obstruction?",
+                options: [
+                    "Distal to the point of coronary artery occlusion and to the ascending aorta",
+                    "Proximal to the point of coronary artery occlusion and to the right atrium",
+                    "Directly across the stenotic valve annulus and to the subclavian artery",
+                    "Between the lower left ventricular chamber and the descending abdominal aorta"
+                ],
+                correct: 0,
+                rationale: "Coronary artery bypass grafting involves a saphenous vein or internal mammary artery anastomosed to a coronary artery distal to the point of occlusion and to the ascending aorta."
+            },
+            {
+                id: 21,
+                question: "How frequently should wound incisions be monitored for drainage, increased pain, or discomfort in the postoperative cardiac patient?",
+                options: [
+                    "Every shift",
+                    "Every 2 hours",
+                    "Every 24 hours",
+                    "Every 48 hours"
+                ],
+                correct: 0,
+                rationale: "During postoperative nursing assessment, wound incisions should be monitored every shift for drainage, increased pain, or discomfort."
+            },
+            {
+                id: 22,
+                question: "Valve prolapse is a condition in which the heart valve is not formed right and lacks an opening entirely.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Atresia is the condition where the valve is not formed right and lacks an opening entirely, whereas prolapse occurs when the valve flaps stretch or bulge backward into the heart chamber."
+            },
+            {
+                id: 23,
+                question: "What specific educational information do heart valve surgery patients receive that differs from risk factor modification taught to coronary artery disease patients?",
+                options: [
+                    "Anticoagulation therapy and antibiotic prophylaxis prior to invasive procedures",
+                    "Fluid restriction and osmotic diuresis management prior to physical exercise",
+                    "Continuous epicardial pacing wire maintenance and home mechanical ventilation",
+                    "Daily betadine showers and strict avoidance of all anti-anginal medications"
+                ],
+                correct: 0,
+                rationale: "While patients with coronary artery disease receive education on risk factor modification, valve patients receive information about anticoagulation therapy and antibiotic prophylaxis prior to invasive procedures, including dental work."
+            },
+            {
+                id: 24,
+                question: "Where is the venous cannula placed to withdraw blood from the body during cardiopulmonary bypass?",
+                options: [
+                    "Right atrium, vena cava, or femoral vein",
+                    "Left atrium, pulmonary vein, or subclavian vein",
+                    "Left ventricle, ascending aorta, or femoral artery",
+                    "Right ventricle, pulmonary artery, or carotid artery"
+                ],
+                correct: 0,
+                rationale: "Cardiopulmonary bypass is accomplished by placing a venous cannula in the right atrium, vena cava, or femoral vein to withdraw venous blood from the body."
+            },
+            {
+                id: 25,
+                question: "How does the nurse ascertain the patency of the endotracheal tube in a mechanically ventilated patient after cardiac surgery?",
+                options: [
+                    "By monitoring airway pressure on the ventilator, suctioning frequently, and auscultating the chest",
+                    "By administering narcotic analgesics, encouraging self-care, and applying a humidified face mask",
+                    "By measuring urine specific gravity, checking capillary refill, and monitoring central venous pressure",
+                    "By having the patient use an incentive spirometer with a nose clip and mouthpiece every hour"
+                ],
+                correct: 0,
+                rationale: "Patency of the endotracheal tube is ascertained through monitoring airway pressure on the ventilator, suctioning at frequent intervals, and auscultating the chest and airway regularly."
+            },
+            {
+                id: 26,
+                question: "Aortic aneurysm surgery replaces a weakened, bulging section of the aorta with an artificial fabric graft while the heart is stopped using a bypass machine.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Aortic aneurysm surgery replaces a weakened, bulging section of the aorta with an artificial fabric tube called a graft after stopping the heart with a bypass machine."
+            },
+            {
+                id: 27,
+                question: "Why are dental consultations obtained during the preoperative preparation of a patient scheduled for cardiac surgery?",
+                options: [
+                    "To confirm the absence of any infection prior to the surgical procedure",
+                    "To ensure dentures can remain securely in place inside the operating room",
+                    "To evaluate airway patency before inserting the endotracheal tube",
+                    "To assess mucosal color and capillary refill as a baseline measurement"
+                ],
+                correct: 0,
+                rationale: "Dental consultations are performed during preoperative diagnostic studies to confirm the absence of any infection."
+            },
+            {
+                id: 28,
+                question: "Which agent is responsible for causing osmotic diuresis that contributes to fluid volume deficit after cardiopulmonary bypass?",
+                options: [
+                    "Mannitol",
+                    "Furosemide",
+                    "Heparin",
+                    "Digoxin"
+                ],
+                correct: 0,
+                rationale: "After cardiopulmonary bypass, patients are at high risk for fluid volume deficit related to blood loss, osmotic diuresis from mannitol, inadequate replacement, and bleeding."
+            },
+            {
+                id: 29,
+                question: "According to the anatomical overview of vessels used in bypass surgery, the internal mammary artery originates directly from which blood vessel?",
+                options: [
+                    "Subclavian artery",
+                    "Ascending aorta",
+                    "Left main coronary artery",
+                    "Pulmonary artery"
+                ],
+                correct: 0,
+                rationale: "As illustrated in the anatomical diagram of the internal mammary artery, also called the internal thoracic artery, it originates directly from the subclavian artery."
+            },
+            {
+                id: 30,
+                question: "Preoperative gastrointestinal preparation requires no eating or drinking after midnight on the day of surgery except for sips of water with medications.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Gastrointestinal preparation instructs no eating or drinking after midnight on the day of surgery except for sips of water with medications."
+            },
+            {
+                id: 31,
+                question: "How does the patient's skin appear if cardiac output has fallen in the postoperative period?",
+                options: [
+                    "Cool, moist, and cyanotic",
+                    "Warm, dry, and flushed",
+                    "Hot, diaphoretic, and erythematous",
+                    "Pale, dry, and jaundiced"
+                ],
+                correct: 0,
+                rationale: "When assessing restoration of cardiac output, the skin becomes cool, moist, and cyanotic if cardiac output has fallen."
+            },
+            {
+                id: 32,
+                question: "Which condition is listed among the 4 main causes of heart valve disease?",
+                options: [
+                    "Rheumatic fever and degenerative calcium deposits",
+                    "Osmotic diuresis and acute cerebral vascular accident",
+                    "Carotid atherosclerosis and triple vessel coronary disease",
+                    "Hypothermia and postoperative myocardial edema"
+                ],
+                correct: 0,
+                rationale: "Heart valve diseases occur as a result of 1- Rheumatic fever, 2- Other infections that destroy valve components, 3- Congenital defects, and 4- Degenerative changes such as calcium deposits or torn leaflets with advanced age."
+            },
+            {
+                id: 33,
+                question: "Why is a portable chest radiograph obtained immediately after the cardiac surgery patient arrives in the intensive care unit?",
+                options: [
+                    "To check the placement of the endotracheal tube and provide a baseline",
+                    "To measure arterial oxygen saturation and evaluate coagulation profiles",
+                    "To detect significant narrowing greater than 70 percent in coronary arteries",
+                    "To confirm the patency of the urinary catheter and epicardial pacing wires"
+                ],
+                correct: 0,
+                rationale: "In postoperative patient assessment, a portable chest radiograph is obtained to check the placement of the endotracheal tube and provide a baseline."
+            },
+            {
+                id: 34,
+                question: "When administering prescribed narcotic analgesics after cardiac surgery, the nurse must observe the patient for respiratory depressant effects.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "For relief of pain, the nurse administers the prescribed narcotic medication and observes the patient for any respiratory depressant effects of the analgesics."
+            },
+            {
+                id: 35,
+                question: "Post-cardiotomy psychosis is thought to be caused by which combination of factors in the critical care environment?",
+                options: [
+                    "Anxiety, sleep deprivation, and disorientation at night and day",
+                    "Hypothermia, residual general anesthesia, and electrolyte imbalance",
+                    "Narcotic analgesia, early extubation, and humidified oxygen therapy",
+                    "Fluid volume overload, low urine specific gravity, and bradycardia"
+                ],
+                correct: 0,
+                rationale: "Post-cardiotomy psychosis refers to abnormal behaviors occurring in varying intensity and duration after cardiac surgery and is thought to be due to anxiety, sleep deprivation, and disorientation at night and day."
+            },
+            {
+                id: 36,
+                question: "Which clinical criteria must be met before extubation is considered for a postoperative cardiac surgery patient?",
+                options: [
+                    "Hemodynamic stability, awake and alert state, airway protection, warmth, and normal blood gases",
+                    "Absence of chest tubes, pacing wire removal, mild hypothermia, and deep sedation",
+                    "Low urinary output, elevated urine specific gravity, cool skin, and high airway pressure",
+                    "Completion of mechanical ventilation, bradycardia, peripheral edema, and full systemic anticoagulation"
+                ],
+                correct: 0,
+                rationale: "Extubation may be considered once hemodynamic stability is achieved and the patient is awake, alert, able to protect his own airway, is warm, and has blood gases within the normal range."
+            },
+            {
+                id: 37,
+                question: "What direct hemodynamic effect occurs in the left atrium as a result of heart valve regurgitation?",
+                options: [
+                    "Fluid overload and dilatation of the left atrium",
+                    "Decreased atrial pressure and shrinkage of the left atrium",
+                    "Complete obstruction of blood flow into the left atrium",
+                    "Backward bulging of the aortic graft into the left atrium"
+                ],
+                correct: 0,
+                rationale: "Valves that do not close properly allow blood leakage during the cardiac cycle, resulting in fluid overload and dilatation of the left atrium."
+            },
+            {
+                id: 38,
+                question: "In the abnormal coronary angiogram example provided in the lecture, what percentage of narrowing in the left anterior descending artery is classified as significant stenosis?",
+                options: [
+                    "Greater than 70 percent",
+                    "Greater than 30 percent",
+                    "Greater than 50 percent",
+                    "Greater than 90 percent"
+                ],
+                correct: 0,
+                rationale: "The abnormal coronary angiogram illustrates significant narrowing in the left anterior descending artery defined as significant stenosis greater than 70 percent."
+            },
+            {
+                id: 39,
+                question: "How is inadequate fluid volume manifested when assessing renal function in a postoperative cardiac surgery patient?",
+                options: [
+                    "Low urinary output and a high urine specific gravity",
+                    "High urinary output and a low urine specific gravity",
+                    "Low urinary output and a low urine specific gravity",
+                    "High urinary output and a high urine specific gravity"
+                ],
+                correct: 0,
+                rationale: "When evaluating urinary output and urine specific gravity after cardiac surgery, inadequate fluid volume may be manifested by low urinary output and a high specific gravity."
+            },
+            {
+                id: 40,
+                question: "What is the name of the thin cable that passes through the skin to connect an implanted left ventricular assist device to the external controller and batteries?",
+                options: [
+                    "Driveline",
+                    "Cannula",
+                    "Annulus",
+                    "Homograft"
+                ],
+                correct: 0,
+                rationale: "In a left ventricular assist device, a thin cable called a driveline goes through the skin to connect the implanted mechanical pump to an external controller and batteries."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>

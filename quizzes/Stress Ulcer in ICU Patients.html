@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Stress Ulcer in ICU Patients</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 30 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "What chemical substance is applied to the fecal sample on guaiac paper during a stool guaiac test to yield a blue reaction product within seconds?",
+                options: [
+                    "Sodium bicarbonate",
+                    "Hydrochloric acid",
+                    "Hydrogen peroxide",
+                    "Isotonic saline"
+                ],
+                correct: 2,
+                rationale: "The stool guaiac test involves placing a fecal sample on guaiac paper containing alpha-guaiaconic acid and applying hydrogen peroxide, which yields a blue reaction product within seconds in the presence of blood."
+            },
+            {
+                id: 2,
+                question: "Stress ulcers are identical to peptic ulcer disease because they tend to be fewer in number, deeper, and more localized.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Stress ulcers are different from peptic ulcer disease because they tend to be more numerous, shallower, and more diffuse."
+            },
+            {
+                id: 3,
+                question: "What is the reported mortality rate of intensive care unit patients with stress ulcer bleeding compared to the 9% rate in those without an episode of gastrointestinal bleeding?",
+                options: [
+                    "19%",
+                    "29%",
+                    "39%",
+                    "49%"
+                ],
+                correct: 3,
+                rationale: "An acute bleeding episode due to a stress ulcer increases the risk of death in the intensive care unit, with a mortality rate of 49% compared to 9% in patients without gastrointestinal bleeding."
+            },
+            {
+                id: 4,
+                question: "Which duration of major surgery is specifically classified as a risk factor for developing a stress ulcer in critically ill patients?",
+                options: [
+                    "Lasting more than 1 hour",
+                    "Lasting more than 2 hours",
+                    "Lasting more than 3 hours",
+                    "Lasting more than 4 hours"
+                ],
+                correct: 3,
+                rationale: "Major surgery lasting more than 4 hours is identified as a risk factor associated with physiological stress that predisposes patients to stress ulcers."
+            },
+            {
+                id: 5,
+                question: "How frequently should nursing staff assess gastric pH using pH paper or a pH sensor, especially in high-risk intensive care unit patients?",
+                options: [
+                    "Every 1 to 2 hours",
+                    "Every 2 to 4 hours",
+                    "Every 4 to 6 hours",
+                    "Every 8 to 12 hours"
+                ],
+                correct: 1,
+                rationale: "Nursing interventions specify assessing gastric pH every 2 to 4 hours by using either pH paper or a pH sensor, particularly in high-risk patients."
+            },
+            {
+                id: 6,
+                question: "Prostaglandins and nitric oxide protect the gastric mucosal barrier by stimulating the secretion of mucus and bicarbonate while inhibiting the secretion of acid.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Prostaglandins and nitric oxide are key protective mechanisms of the gastric mucosa that stimulate mucus and bicarbonate secretion and inhibit acid secretion."
+            },
+            {
+                id: 7,
+                question: "Which of the following criteria, when combined with overt bleeding, defines clinically important bleeding in stress ulcer patients?",
+                options: [
+                    "A spontaneous drop of blood pressure of 10 mmHg within 24 hours",
+                    "An orthostatic increase in pulse rate of 10 beats per minute",
+                    "A decrease in hemoglobin of at least 2 g/dL in 24 hours",
+                    "A transfusion of 1 unit of packed red blood cells within 48 hours"
+                ],
+                correct: 2,
+                rationale: "Clinically important bleeding includes overt bleeding plus a decrease in hemoglobin of at least 2 g/dL in 24 hours, a transfusion of 2 units of packed red blood cells within 24 hours, or a spontaneous blood pressure drop of 20 mmHg or more."
+            },
+            {
+                id: 8,
+                question: "Which pharmacological agent is classified as a histamine-2-receptor antagonist used for stress ulcer prophylaxis?",
+                options: [
+                    "Omeprazole",
+                    "Lansoprazole",
+                    "Dexlansoprazole",
+                    "Ranitidine"
+                ],
+                correct: 3,
+                rationale: "Ranitidine and cimetidine are histamine-2-receptor antagonists, whereas omeprazole, lansoprazole, dexlansoprazole, and pantoprazole are proton pump inhibitors."
+            },
+            {
+                id: 9,
+                question: "In what percentage of critically ill patients can stress ulceration be demonstrated if followed by serial endoscopic examination?",
+                options: [
+                    "10% to 30%",
+                    "30% to 50%",
+                    "50% to 70%",
+                    "70% to 100%"
+                ],
+                correct: 3,
+                rationale: "Depending on patient disease and severity of illness, stress ulceration can be demonstrated in 70% to 100% of critically ill patients when followed by serial endoscopic examination."
+            },
+            {
+                id: 10,
+                question: "How is early enteral feeding defined in terms of the timeframe for introducing nutrition after intensive care unit admission?",
+                options: [
+                    "Within 6 to 12 hours of admission",
+                    "Within 12 to 24 hours of admission",
+                    "Within 24 to 48 hours of admission",
+                    "Within 48 to 72 hours of admission"
+                ],
+                correct: 2,
+                rationale: "Early enteral feeding is defined as introducing enteral nutrition within 24 to 48 hours of intensive care unit admission."
+            },
+            {
+                id: 11,
+                question: "Gastric lavage with ice-cold distilled water through a small-bore tube is recommended during clinically significant bleeding to remove clots and reduce gastric distention.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Once appropriate resuscitation is underway, gastric lavage is performed through a large-bore tube using room temperature saline, not ice-cold distilled water or a small-bore tube."
+            },
+            {
+                id: 12,
+                question: "What percentage of the daily caloric requirement should be delivered during adequate early enteral feeding to help prevent stress ulcers?",
+                options: [
+                    "50% to 70% of daily caloric requirement",
+                    "70% to 85% of daily caloric requirement",
+                    "90% to 110% of daily caloric requirement",
+                    "120% to 140% of daily caloric requirement"
+                ],
+                correct: 2,
+                rationale: "Adequate early enteral feeding involves delivering 90% to 110% of the daily caloric requirement alongside at least 80% of the recommended daily protein intake."
+            },
+            {
+                id: 13,
+                question: "How do gastroduodenal epithelial cells provide structural protection against damage from gastric acid and pepsin?",
+                options: [
+                    "They are connected by tight junctions that prevent acid penetration",
+                    "They secrete hydrochloric acid to neutralize digestive enzymes",
+                    "They undergo rapid apoptosis every 30 minutes during digestion",
+                    "They form a keratinized squamous layer over the gastric fundus"
+                ],
+                correct: 0,
+                rationale: "Gastroduodenal epithelial cells are protected structurally against damage from acid and pepsin because they are connected by tight junctions that help prevent acid penetration."
+            },
+            {
+                id: 14,
+                question: "Which of the following is considered the main pathophysiologic mechanism responsible for stress ulcer development across various risk factors?",
+                options: [
+                    "Excessive bacterial colonization by Helicobacter pylori",
+                    "Decreased perfusion of the stomach mucosa",
+                    "Hypertrophy of the pyloric sphincter muscle",
+                    "Autoimmune destruction of gastric parietal cells"
+                ],
+                correct: 1,
+                rationale: "Decreased perfusion of the stomach mucosa is the main mechanism of stress ulcer development, contributing to impaired mucus secretion, low mucosal pH, and poor cell regeneration."
+            },
+            {
+                id: 15,
+                question: "What phenolic compound extracted from the wood resin of Guaiacum trees is contained within the paper used for the fecal occult blood test?",
+                options: [
+                    "Alpha-guaiaconic acid",
+                    "Salicylic acid",
+                    "Ascorbic acid",
+                    "Para-aminobenzoic acid"
+                ],
+                correct: 0,
+                rationale: "Guaiac paper contains a phenolic compound called alpha-guaiaconic acid, which is extracted from the wood resin of Guaiacum trees."
+            },
+            {
+                id: 16,
+                question: "Adequate early enteral feeding helps prevent stress ulcers by preventing bacterial translocation across the gut wall and stimulating gut-associated lymphoid tissue.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Adequate early enteral feeding prevents stress ulcers by preventing bacterial translocation across the gut wall, optimizing splanchnic blood flow distribution, and enhancing mucosal immunity via stimulation of gut-associated lymphoid tissue."
+            },
+            {
+                id: 17,
+                question: "Which blood products are specifically used to reverse coagulopathy during the management of clinically significant stress ulcer bleeding?",
+                options: [
+                    "Whole blood or leukocyte-depleted red cells",
+                    "Platelets or fresh frozen plasma",
+                    "Human albumin or synthetic colloids",
+                    "Immunoglobulins or recombinant erythropoietin"
+                ],
+                correct: 1,
+                rationale: "Management of clinically significant bleeding includes reversing coagulopathy by platelets transfusion or transfusion of fresh frozen plasma."
+            },
+            {
+                id: 18,
+                question: "Which of the following clinical findings is classified as a manifestation of overt gastrointestinal bleeding rather than occult bleeding?",
+                options: [
+                    "Positive stool guaiac test",
+                    "Coffee ground emesis",
+                    "Asymptomatic superficial erosion",
+                    "Unexplained iron deficiency"
+                ],
+                correct: 1,
+                rationale: "Overt bleeding manifestations include hematemesis, coffee ground emesis, melena, and bloody nasogastric aspirate, whereas a positive guaiac test indicates occult bleeding."
+            },
+            {
+                id: 19,
+                question: "What minimum percentage of the recommended daily protein intake should be delivered as part of adequate early enteral feeding in the intensive care unit?",
+                options: [
+                    "At least 50%",
+                    "At least 60%",
+                    "At least 80%",
+                    "At least 100%"
+                ],
+                correct: 2,
+                rationale: "Guidelines for adequate early enteral feeding specify delivering 90% to 110% of the daily caloric requirement and at least 80% of the recommended daily protein intake."
+            },
+            {
+                id: 20,
+                question: "Which glycoprotein mucous barrier coats the gastroduodenal mucosa to protect the surface epithelium from hydrogen ions?",
+                options: [
+                    "C-reactive proteins",
+                    "Heat-shock proteins",
+                    "Bence-Jones proteins",
+                    "Complement system proteins"
+                ],
+                correct: 1,
+                rationale: "The gastroduodenal mucosa is coated by a glycoprotein mucous barrier consisting of heat-shock proteins that protects the surface of the epithelium from hydrogen ions."
+            },
+            {
+                id: 21,
+                question: "Gastrointestinal perforation is the most common complication of stress ulcers in intensive care unit patients.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Gastrointestinal bleeding is the most common and potentially life-threatening complication of stress ulcers, whereas perforation leading to peritonitis is rare."
+            },
+            {
+                id: 22,
+                question: "In the pathophysiology of stress ulcers, what direct effect results from splanchnic and mucosal hypoperfusion?",
+                options: [
+                    "Increased gastrointestinal motility",
+                    "Increased bicarbonate secretion",
+                    "Acid back-diffusion",
+                    "Vasodilation of splanchnic arteries"
+                ],
+                correct: 2,
+                rationale: "Splanchnic and mucosal hypoperfusion leads to decreased bicarbonate secretion, decreased mucosal blood flow, decreased gastrointestinal motility, decreased protective factors, and acid back-diffusion."
+            },
+            {
+                id: 23,
+                question: "Which alternative medical term is used synonymously with stress ulcer in critically ill patients?",
+                options: [
+                    "Chronic atrophic gastritis",
+                    "Hemorrhagic gastritis",
+                    "Zollinger-Ellison syndrome",
+                    "Hypertrophic gastropathy"
+                ],
+                correct: 1,
+                rationale: "Stress ulcer is also called stress-related erosive syndrome, erosive gastritis, and hemorrhagic gastritis."
+            },
+            {
+                id: 24,
+                question: "What orthostatic vital sign changes, when accompanying overt bleeding, meet the criteria for clinically important bleeding?",
+                options: [
+                    "Pulse rate increase of 10 beats per minute and systolic blood pressure decrease of 5 mmHg",
+                    "Pulse rate increase of 15 beats per minute and diastolic blood pressure decrease of 10 mmHg",
+                    "Pulse rate increase of 20 beats per minute and systolic blood pressure decrease of 10 mmHg",
+                    "Pulse rate increase of 30 beats per minute and diastolic blood pressure decrease of 25 mmHg"
+                ],
+                correct: 2,
+                rationale: "Clinically important bleeding includes overt bleeding plus an orthostatic increase in pulse rate of 20 beats per minute and a decrease in systolic blood pressure of 10 mmHg."
+            },
+            {
+                id: 25,
+                question: "What is the primary purpose of performing gastric lavage with room temperature saline after resuscitation is underway in a bleeding patient?",
+                options: [
+                    "To sterilize the gastric mucosa before endoscopic biopsy",
+                    "To break down and remove clots and reduce gastric distention",
+                    "To stimulate vagal nerve tone and increase gastric motility",
+                    "To lower core body temperature in febrile septic patients"
+                ],
+                correct: 1,
+                rationale: "Gastric lavage through a large-bore tube with room temperature saline breaks down and removes clots and reduces gastric distention, thereby minimizing the risk of aspiration."
+            },
+            {
+                id: 26,
+                question: "Which of the following medications is a proton pump inhibitor used in pharmacological prophylaxis against stress-related mucosal bleeding?",
+                options: [
+                    "Cimetidine",
+                    "Pantoprazole",
+                    "Ranitidine",
+                    "Famotidine"
+                ],
+                correct: 1,
+                rationale: "Pantoprazole, omeprazole, lansoprazole, and dexlansoprazole are proton pump inhibitors used to prevent stress ulcers, whereas cimetidine and ranitidine are histamine-2-receptor antagonists."
+            },
+            {
+                id: 27,
+                question: "Stress ulcers typically develop several weeks after a patient is discharged from the intensive care unit.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Stress ulcers develop acutely within hours of intensive care unit admission, not weeks after discharge."
+            },
+            {
+                id: 28,
+                question: "What serious abdominal condition can occur if a rare stress ulcer perforation penetrates the stomach wall?",
+                options: [
+                    "Intussusception",
+                    "Peritonitis",
+                    "Cholecystitis",
+                    "Diverticulitis"
+                ],
+                correct: 1,
+                rationale: "Although rare, stress ulcers can perforate the stomach wall and lead directly to peritonitis."
+            },
+            {
+                id: 29,
+                question: "Which hemodynamic factor combines with shock, hypotension, and hypovolemia during critical illness to decrease cardiac output and cause splanchnic hypoperfusion?",
+                options: [
+                    "Decreased aldosterone secretion",
+                    "Increased catecholamines",
+                    "Excessive nitric oxide synthesis",
+                    "Enhanced parasympathetic tone"
+                ],
+                correct: 1,
+                rationale: "During critical illness, increased catecholamines along with shock, hypotension, and hypovolemia lead to decreased cardiac output and increased vasoconstriction, causing splanchnic and mucosal hypoperfusion."
+            },
+            {
+                id: 30,
+                question: "Besides bleeding and perforation, what structural complication can result from stress ulceration in the upper gastrointestinal tract?",
+                options: [
+                    "Esophageal varices",
+                    "Gastric outlet obstruction",
+                    "Zenker diverticulum",
+                    "Hiatal hernia"
+                ],
+                correct: 1,
+                rationale: "The three listed complications of stress ulcers are gastrointestinal bleeding, perforation leading to peritonitis, and obstruction where ulceration leads to gastric outlet obstruction."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>

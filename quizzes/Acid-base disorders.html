@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Acid-base disorders</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 30 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Below what blood pH threshold is intravenous sodium bicarbonate often prescribed to help neutralize acids in a patient with metabolic acidosis?",
+                options: [
+                    "Below 7.35",
+                    "Below 7.25",
+                    "Below 7.1",
+                    "Below 6.9"
+                ],
+                correct: 2,
+                rationale: "When blood pH drops below 7.1 during metabolic acidosis, intravenous sodium bicarbonate is often prescribed to help neutralize the acids in the blood."
+            },
+            {
+                id: 2,
+                question: "Instructing hyperventilating patients to rebreathe carbon dioxide by breathing into a paper bag is no longer recommended because it can cause significant hypoxemia.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Current research indicates that instructing hyperventilating patients to rebreathe carbon dioxide using a paper bag can cause significant hypoxemia with serious complications, so this intervention is no longer recommended."
+            },
+            {
+                id: 3,
+                question: "Which arterial blood gas values accurately define respiratory alkalosis?",
+                options: [
+                    "pH below 7.35 and PaCO2 above 45 mmHg",
+                    "pH above 7.45 and PaCO2 below 35 mmHg",
+                    "pH below 7.35 and HCO3 below 22 mEq/L",
+                    "pH above 7.45 and HCO3 above 26 mEq/L"
+                ],
+                correct: 1,
+                rationale: "Respiratory alkalosis develops when too much carbon dioxide is removed through respiration and is defined by a pH above 7.45 and a PaCO2 below 35 mmHg."
+            },
+            {
+                id: 4,
+                question: "How many diaphragmatic breathing cycles are typically needed during breathing retraining before a hyperventilating patient begins to feel a sense of calmness?",
+                options: [
+                    "1 to 3 breathing cycles",
+                    "5 to 10 breathing cycles",
+                    "15 to 20 breathing cycles",
+                    "25 to 30 breathing cycles"
+                ],
+                correct: 1,
+                rationale: "Breathing retraining focuses the patient on abdominal breathing, and after 5 to 10 breathing cycles, the patient should begin to feel a sense of calmness with a reduction in anxiety."
+            },
+            {
+                id: 5,
+                question: "Under which specific condition does excessive intake of calcium antacids cause metabolic alkalosis?",
+                options: [
+                    "When administered concurrently with loop diuretics",
+                    "When administered concurrently with Kayexalate",
+                    "When administered to patients with acute hepatic failure",
+                    "When administered during continuous nasogastric feeding"
+                ],
+                correct: 1,
+                rationale: "Although it was once thought that excessive intake of calcium antacids alone could cause metabolic alkalosis, it has been found that this only occurs if they are administered concurrently with Kayexalate."
+            },
+            {
+                id: 6,
+                question: "The renal regulatory system acts within minutes to correct acute acid-base imbalances, making its response immediately visible upon clinical assessment.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The respiratory system acts rapidly within minutes, whereas the kidneys are long-term regulators that take hours or days to correct pH, and their response is not visible upon assessment."
+            },
+            {
+                id: 7,
+                question: "What is the normal reference range for the bicarbonate level in arterial blood gas analysis?",
+                options: [
+                    "14 to 18 mEq/L",
+                    "18 to 22 mEq/L",
+                    "22 to 26 mEq/L",
+                    "26 to 30 mEq/L"
+                ],
+                correct: 2,
+                rationale: "HCO3 is the bicarbonate level of the blood managed by the kidneys, and its normal range is 22 to 26 mEq/L."
+            },
+            {
+                id: 8,
+                question: "Which of the following is classified as a neurologic complication of metabolic acidosis?",
+                options: [
+                    "Decreased cerebral blood flow",
+                    "Increased cerebral metabolism",
+                    "Increased sympathetic discharge",
+                    "Increased cerebral blood flow"
+                ],
+                correct: 3,
+                rationale: "The neurologic complications of metabolic acidosis include obtundation, increased cerebral blood flow, decreased sympathetic discharge, and decreased cerebral metabolism."
+            },
+            {
+                id: 9,
+                question: "If breathing retraining fails to resolve severe symptoms of hyperventilation in respiratory alkalosis, what medication and dose may be prescribed?",
+                options: [
+                    "Lorazepam 0.5 to 1 mg orally or intravenously",
+                    "Morphine 2 to 4 mg subcutaneously or intramuscularly",
+                    "Diazepam 5 to 10 mg orally or rectally",
+                    "Midazolam 2 to 5 mg intravenously or intranasally"
+                ],
+                correct: 0,
+                rationale: "If the breathing retraining technique is unsuccessful in resolving a hyperventilation episode and severe symptoms persist, the patient may be prescribed a small dose of a short-acting benzodiazepine such as lorazepam 0.5 to 1 mg orally or 0.5 to 1 mg intravenously."
+            },
+            {
+                id: 10,
+                question: "Which clinical term specifically describes the process that causes an alkaline condition of the blood?",
+                options: [
+                    "Alkalemia",
+                    "Alkalosis",
+                    "Acidemia",
+                    "Acidosis"
+                ],
+                correct: 1,
+                rationale: "Alkalemia is the alkaline condition of the blood in which the pH is greater than 7.45, whereas alkalosis is the process causing alkalemia."
+            },
+            {
+                id: 11,
+                question: "Overdoses of salicylates can cause respiratory alkalosis initially and then often progress to metabolic acidosis in later stages.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Overdoses of salicylates and other toxins can cause respiratory alkalosis initially due to hyperventilation and then often progress to metabolic acidosis in later stages."
+            },
+            {
+                id: 12,
+                question: "Which cardiovascular complication is directly associated with metabolic acidosis?",
+                options: [
+                    "Increased cardiac contractility",
+                    "Increased fibrillation threshold",
+                    "Decreased sensitivity to catecholamines",
+                    "Increased renal and hepatic blood flow"
+                ],
+                correct: 2,
+                rationale: "Cardiovascular complications of metabolic acidosis include decreased cardiac contractility, decreased fibrillation threshold, decreased sensitivity to catecholamines, and decreased renal and hepatic blood flow."
+            },
+            {
+                id: 13,
+                question: "How do the kidneys and lungs respond to compensate when the blood pH becomes too low during acidosis?",
+                options: [
+                    "Respiratory rate increases to eliminate CO2 and kidneys retain bicarbonate",
+                    "Respiratory rate decreases to retain CO2 and kidneys excrete bicarbonate",
+                    "Respiratory rate increases to retain CO2 and kidneys excrete hydrogen ions",
+                    "Respiratory rate decreases to eliminate CO2 and kidneys retain hydrogen ions"
+                ],
+                correct: 0,
+                rationale: "When pH is too low during acidosis, the respiratory rate quickly increases to eliminate acid in the form of CO2, while the kidneys excrete additional hydrogen ions in the urine and retain bicarbonate."
+            },
+            {
+                id: 14,
+                question: "Which of the following clinical manifestations is characteristic of metabolic alkalosis?",
+                options: [
+                    "Rapid deep Kussmaul breathing",
+                    "Hypertonic muscles and tetany",
+                    "Delirium and paranoia",
+                    "Severe hyperkalemia"
+                ],
+                correct: 1,
+                rationale: "Signs and symptoms of metabolic alkalosis include slow shallow compensatory respiration, hypertonic muscles or tetany, and mental dullness."
+            },
+            {
+                id: 15,
+                question: "Why do hypoxic disorders like acute asthma exacerbations or pulmonary embolisms transition from initial respiratory alkalosis to respiratory acidosis?",
+                options: [
+                    "Renal bicarbonate excretion accelerates rapidly within minutes",
+                    "Respiratory muscles tire, bradycardia develops, and CO2 builds up",
+                    "Excessive ketones accumulate from anaerobic lipid metabolism",
+                    "Alveolar hyperventilation permanently washes out all arterial oxygen"
+                ],
+                correct: 1,
+                rationale: "Hypoxic disorders initially cause respiratory alkalosis as the lungs breathe faster to increase oxygenation, but later cause respiratory acidosis as respiratory muscles tire, bradycardia develops, and CO2 builds up in the blood."
+            },
+            {
+                id: 16,
+                question: "In metabolic acidosis, the actual numerical blood pH value is a more important determinant of clinical outcome than the underlying cause of the acidosis.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Acidemia caused by sepsis has a much different outcome than a similar degree of acidosis seen in diabetic ketoacidosis, suggesting that the underlying cause of acidosis is more important than the actual pH."
+            },
+            {
+                id: 17,
+                question: "Which of the following conditions causes metabolic acidosis primarily through gastrointestinal bicarbonate loss rather than acid accumulation?",
+                options: [
+                    "Ureterosigmoidostomy",
+                    "Methanol intoxication",
+                    "Diabetic ketoacidosis",
+                    "Lactic acidosis"
+                ],
+                correct: 0,
+                rationale: "Causes of metabolic acidosis due to gastrointestinal bicarbonate loss include diarrhea, pancreatic or biliary fistula, ileostomy, small bowel drains, and ureterosigmoidostomy."
+            },
+            {
+                id: 18,
+                question: "What is the normal reference range for the partial pressure of arterial carbon dioxide in the blood?",
+                options: [
+                    "20 to 30 mmHg",
+                    "25 to 35 mmHg",
+                    "35 to 45 mmHg",
+                    "45 to 55 mmHg"
+                ],
+                correct: 2,
+                rationale: "The normal PaCO2 level in arterial blood gas analysis is 35 to 45 mmHg."
+            },
+            {
+                id: 19,
+                question: "During hypokalemia, what ionic shift occurs across cell membranes to maintain electrical neutrality, contributing to metabolic alkalosis?",
+                options: [
+                    "Potassium moves into cells and hydrogen ions move into the bloodstream",
+                    "Potassium moves out of cells and hydrogen ions move into cells",
+                    "Bicarbonate moves into cells and chloride ions move into the bloodstream",
+                    "Sodium moves out of cells and calcium ions move into cells"
+                ],
+                correct: 1,
+                rationale: "When hypokalemia occurs, potassium shifts out of cells into the bloodstream to support cardiac function, while hydrogen ions move from the bloodstream into cells to maintain electrical neutrality."
+            },
+            {
+                id: 20,
+                question: "Which signs and symptoms are typically seen in patients with mild to moderate hypercapnia in respiratory acidosis?",
+                options: [
+                    "Seizures, coma, and complete circulatory collapse",
+                    "Delirium, paranoia, and severe respiratory depression",
+                    "Mild dyspnea, daytime sluggishness, headaches, or hypersomnolence",
+                    "Chest tightness, paresthesias, and rapid deep Kussmaul breathing"
+                ],
+                correct: 2,
+                rationale: "Patients with mild to moderate hypercapnia may be anxious and complain of mild dyspnea, daytime sluggishness, headaches, or hypersomnolence, whereas delirium, seizures, and coma occur with higher or rapidly rising CO2 levels."
+            },
+            {
+                id: 21,
+                question: "What is the chemical definition of a base in acid-base balance terminology?",
+                options: [
+                    "A substance that can donate hydrogen ions to a solution",
+                    "A substance that can accept hydrogen ions",
+                    "A by-product of protein and fat catabolism that lowers pH",
+                    "A neutral molecule with a fixed pH of 7"
+                ],
+                correct: 1,
+                rationale: "An acid is a substance that can donate hydrogen ions, whereas a base is an alkaline substance that can accept hydrogen ions."
+            },
+            {
+                id: 22,
+                question: "Hydrogen ions in the blood are normal by-products of the metabolism of proteins, fats, and carbohydrates.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Hydrogen ions are by-products of the metabolism of substances such as proteins, fats, and carbohydrates, creating extra hydrogen ions in the blood that must be balanced."
+            },
+            {
+                id: 23,
+                question: "Which metabolic complication is specifically associated with metabolic acidosis?",
+                options: [
+                    "Hypokalemia",
+                    "Hypophosphatemia",
+                    "Inhibition of anaerobic metabolism",
+                    "Decreased protein metabolism"
+                ],
+                correct: 2,
+                rationale: "Metabolic complications of metabolic acidosis include inhibition of anaerobic metabolism, hyperkalemia, hyperphosphatemia, increased protein metabolism, and increased metabolic rate."
+            },
+            {
+                id: 24,
+                question: "What are the 3 lines of response the body uses to maintain pH homeostasis?",
+                options: [
+                    "Hepatic metabolism, splenic filtration, and lymphatic drainage",
+                    "Chemical buffers, respiratory regulation, and renal regulation",
+                    "Gastric acid secretion, pancreatic enzymes, and biliary excretion",
+                    "Cardiac output, vascular resistance, and baroreceptor reflexes"
+                ],
+                correct: 1,
+                rationale: "The body has 3 lines of response to maintain pH homeostasis: chemical buffers, respiratory regulation, and renal regulation."
+            },
+            {
+                id: 25,
+                question: "Which arterial blood gas profile indicates metabolic alkalosis?",
+                options: [
+                    "pH below 7.35 and HCO3 below 22 mEq/L",
+                    "pH below 7.35 and PaCO2 above 45 mmHg",
+                    "pH above 7.45 and HCO3 above 26 mEq/L",
+                    "pH above 7.45 and PaCO2 below 35 mmHg"
+                ],
+                correct: 2,
+                rationale: "Metabolic alkalosis is defined by a pH above 7.45 and an HCO3 level above 26 mEq/L on arterial blood gas results."
+            },
+            {
+                id: 26,
+                question: "How do noninvasive positive pressure ventilation devices such as BiPAP and CPAP assist in the nursing management of respiratory acidosis?",
+                options: [
+                    "They decrease the depth of respirations to retain carbon dioxide",
+                    "They increase the depth of respirations, remove carbon dioxide, and oxygenate the patient",
+                    "They deliver intravenous sodium bicarbonate directly into the pulmonary circulation",
+                    "They induce diaphragmatic fatigue to slow down hyperventilation"
+                ],
+                correct: 1,
+                rationale: "BiPAP and CPAP devices provide noninvasive positive pressure ventilation to increase the depth of respirations, remove carbon dioxide, and oxygenate the patient."
+            },
+            {
+                id: 27,
+                question: "A blood pH of 7 is considered the normal physiological baseline for human arterial blood.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "A neutral pH of 7 is the pH of water, whereas human blood normally has a slightly alkaline pH between 7.35 and 7.45."
+            },
+            {
+                id: 28,
+                question: "Which of the following is a recognized cause of metabolic alkalosis due to excessive gastrointestinal loss of hydrogen ions?",
+                options: [
+                    "Severe acute diarrhea",
+                    "Pancreatic or biliary fistula",
+                    "Prolonged vomiting or nasogastric suctioning",
+                    "Creation of an ileostomy"
+                ],
+                correct: 2,
+                rationale: "Prolonged or severe vomiting and nasogastric suctioning cause gastrointestinal loss of hydrogen ions from acidic gastric secretions, leading to metabolic alkalosis, whereas diarrhea and fistulas cause bicarbonate loss and metabolic acidosis."
+            },
+            {
+                id: 29,
+                question: "Which respiratory complication occurs as a consequence of metabolic acidosis?",
+                options: [
+                    "Decreased minute ventilation",
+                    "Decreased diaphragmatic contractility",
+                    "Bronchospasm and stridor",
+                    "Acute pulmonary embolism"
+                ],
+                correct: 1,
+                rationale: "The respiratory complications of metabolic acidosis include increased minute ventilation, dyspnea, decreased diaphragmatic contractility, and respiratory muscle fatigue."
+            },
+            {
+                id: 30,
+                question: "What factors determine the method by which the body attempts to achieve acid-base homeostasis?",
+                options: [
+                    "Patient age, body mass index, and ambient room temperature",
+                    "Length of time of the imbalance, baseline organ function, and underlying condition",
+                    "Serum albumin concentration, hemoglobin level, and platelet count",
+                    "Heart rate variability, systolic blood pressure, and central venous pressure"
+                ],
+                correct: 1,
+                rationale: "The method by which the body attempts to achieve homeostasis depends on 3 factors: the length of time of the imbalance, the baseline function of the organs involved, and the underlying condition resulting in the imbalance."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Glycemic Control in Critically Ill Patients</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 30 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which method of enteral nutrition is administered over 20 to 30 minutes using a feeding bag via gravity drip?",
+                options: [
+                    "Continuous enteral feeding",
+                    "Cyclic enteral feeding",
+                    "Bolus enteral feeding",
+                    "Intermittent gravity drip feeding"
+                ],
+                correct: 3,
+                rationale: "Intermittent gravity drip feeding is administered using a feeding bag via gravity drip over 20-30 minutes, whereas bolus feeding takes 5 minutes or less via a syringe."
+            },
+            {
+                id: 2,
+                question: "What is the recommended threshold for Time in Target Range to significantly improve survival rates and reduce sternal wound infections in the intensive care unit?",
+                options: [
+                    "More than 50%",
+                    "More than 60%",
+                    "More than 70%",
+                    "More than 85%"
+                ],
+                correct: 2,
+                rationale: "A Time in Target Range of more than 70% is recommended because it results in significantly improved survival rates, reduced sternal wound infection, and decreased length of stay in the intensive care unit."
+            },
+            {
+                id: 3,
+                question: "Tight glycemic control does not confer any advantage to critically ill patients and may increase the risk of hypoglycemia by 5 times.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Evidence suggests that tight glycemic control targeting 80-110 mg/dL does not confer any advantage to critically ill patients and may increase the risk of hypoglycemia by 5 times and cause harm."
+            },
+            {
+                id: 4,
+                question: "Using the patient-specific formula for 50% dextrose dosing in intensive care unit patients, how many grams of 50% dextrose should be administered to a patient with an initial blood glucose of 50 mg/dL?",
+                options: [
+                    "10 g",
+                    "15 g",
+                    "20 g",
+                    "25 g"
+                ],
+                correct: 0,
+                rationale: "The patient-specific formula is 50% dextrose dose in grams = [100 - BG] x 0.2 g. For a blood glucose of 50 mg/dL, [100 - 50] x 0.2 = 50 x 0.2 = 10 g."
+            },
+            {
+                id: 5,
+                question: "Before commencing an intravenous insulin infusion, with how much insulin solution should the entire infusion apparatus be flushed due to considerable adsorption to containers and tubing?",
+                options: [
+                    "5 to 10 mL",
+                    "10 to 15 mL",
+                    "20 to 50 mL",
+                    "60 to 100 mL"
+                ],
+                correct: 2,
+                rationale: "Because adsorption of insulin to infusion containers and tubing is considerable, nursing interventions specify flushing the entire infusion apparatus with 20-50 mL of insulin solution before starting the infusion."
+            },
+            {
+                id: 6,
+                question: "Which of the following is classified as an endogenous risk factor that predisposes critically ill patients to stress-induced hyperglycemia?",
+                options: [
+                    "Administration of lithium",
+                    "Prolonged bed rest",
+                    "Parenteral nutrition overfeeding",
+                    "Use of antibiotic solutions"
+                ],
+                correct: 1,
+                rationale: "Bed rest is an endogenous factor that leads to impaired skeletal muscle glucose uptake and promotes peripheral insulin resistance even in the absence of obvious disease, whereas medications and nutrition are exogenous factors."
+            },
+            {
+                id: 7,
+                question: "Capillary blood samples often underestimate blood glucose concentrations when compared with arterial or venous samples in patients with suspected hypoglycemia.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Arterial or venous blood samples are more reliable than capillary samples in intensive care unit patients with suspected hypoglycemia because capillary samples often overestimate glucose concentration."
+            },
+            {
+                id: 8,
+                question: "At what maximum rate can intravenous potassium be administered in a life-threatening situation of hypokalemia?",
+                options: [
+                    "5 mmol/h",
+                    "10 mmol/h",
+                    "20 mmol/h",
+                    "40 mmol/h"
+                ],
+                correct: 2,
+                rationale: "If the situation is life-threatening, intravenous potassium can be administered at a rate not exceeding 20 mmol/h, preferably via a central line using an infusion pump."
+            },
+            {
+                id: 9,
+                question: "Which form of mild to moderate hypoglycemia is defined by a blood glucose level below 70 mg/dL in the absence of clinical symptoms?",
+                options: [
+                    "Symptomatic and documented hypoglycemia",
+                    "Probably symptomatic hypoglycemia",
+                    "Biological hypoglycemia",
+                    "Severe neuroglycopenic hypoglycemia"
+                ],
+                correct: 2,
+                rationale: "Mild to moderate hypoglycemia has 3 forms: symptomatic and documented, probably symptomatic, and biological, which is a blood glucose level below 70 mg/dL without symptoms."
+            },
+            {
+                id: 10,
+                question: "What is the target blood glucose range for conventional or loose glycemic control in the intensive care unit?",
+                options: [
+                    "80 to 110 mg/dL",
+                    "110 to 140 mg/dL",
+                    "140 to 180 mg/dL",
+                    "180 to 200 mg/dL"
+                ],
+                correct: 3,
+                rationale: "Conventional or loose glycemic control targets a blood glucose level of 180-200 mg/dL, aiming to decrease the risk of neuroglycopenia and fatal hypoglycemia."
+            },
+            {
+                id: 11,
+                question: "Which manifestation of hypoglycemia directly results from a deficient supply of glucose to the central nervous system?",
+                options: [
+                    "Profuse sweating",
+                    "Dysarthria",
+                    "Tachycardia",
+                    "Palpitations"
+                ],
+                correct: 1,
+                rationale: "Neuroglycopenic symptoms directly result from a deficient supply of glucose to the central nervous system and include headaches, fatigue, confusion, dysarthria, and impaired judgment. Sweating, tachycardia, and palpitations are adrenergic manifestations."
+            },
+            {
+                id: 12,
+                question: "Transitioning an adult intensive care unit patient from an intravenous insulin infusion to subcutaneous insulin should be delayed until peripheral edema has resolved and the patient is off vasopressors.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Transition to subcutaneous insulin should be delayed until there are no planned interruptions of nutrition for procedures, until peripheral edema has resolved, and until the patient is off vasopressors."
+            },
+            {
+                id: 13,
+                question: "When adding regular insulin to a total parenteral nutrition bag to control hyperglycemia, what is the typical ordered ratio?",
+                options: [
+                    "1 unit per 5 g of infused carbohydrate",
+                    "1 unit per 10 g of infused carbohydrate",
+                    "1 unit per 20 g of infused carbohydrate",
+                    "1 unit per 50 g of infused carbohydrate"
+                ],
+                correct: 1,
+                rationale: "Regular insulin is typically added to the total parenteral nutrition bag at a ratio of 1 unit per 10 g of infused carbohydrate if ordered."
+            },
+            {
+                id: 14,
+                question: "What defines increased blood glucose variability for an individual patient when using the coefficient of variation of blood glucose measurements?",
+                options: [
+                    "Coefficient of variation greater than 5%",
+                    "Coefficient of variation greater than 10%",
+                    "Coefficient of variation greater than 15%",
+                    "Coefficient of variation greater than 20%"
+                ],
+                correct: 3,
+                rationale: "Increased blood glucose variability is defined as a coefficient of variation of blood glucose levels for each patient greater than 20%."
+            },
+            {
+                id: 15,
+                question: "Which oral potassium supplementation preparation is preferred because it causes fewer gastrointestinal adverse effects?",
+                options: [
+                    "Liquid preparation",
+                    "Enteric-coated tablets",
+                    "Slow release preparation tablets",
+                    "Effervescent powder packets"
+                ],
+                correct: 2,
+                rationale: "Oral potassium supplementation is available in liquid, enteric-coated, and slow release preparations, with slow release tablets preferred because they cause fewer gastrointestinal adverse effects."
+            },
+            {
+                id: 16,
+                question: "What is the recommended threshold for the glycemic lability index calculated from all recorded glucose values over weeks?",
+                options: [
+                    "Below 10 mmol/L2/h/week",
+                    "Below 20 mmol/L2/h/week",
+                    "Below 40 mmol/L2/h/week",
+                    "Below 80 mmol/L2/h/week"
+                ],
+                correct: 2,
+                rationale: "Glycemic lability records the change in glucose levels over weeks, and a value below the median of 40 mmol/L2/h/week is recommended."
+            },
+            {
+                id: 17,
+                question: "Subcutaneous sliding-scale insulin used alone is considered the safest and most effective method to achieve glycemic control in critically ill patients.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Continuous intravenous insulin infusion therapy is the safest and most effective way to achieve glycemic control, whereas using only subcutaneous sliding-scale insulin is inappropriate in critically ill patients and often leads to blood glucose levels greater than 180 mg/dL."
+            },
+            {
+                id: 18,
+                question: "How often should an intravenous insulin infusion solution be remixed if the patient's insulin requirements do not increase unexpectedly?",
+                options: [
+                    "Every 4 hours",
+                    "Every 6 hours",
+                    "Every 12 hours",
+                    "Every 24 hours"
+                ],
+                correct: 2,
+                rationale: "Nursing interventions for intravenous insulin infusion specify remixing the insulin infusion every 12 hours or whenever the patient's insulin requirements increase unexpectedly."
+            },
+            {
+                id: 19,
+                question: "Above what intravenous potassium administration rate is frequent biochemical and electrocardiographic monitoring necessary?",
+                options: [
+                    "2 mmol/hour",
+                    "5 mmol/hour",
+                    "10 mmol/hour",
+                    "15 mmol/hour"
+                ],
+                correct: 2,
+                rationale: "Frequent biochemical and electrocardiographic monitoring is necessary when intravenous potassium infusion rates exceed 10 mmol/hour, and faster rates should be continued for only short periods."
+            },
+            {
+                id: 20,
+                question: "Which of the following is classified as a late sign or symptom of untreated hyperglycemia associated with ketoacidosis?",
+                options: [
+                    "Increased thirst",
+                    "Blurred vision",
+                    "Pseudohyponatremia",
+                    "Frequent urination"
+                ],
+                correct: 2,
+                rationale: "Frequent urination, increased thirst, and blurred vision are early signs of hyperglycemia, whereas pseudohyponatremia, metabolic acidosis, ketonemia, and fruity-smelling breath are late signs and symptoms."
+            },
+            {
+                id: 21,
+                question: "What is the preferential order of blood sampling sites for glucose monitoring in the intensive care unit?",
+                options: [
+                    "Capillary, venous, arterial",
+                    "Venous, arterial, capillary",
+                    "Arterial, venous, capillary",
+                    "Arterial, capillary, venous"
+                ],
+                correct: 2,
+                rationale: "The preferential order of sampling for blood glucose in the intensive care unit is arterial first, followed by venous, and finally capillary."
+            },
+            {
+                id: 22,
+                question: "Continuous renal replacement therapy using a bicarbonate-based replacement fluid is a recognized risk factor for hypoglycemia in intensive care unit patients.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Risk factors for hypoglycemia in intensive care unit patients include continuous renal replacement therapy with bicarbonate-based replacement fluid, discontinuation of nutrition without insulin adjustment, sepsis, and vasopressor therapy."
+            },
+            {
+                id: 23,
+                question: "Which of the following is a recognized disadvantage of using continuous glucose monitoring devices in hospitalized patients?",
+                options: [
+                    "Increased time load on nursing staff",
+                    "Limited working range between 40 and 400 mg/dL",
+                    "Inability to measure intravascular glucose",
+                    "Requirement for manual calibration every 15 minutes"
+                ],
+                correct: 1,
+                rationale: "Disadvantages associated with continuous glucose monitoring devices include variable biosensor life, need for frequent calibration, and a limited working range of blood glucose levels between 40 and 400 mg/dL."
+            },
+            {
+                id: 24,
+                question: "At what blood glucose level is severe hypoglycemia defined, regardless of whether associated symptoms are present?",
+                options: [
+                    "Below 70 mg/dL",
+                    "Below 60 mg/dL",
+                    "Below 50 mg/dL",
+                    "Below 40 mg/dL"
+                ],
+                correct: 3,
+                rationale: "Severe hypoglycemia is defined as a blood glucose level below 40 mg/dL, regardless of whether associated symptoms are present, whereas mild to moderate hypoglycemia is below 70 mg/dL."
+            },
+            {
+                id: 25,
+                question: "What standardized concentration of human regular insulin is recommended when preparing an intravenous insulin infusion?",
+                options: [
+                    "0.5 units/mL",
+                    "1 unit/mL",
+                    "2 units/mL",
+                    "5 units/mL"
+                ],
+                correct: 1,
+                rationale: "Intravenous insulin infusions should be prepared in a standardized concentration of 1 unit/mL solution of human regular insulin."
+            },
+            {
+                id: 26,
+                question: "Which electrocardiographic change is specifically associated with hypokalemia resulting from intravenous insulin therapy?",
+                options: [
+                    "Peaked T waves",
+                    "Presence of U waves",
+                    "Shortened QT interval",
+                    "Widened QRS complex"
+                ],
+                correct: 1,
+                rationale: "Electrocardiographic changes in hypokalemia include U waves, T-wave flattening, ST-segment changes, and arrhythmias."
+            },
+            {
+                id: 27,
+                question: "Point-of-care bedside glucometers with capillary blood testing are reasonable for most critically ill patients as long as blood glucose concentrations remain greater than 80 mg/dL the vast majority of the time.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Point-of-care meters with capillary blood glucose testing are reasonable for most critically ill patients and remain in use by many institutions provided the patient's blood glucose concentrations are greater than 80 mg/dL the vast majority of the time."
+            },
+            {
+                id: 28,
+                question: "When an unstable intensive care unit patient is undergoing catecholamine titration or steroid adjustments, how frequently should blood glucose be monitored at minimum?",
+                options: [
+                    "At least every 15 minutes",
+                    "At least every 1 hour",
+                    "At least every 2 hours",
+                    "At least every 4 hours"
+                ],
+                correct: 1,
+                rationale: "Unstable patients such as those titrating catecholamines, steroids, or changing dextrose intake should have blood glucose monitored at least every 1 hour to allow rapid recognition of values outside the goal range."
+            },
+            {
+                id: 29,
+                question: "Which syringe and tubing materials are recommended where possible when administering an intravenous insulin infusion?",
+                options: [
+                    "Polyvinyl chloride syringes and silicone tubing",
+                    "Glass syringes and latex tubing",
+                    "Polypropylene syringes and polyethylene tubing",
+                    "Polycarbonate syringes and polyurethane tubing"
+                ],
+                correct: 2,
+                rationale: "Nursing interventions recommend using 50 mL polypropylene syringes and polyethylene tubing materials where possible for intravenous insulin infusions."
+            },
+            {
+                id: 30,
+                question: "Why does severe injury or infection in critically ill patients necessitate intravenous insulin therapy?",
+                options: [
+                    "It destroys pancreatic beta cells permanently",
+                    "It alters carbohydrate metabolism and causes insulin resistance",
+                    "It accelerates renal clearance of endogenous insulin",
+                    "It prevents gastrointestinal absorption of oral glucose"
+                ],
+                correct: 1,
+                rationale: "The rationale behind using intravenous insulin therapy in critically ill patients is that severe injury or infection alters carbohydrate metabolism, which results in insulin resistance."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
