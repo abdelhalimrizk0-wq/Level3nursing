@@ -115,7 +115,33 @@
     "emoji": "🫀",
     "color": "#ef4444",
     "department": "obgyn",
-    "lectures": []
+    "lectures": [
+        {
+    "name": "Ventilator-associated events",
+    "file": "quizzes/Ventilator-associated events.html",
+    "questions": 0
+  },
+  {
+    "name": "Cardiac Surgery",
+    "file": "quizzes/Cardiac Surgery.html",
+    "questions": 0
+  },
+  {
+    "name": "Acid-base disorders",
+    "file": "quizzes/Acid-base disorders.html",
+    "questions": 0
+  },
+  {
+    "name": "Stress Ulcer in ICU Patients",
+    "file": "quizzes/Stress Ulcer in ICU Patients.html",
+    "questions": 0
+  },
+  {
+    "name": "Glycemic Control in Critically Ill Patients",
+    "file": "quizzes/Glycemic Control in Critically Ill Patients.html",
+    "questions": 0
+  }
+    ]
   },
   {
     "id": "obgyn-practical",
