@@ -288,7 +288,11 @@
     "emoji": "📊",
     "color": "#8b5cf6",
     "department": "common_t1",
-    "lectures": []
+    "lectures": [],
+    "book": {
+      "file": "books/ebp-mwwd7uolyab.pdf",
+      "size": 2198829
+    }
   },
   {
     "id": "nursing-research",
