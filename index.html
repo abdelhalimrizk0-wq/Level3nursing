@@ -145,6 +145,11 @@ textarea.fld{min-height:90px;resize:vertical;line-height:1.7}
 .pb{height:8px;border-radius:9px;background:var(--bd);margin-top:8px;overflow:hidden}.pb i{display:block;height:100%;border-radius:9px;background:rgb(var(--p))}
 .fbc{position:fixed;bottom:18px;left:50%;transform:translate(-50%,200px);width:min(92vw,420px);background:var(--surf);border:1px solid rgba(var(--p),.5);border-radius:22px;padding:18px 16px 16px;z-index:9000;box-shadow:0 20px 60px -10px rgba(0,0,0,.45);transition:transform .5s cubic-bezier(.2,1.3,.4,1);text-align:center;font-weight:700;pointer-events:none}
 .fbc.show{transform:translate(-50%,0);pointer-events:auto}.fbc .fe{font-size:30px;line-height:1;margin-bottom:6px}.fbc p{margin:0 0 12px;font-size:13px}.fbc p b{white-space:nowrap}.fbc div.ac{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+body:not(.ready) footer{display:none}
+#skel .sk{height:120px;border-radius:var(--r);border:1px solid var(--bd);background:linear-gradient(100deg,rgba(128,128,170,.12) 30%,rgba(128,128,170,.28) 50%,rgba(128,128,170,.12) 70%);background-size:200% 100%;animation:skm 1.2s linear infinite}
+#skel .skh{height:150px;margin:8px 0 22px}#skel .skt{height:22px;width:40%;border-radius:10px;margin:0 0 16px}
+@keyframes skm{from{background-position:200% 0}to{background-position:-200% 0}}
+body.ready #skel{display:none}
 footer{margin-top:20px;padding:0 4px 16px}
 .ft{max-width:560px;margin:0 auto;border-top:1px solid var(--bd);padding-top:18px;text-align:center}
 .ft .lk{display:flex;align-items:center;gap:14px;text-align:right;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px 16px;text-decoration:none;color:var(--tx)}
@@ -188,6 +193,7 @@ footer{margin-top:20px;padding:0 4px 16px}
     </div>
   </nav>
 
+  <div id="skel"><div class="sk skh"></div><div class="sk skt"></div><div class="grid"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></div>
   <div id="v-home" class="view">
     <section class="hero">
       <div class="chip">✨ مفتوح للجميع بدون تسجيل</div>
@@ -492,8 +498,18 @@ window.addEventListener('scroll',function(){var h=document.documentElement.scrol
   $('quote').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];$('yr').textContent=new Date().getFullYear();
   $('n-d').textContent=Object.keys(DEPTS).length;
   syncTheme();loadG();
-  fetch('subjects.json?'+Date.now()).then(function(r){return r.json()}).then(function(j){db=j;route();autoLogin()})
-  .catch(function(){$('depts').innerHTML='<div class="empty" style="grid-column:1/-1">تعذر تحميل البيانات.</div>';show('home')});
+  var CK='app_subj_cache',cached=null,raw=null;
+  function ready(){document.body.classList.add('ready')}
+  try{raw=localStorage.getItem(CK);cached=JSON.parse(raw);if(!Array.isArray(cached)||!cached.length)cached=null}catch(e){cached=null}
+  if(cached){db=cached;ready();route()}
+  fetch('subjects.json?'+Date.now()).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+    var str=JSON.stringify(j);try{localStorage.setItem(CK,str)}catch(e){}
+    var first=!cached,changed=str!==raw;
+    if(first||changed){db=j;var inQ=(location.hash||'').indexOf('#/q/')===0;ready();if(first||!inQ)route()}
+    if(first)autoLogin();
+  })
+  .catch(function(){if(!cached){ready();$('depts').innerHTML='<div class="empty" style="grid-column:1/-1">تعذر تحميل البيانات.</div>';show('home')}});
+  if(cached)autoLogin();
 })();
 </script>
 </body>
