@@ -367,7 +367,7 @@ function qWrong(){QZ.qs=QZ.wrong;QZ.i=0;QZ.score=0;QZ.wrong=[];QZ.done=false;qRe
 var FB_URL='https://www.facebook.com/share/1CxsMikPyk/';
 var PG={};try{PG=JSON.parse(localStorage.getItem('app_prog')||'{}')}catch(e){}
 function savePG(){try{localStorage.setItem('app_prog',JSON.stringify(PG))}catch(e){}}
-function recProg(q,pc){if(q.qs.length!==q.full)return;var k=q.sid+'|'+q.idx,o=PG[k]||{n:0,best:0};o.n++;o.last=pc;o.best=Math.max(o.best,pc);o.t=Date.now();o.title=q.title;o.sid=q.sid;PG[k]=o;savePG();setTimeout(fbMaybe,1800)}
+function recProg(q,pc){if(q.qs.length!==q.full)return;var k=q.sid+'|'+q.idx,o=PG[k]||{n:0,best:0};o.n++;o.last=pc;o.best=Math.max(o.best,pc);o.t=Date.now();o.title=q.title;o.sid=q.sid;PG[k]=o;savePG();if(Math.random()<.6)fbGo(1800+Math.random()*3000)}
 function markOpen(sid,i){var s=subj(sid),l=s.lectures[i],k=sid+'|'+i,o=PG[k]||{n:0,best:0,html:1};o.html=1;o.n++;o.t=Date.now();o.title=l.nameAr||l.name;o.sid=sid;PG[k]=o;savePG()}
 function viewProgress(){
   show('progress');var K=Object.keys(PG).map(function(k){return PG[k]}),sc=K.filter(function(o){return !o.html}),
@@ -396,8 +396,14 @@ function fbHold(){ss('fb_hold','1');fbClose()}
 function fbOpen(){var s=fbSt();s.opened=1;fbSave(s);fbHold()}
 function fbDone(){fbSave({never:1,t:Date.now()});fbClose()}
 function fbNo(){var s=fbSt();delete s.opened;fbSave(s);fbHold()}
-window.addEventListener('hashchange',function(){setTimeout(fbMaybe,350)});
-setTimeout(fbMaybe,800);
+var fbNav=0,fbT=null;
+function fbGo(ms){if(fbT)return;fbT=setTimeout(function(){fbT=null;if(ss('fb_hold')||document.hidden)return;if($('fbc').classList.contains('show'))return;fbMaybe()},ms)}
+function fbSched(){fbNav++;if(ss('fb_hold')||fbT||$('fbc').classList.contains('show'))return;
+  if(fbNav===1&&Math.random()<.75)return;
+  if(Math.random()<.4)return;
+  fbGo(1500+Math.random()*6000)}
+window.addEventListener('hashchange',fbSched);
+setTimeout(function(){fbGo(1)},45000+Math.random()*90000);
 
 /* ===== admin via GitHub API ===== */
 var G={tok:'',owner:'abdelhalimrizk0-wq',repo:'Level3nursing',branch:'main',login:''};
@@ -558,4 +564,4 @@ window.addEventListener('scroll',function(){var h=document.documentElement.scrol
 })();
 </script>
 </body>
-</html>
+  </html>
