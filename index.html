@@ -442,7 +442,7 @@ var saving=Promise.resolve();
 function saveDb(msg){
   toast('⏳ جاري الحفظ في GitHub...');
   var snap=JSON.stringify(db,null,2)+'\n';
-  saving=saving.then(function(){return putFile('subjects.json',snap,msg||'تحديث المحتوى من لوحة المسؤول')}).then(function(){toast('✅ تم الحفظ. هيظهر للكل خلال دقيقة')},function(e){toast('❌ فشل الحفظ: '+e.message)});
+  saving=saving.then(function(){return putFile('subjects.json',snap,msg||'تحديث المحتوى من لوحة المسؤول').then(function(){try{localStorage.setItem('app_subj_cache',JSON.stringify(db))}catch(x){}})}).then(function(){toast('✅ تم الحفظ. هيظهر للكل خلال دقيقة')},function(e){toast('❌ فشل الحفظ: '+e.message)});
   return saving;
 }
 function slug(s){return (s||'').toLowerCase().replace(/[^\w\u0600-\u06FF]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'quiz'}
@@ -531,7 +531,7 @@ function uploadBook(){var f=$('bookIn');f.value='';f.onchange=function(){var fil
   var rd=new FileReader();rd.onerror=function(){closeModal();toast('❌ تعذر قراءة الملف')};rd.onload=function(){
     var path='books/'+(slug(s.id)||'book').replace(/[^\w-]/g,'')+'-'+uid()+'.pdf';
     upSet(0,1,0);ghPutProgress(path,{message:'رفع كتاب: '+(s.nameAr||s.name),content:ab64(rd.result),branch:G.branch},upSet).catch(function(e){var m=e.message;throw new Error(e.status===413||/too large|size/i.test(m)?'الملف كبير على GitHub ('+mb.toFixed(0)+' ميجا). صغّره أو قسّمه. '+m:m)}).then(function(){
-      s.book={file:path,size:file.size};route();return saveDb('ربط كتاب بمادة: '+(s.nameAr||s.name)).then(function(){closeModal();toast('✅ تم رفع الكتاب');if(old)delFile(old,'حذف كتاب قديم')})}).catch(function(e){closeModal();toast('❌ فشل رفع الكتاب: '+e.message)})};
+      s.book={file:path,size:file.size};route();return saveDb('ربط كتاب بمادة: '+(s.nameAr||s.name)).then(function(){closeModal();toast('✅ تم رفع الكتاب. الموقع بيحتاج حوالي دقيقة لحد ما يفتح، لو جاتلك صفحة خطأ استنى دقيقة وجرب تاني');if(old)delFile(old,'حذف كتاب قديم')})}).catch(function(e){closeModal();toast('❌ فشل رفع الكتاب: '+e.message)})};
   rd.readAsArrayBuffer(file)};f.click()}
 function delBook(ev){ev.preventDefault();ev.stopPropagation();var s=subj(state.sid);if(!s.book||!confirm('حذف كتاب المادة؟'))return;var p=s.book.file;delete s.book;route();saveDb('حذف كتاب المادة').then(function(){return delFile(p,'حذف ملف كتاب')})}
 function uploadQuiz(){var f=$('fileIn');f.value='';f.onchange=function(){var file=f.files[0];if(!file)return;var rd=new FileReader();rd.onload=function(){
