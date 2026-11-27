@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Critical Thinking in Evidence-Based Nursing Practice</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "How does the lecture define critical thinking in nursing?",
+                options: [
+                    "Active, logical analysis and evaluation of information gathered through observation and experience",
+                    "Memorization of clinical guidelines and protocols for use during daily patient care",
+                    "Rapid decision-making based on personal intuition during emergency situations",
+                    "Strict obedience to physician orders without questioning routines"
+                ],
+                correct: 0,
+                rationale: "The lecture defines critical thinking in nursing as active, logical analysis and evaluation of information gathered through observation and experience."
+            },
+            {
+                id: 2,
+                question: "In the example of nerve pain after surgery, which medication did the nurse suggest to the provider?",
+                options: [
+                    "Gabapentin",
+                    "Morphine",
+                    "Insulin",
+                    "Warfarin"
+                ],
+                correct: 0,
+                rationale: "The nurse identified burning nerve pain similar to diabetic neuropathy in a patient with a recent leg amputation and suggested gabapentin to the provider."
+            },
+            {
+                id: 3,
+                question: "The top 3 essential qualities of a critical thinker are open-mindedness, intellectual curiosity, and what?",
+                options: [
+                    "Strong analytical skills",
+                    "Fast memorization ability",
+                    "Strict rule obedience",
+                    "Long clinical experience"
+                ],
+                correct: 0,
+                rationale: "The lecture names open-mindedness, intellectual curiosity, and strong analytical skills as the top 3 essential qualities of a critical thinker."
+            },
+            {
+                id: 4,
+                question: "While evidence-based practice provides the data-driven foundation, critical thinking serves as what?",
+                options: [
+                    "The intellectual engine that interprets and applies the evidence safely and effectively",
+                    "The administrative record that documents each decision for the organization",
+                    "The financial framework that justifies the cost of the care provided",
+                    "The regulatory barrier that limits which treatments nurses can use"
+                ],
+                correct: 0,
+                rationale: "The lecture states that while evidence-based practice provides the data-driven foundation, critical thinking serves as the intellectual engine that interprets and applies that evidence safely and effectively."
+            },
+            {
+                id: 5,
+                question: "Critical thinking in nursing is the objective analysis of a situation to make sound clinical judgments and prevent patient harm.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states this definition verbatim near the end: critical thinking in nursing is the objective analysis of a situation to make sound clinical judgments and prevent patient harm."
+            },
+            {
+                id: 6,
+                question: "In the shifting diagnosis example, the clinician pivoted toward a heart failure diagnosis after learning the symptoms had worsened over what period?",
+                options: [
+                    "3 months",
+                    "3 days",
+                    "3 weeks",
+                    "3 years"
+                ],
+                correct: 0,
+                rationale: "The clinician initially treated the patient for pneumonia, then pivoted toward heart failure after learning the symptoms had worsened over 3 months and flared up when lying down."
+            },
+            {
+                id: 7,
+                question: "How many key roles of critical thinking in evidence-based practice does the lecture list?",
+                options: [
+                    "4",
+                    "2",
+                    "6",
+                    "8"
+                ],
+                correct: 0,
+                rationale: "The lecture lists 4 key roles: appraising the evidence, identifying and resisting bias, personalizing decisions, and challenging assumptions."
+            },
+            {
+                id: 8,
+                question: "Challenging assumptions as a key role of critical thinking means questioning what?",
+                options: [
+                    "Long-standing traditions or routine workflows to see if they are supported by current data",
+                    "The motives of colleagues who disagree with the nurse during clinical handovers",
+                    "The accuracy of every vital sign recorded by monitoring equipment",
+                    "The honesty of patients when they describe their own symptoms"
+                ],
+                correct: 0,
+                rationale: "Challenging assumptions means questioning long-standing traditions or routine workflows, such as the attitude of having always done it this way, to see if they are truly supported by current data."
+            },
+            {
+                id: 9,
+                question: "Knowledge and skills alone are sufficient for effective critical thinking.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that knowledge and skills are insufficient for critical thinking; effective critical thinkers must also have the necessary dispositions, such as attributes, habits of mind, and attitudes."
+            },
+            {
+                id: 10,
+                question: "Which of the 4 types of critical thinking involves breaking down a complex problem into smaller, manageable parts?",
+                options: [
+                    "Analytical thinking",
+                    "Creative thinking",
+                    "Logical thinking",
+                    "Reflective thinking"
+                ],
+                correct: 0,
+                rationale: "Analytical thinking involves breaking down a complex problem or large piece of information into smaller, manageable parts to see how they interrelate and form conclusions."
+            },
+            {
+                id: 11,
+                question: "In the post-operative example, which vital sign changes alerted the nurse to possible deterioration?",
+                options: [
+                    "Blood pressure dropped and heart rate increased",
+                    "Temperature rose and respiratory rate fell",
+                    "Oxygen saturation rose and pulse became irregular",
+                    "Blood pressure rose and heart rate dropped"
+                ],
+                correct: 0,
+                rationale: "In the real-world example, a post-operative patient's blood pressure dropped and heart rate increased, and the nurse recognized early signs of hypovolemic shock."
+            },
+            {
+                id: 12,
+                question: "What is the role of critical thinking as described in the definition section?",
+                options: [
+                    "Serving as the core tool nurses use to question routines and appraise research",
+                    "Serving as a documentation method for recording patient histories",
+                    "Serving as a staffing formula for assigning nurses to shifts",
+                    "Serving as a billing framework for charging nursing procedures"
+                ],
+                correct: 0,
+                rationale: "The role of critical thinking is described as serving as the core tool nurses use to question routines and appraise research."
+            },
+            {
+                id: 13,
+                question: "Which type of critical thinking means stepping back to evaluate your own thought processes, past actions, and personal biases?",
+                options: [
+                    "Reflective thinking",
+                    "Analytical thinking",
+                    "Creative thinking",
+                    "Logical thinking"
+                ],
+                correct: 0,
+                rationale: "Reflective thinking means stepping back to evaluate your own thought processes, past actions, and underlying personal biases to learn from experience and improve future decisions."
+            },
+            {
+                id: 14,
+                question: "In the triage example, the nurse treated first the patient who presented with which problem?",
+                options: [
+                    "Respiratory distress",
+                    "A minor ankle sprain",
+                    "A small skin laceration",
+                    "A routine medication refill"
+                ],
+                correct: 0,
+                rationale: "In the emergency department example, the nurse evaluated vital signs and consciousness levels and treated the person in respiratory distress first while allocating limited staff efficiently."
+            },
+            {
+                id: 15,
+                question: "Logical thinking relies on intuition and personal preference rather than systematic rules.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Logical thinking relies on strict reasoning, systematic rules, and factual validation to ensure coherence, construct sound arguments, and spot errors or fallacies."
+            },
+            {
+                id: 16,
+                question: "Open-mindedness is defined as the ability to do what?",
+                options: [
+                    "Consider alternative viewpoints and listen to different perspectives without immediate judgment",
+                    "Memorize large amounts of clinical data without needing to review notes",
+                    "Make rapid decisions under pressure without consulting other team members",
+                    "Accept every research claim as accurate once it appears in print"
+                ],
+                correct: 0,
+                rationale: "Open-mindedness is defined as the ability to consider alternative viewpoints and listen to different perspectives without immediate judgment."
+            },
+            {
+                id: 17,
+                question: "In the medication order example, what did the nurse notice in the pre-surgery medication order?",
+                options: [
+                    "A sudden stop date that looked like a clerical mistake",
+                    "A duplicated dose written in differing units",
+                    "An allergy warning hidden in the patient history",
+                    "An unsigned prescription from an unknown provider"
+                ],
+                correct: 0,
+                rationale: "The nurse noticed a sudden stop date that looked like a clerical mistake and called the provider to verify the safety of the order instead of blindly stopping a vital drug."
+            },
+            {
+                id: 18,
+                question: "Which of the following is among the ways critical thinking energizes evidence-based practice?",
+                options: [
+                    "Bias minimization",
+                    "Cost maximization",
+                    "Routine preservation",
+                    "Documentation reduction"
+                ],
+                correct: 0,
+                rationale: "Critical thinking energizes evidence-based practice through problem identification, evidence appraisal, contextual application, bias minimization, and outcome evaluation."
+            },
+            {
+                id: 19,
+                question: "Intellectual curiosity drives ongoing learning, prompts deeper research, and uncovers essential insights that others might miss.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "This is the stated impact of intellectual curiosity, defined as a deep desire to ask questions and dig beneath the surface instead of accepting information at face value."
+            },
+            {
+                id: 20,
+                question: "What is the first step for applying critical thinking in evidence-based practice?",
+                options: [
+                    "Formulate a question that clearly defines the clinical problem",
+                    "Evaluate the evidence for flaws, authority, and relevance",
+                    "Combine vetted evidence with professional expertise",
+                    "Reflect on results and adjust the approach"
+                ],
+                correct: 0,
+                rationale: "The first step is to formulate a question, clearly defining the specific clinical or practical problem that needs an intervention."
+            },
+            {
+                id: 21,
+                question: "The definition of evidence-based nursing integrates the best evidence available, nursing expertise, and the values and preferences of whom?",
+                options: [
+                    "The individuals, families, and communities who are served",
+                    "The hospital board and the insurance companies",
+                    "The nursing instructors and the examination committees",
+                    "The pharmaceutical industry and the equipment suppliers"
+                ],
+                correct: 0,
+                rationale: "Evidence-based nursing is defined as the integration of the best evidence available, nursing expertise, and the values and preferences of the individuals, families, and communities who are served."
+            },
+            {
+                id: 22,
+                question: "In the nerve pain example, the nurse identified the pain as burning nerve pain similar to which condition?",
+                options: [
+                    "Diabetic neuropathy",
+                    "Rheumatoid arthritis",
+                    "Migraine headache",
+                    "Muscle strain"
+                ],
+                correct: 0,
+                rationale: "The nurse asked the patient to describe the pain and identified it as burning nerve pain similar to diabetic neuropathy before suggesting gabapentin."
+            },
+            {
+                id: 23,
+                question: "Appraising the evidence means accepting research claims at face value once they are published.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Appraising the evidence means sifting through research to determine the validity, reliability, credibility, and clinical applicability of findings rather than accepting claims at face value."
+            },
+            {
+                id: 24,
+                question: "Which of the following is listed among critical thinking skills?",
+                options: [
+                    "Reasoning",
+                    "Memorizing",
+                    "Transcribing",
+                    "Billing"
+                ],
+                correct: 0,
+                rationale: "The listed critical thinking skills are reasoning, analyzing, evaluating, decision making, and problem solving."
+            },
+            {
+                id: 25,
+                question: "In the Evaluate and Appraise step, the evidence is analyzed for which 3 qualities?",
+                options: [
+                    "Flaws, authority, and relevance",
+                    "Cost, length, and popularity",
+                    "Age, language, and format",
+                    "Novelty, prestige, and readability"
+                ],
+                correct: 0,
+                rationale: "The third step for applying critical thinking is Evaluate and Appraise: analyze the evidence for flaws, authority, and relevance."
+            },
+            {
+                id: 26,
+                question: "Combining critical thinking with evidence-based practice leads to fewer medical errors, higher patient satisfaction, and safer care.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Under improving outcomes, the lecture states that combining both leads to fewer medical errors, higher patient satisfaction, and safer care."
+            },
+            {
+                id: 27,
+                question: "Which dimension of the holistic framework of critical thinking includes learning how to think and anticipating complications?",
+                options: [
+                    "Processes",
+                    "Outcomes",
+                    "Context",
+                    "Integration and development"
+                ],
+                correct: 0,
+                rationale: "The Processes dimension includes learning how to think, being pro-active and quality orientated, anticipating complications, autonomy to make decisions, and curiosity for learning."
+            },
+            {
+                id: 28,
+                question: "Identifying and resisting bias involves actively recognizing which example of cognitive bias named in the lecture?",
+                options: [
+                    "Confirmation bias",
+                    "Anchoring pricing",
+                    "Survivorship sampling",
+                    "Placebo response"
+                ],
+                correct: 0,
+                rationale: "Identifying and resisting bias means actively recognizing personal or systemic cognitive biases, like confirmation bias, to avoid misapplying or misinterpreting research."
+            },
+            {
+                id: 29,
+                question: "Creative thinking centers on following standard approaches strictly until they succeed.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Creative thinking centers on looking at situations from entirely new perspectives, brainstorming outside-the-box ideas, and generating innovative solutions when standard approaches fail."
+            },
+            {
+                id: 30,
+                question: "In the deterioration detection example, the nurse connected subtle shifts in vital signs to a developing risk of what?",
+                options: [
+                    "Cardiogenic shock",
+                    "Pulmonary embolism",
+                    "Septic arthritis",
+                    "Diabetic ketoacidosis"
+                ],
+                correct: 0,
+                rationale: "The nurse spotted tiny, early shifts in a post-operative patient's vital signs and connected them to a developing risk for cardiogenic shock, allowing immediate life-saving intervention."
+            },
+            {
+                id: 31,
+                question: "Which of the following traits characterizes the ideal critical thinker?",
+                options: [
+                    "Habitually inquisitive",
+                    "Firmly resistant to reconsidering",
+                    "Quick to finalize judgments",
+                    "Selective about relevant information"
+                ],
+                correct: 0,
+                rationale: "The ideal critical thinker is characterized as habitually inquisitive, well-informed, trustful of reason, open-minded, flexible, fair-minded, honest in facing personal biases, prudent, willing to reconsider, diligent, and persistent."
+            },
+            {
+                id: 32,
+                question: "Personalizing decisions as a key role of critical thinking means connecting generalized scientific data with what?",
+                options: [
+                    "Unique patient preferences, backgrounds, and specific clinical contexts",
+                    "Standardized hospital protocols that apply identically to every case",
+                    "The average response of large populations in published trials",
+                    "The personal habits and routines of the nursing team"
+                ],
+                correct: 0,
+                rationale: "Personalizing decisions means connecting generalized scientific data with unique patient preferences, backgrounds, and specific clinical contexts."
+            },
+            {
+                id: 33,
+                question: "In the post-operative hemorrhage example, which data did the nurse gather when checking the patient?",
+                options: [
+                    "Surgical drains, skin temperature, and urine output",
+                    "Dietary intake, bowel sounds, and sleep pattern",
+                    "Pain score, pupil size, and grip strength",
+                    "Weight, height, and abdominal girth"
+                ],
+                correct: 0,
+                rationale: "The nurse rapidly gathered more data by checking surgical drains, skin temperature, and urine output, analyzed the trends, and recognized early signs of hypovolemic shock."
+            },
+            {
+                id: 34,
+                question: "Critical thinking in evidence-based practice is defined as the disciplined cognitive process of actively doing what?",
+                options: [
+                    "Analyzing, questioning, and evaluating research data, clinical expertise, and patient values",
+                    "Memorizing, repeating, and documenting clinical routines, standing orders, and care pathways",
+                    "Collecting, filing, and archiving patient charts, laboratory results, and billing records",
+                    "Following, copying, and enforcing senior staff instructions, unit traditions, and schedules"
+                ],
+                correct: 0,
+                rationale: "Critical thinking in evidence-based practice is the disciplined cognitive process of actively analyzing, questioning, and evaluating research data, clinical expertise, and patient values to make sound, personalized decisions."
+            },
+            {
+                id: 35,
+                question: "What does the bridging gaps benefit of critical thinking describe?",
+                options: [
+                    "It turns textbook theory into practical, real-world action",
+                    "It connects hospital billing systems with insurance providers",
+                    "It shortens the physical distance between wards and clinics",
+                    "It replaces research evidence with personal clinical habits"
+                ],
+                correct: 0,
+                rationale: "Under bridging gaps, the lecture states that critical thinking turns textbook theory into practical, real-world action."
+            },
+            {
+                id: 36,
+                question: "In the Synthesize and Apply step, the vetted evidence is combined with the nurse's professional expertise and what else?",
+                options: [
+                    "The client's values",
+                    "The hospital's budget",
+                    "The unit's traditions",
+                    "The insurer's rules"
+                ],
+                correct: 0,
+                rationale: "The fourth step is Synthesize and Apply: combine the vetted evidence with professional expertise and the client's values."
+            },
+            {
+                id: 37,
+                question: "The Context dimension of the holistic framework includes critical thinking in intensive care nursing practice and independent thinking.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The Context dimension lists critical thinking in intensive care nursing practice, complex situations, independent thinking, and individual responses to individual problems."
+            },
+            {
+                id: 38,
+                question: "Validating research as a benefit of critical thinking allows nurses to do what?",
+                options: [
+                    "Decide if a study truly applies to their specific patient",
+                    "Publish their own research without conducting a study",
+                    "Skip the appraisal step when evidence seems current",
+                    "Replace patient preferences with research findings"
+                ],
+                correct: 0,
+                rationale: "Under validating research, critical thinking allows nurses to look at a study and decide if it truly applies to their specific patient."
+            },
+            {
+                id: 39,
+                question: "Analytical skills as a top quality of a critical thinker are defined as the capacity to do what?",
+                options: [
+                    "Break down complex information into smaller parts to evaluate evidence and logic",
+                    "Memorize entire clinical protocols and recall them under pressure",
+                    "Persuade colleagues to accept a preferred course of treatment",
+                    "Detect equipment faults before the monitoring alarm sounds"
+                ],
+                correct: 0,
+                rationale: "Analytical skills are defined as the capacity to break down complex information into smaller parts to evaluate evidence and logic, which helps test the reliability of sources and form sound conclusions."
+            },
+            {
+                id: 40,
+                question: "What is the impact of open-mindedness as a quality of a critical thinker?",
+                options: [
+                    "It allows thinkers to challenge their own core beliefs, recognize personal biases, and process complex issues fairly",
+                    "It helps thinkers memorize protocols faster and recall them during emergencies",
+                    "It makes thinkers defer every decision to the most senior colleague present",
+                    "It drives thinkers to collect more monitoring equipment for their unit"
+                ],
+                correct: 0,
+                rationale: "The impact of open-mindedness is that it allows thinkers to challenge their own core beliefs, recognize personal biases, and process complex issues fairly."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
