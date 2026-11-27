@@ -222,8 +222,8 @@ footer{margin-top:20px;padding:0 4px 16px}
   </div>
 
   <div id="v-subj" class="view">
-    <div class="crumb"><a onclick="go('/')">الرئيسية</a> / <a id="c-dept2"></a> / <span id="c-subj"></span></div>
-    <h1 class="ptitle" id="t-subj"></h1>
+    <div class="crumb"><a onclick="go('/')">الرئيسية</a> / <a id="c-dept2"></a> / <span id="c-subj" dir="auto"></span></div>
+    <h1 class="ptitle" id="t-subj" dir="auto"></h1>
     <div class="abar"><span>🛠️ وضع المسؤول</span>
       <button class="btn pr sm" onclick="addContent()">+ إضافة محتوى (كويز / كتاب)</button>
       <button class="btn sm" onclick="editSubject(state.sid)">✏️ تعديل المادة</button>
@@ -303,7 +303,7 @@ function viewHome(){
 }
 function subjCard(s,i){
   var c=hex2rgb(s.color)||'109,93,252',n=(s.lectures||[]).length,f=favs.indexOf(s.id)>-1;
-  return '<div class="card" style="--c:'+c+';animation-delay:'+((i||0)*50)+'ms" onclick="go(\'/s/'+encodeURIComponent(s.id)+'\')"><button class="fav '+(f?'a':'')+'" onclick="fav(event,\''+esc(s.id)+'\')" aria-label="مفضلة">'+(f?'★':'☆')+'</button><div class="cic">'+esc(s.emoji||'📚')+'</div><h3>'+esc(s.nameAr||s.name)+'</h3><small>'+(n?n+' كويز':'قريباً 🚧')+'</small><span class="arrow">←</span></div>';
+  return '<div class="card" style="--c:'+c+';animation-delay:'+((i||0)*50)+'ms" onclick="go(\'/s/'+encodeURIComponent(s.id)+'\')"><button class="fav '+(f?'a':'')+'" onclick="fav(event,\''+esc(s.id)+'\')" aria-label="مفضلة">'+(f?'★':'☆')+'</button><div class="cic">'+esc(s.emoji||'📚')+'</div><h3 dir="auto">'+esc(s.nameAr||s.name)+'</h3><small>'+(n?n+' كويز':'قريباً 🚧')+'</small><span class="arrow">←</span></div>';
 }
 function fav(e,id){e.stopPropagation();var i=favs.indexOf(id);if(i>-1){favs.splice(i,1);toast('تمت الإزالة من المفضلة')}else{favs.push(id);toast('⭐ أُضيفت للمفضلة')}
   try{localStorage.setItem('app_favs',JSON.stringify(favs))}catch(x){}route()}
@@ -324,7 +324,7 @@ function viewSubj(id){
     var t=q.questions>0?'📝 '+q.questions+' سؤال':'⚡ اختبار إلكتروني';
     var href=q.data?'#/q/'+encodeURIComponent(id)+'/'+i:encodeURI(q.file||'#');
     var tgt=q.data?'':' target="_blank" rel="noopener" onclick="markOpen(\''+esc(id)+'\','+i+')"';
-    return '<a class="row" style="--c:'+c+';animation-delay:'+i*40+'ms" href="'+href+'"'+tgt+'><div class="num">'+(i+1)+'</div><div class="rmain"><b>'+esc(q.nameAr||q.name)+'</b><span class="tag">'+t+'</span></div>'+
+    return '<a class="row" style="--c:'+c+';animation-delay:'+i*40+'ms" href="'+href+'"'+tgt+'><div class="num">'+(i+1)+'</div><div class="rmain"><b dir="auto">'+esc(q.nameAr||q.name)+'</b><span class="tag">'+t+'</span></div>'+
       '<div class="adm"><button title="أعلى" onclick="mv(event,'+i+',-1)">↑</button><button title="أسفل" onclick="mv(event,'+i+',1)">↓</button><button title="تعديل" onclick="editQuiz('+i+',event)">✏️</button><button title="حذف" onclick="delQuiz('+i+',event)">🗑️</button></div><div class="go">ابدأ ←</div></a>'}).join(''):'<div class="empty">🚧 جاري إضافة الكويزات.</div>';
 }
 function renderSearch(){
@@ -333,7 +333,7 @@ function renderSearch(){
   var out=[];db.forEach(function(s){var sn=((s.nameAr||'')+' '+(s.name||'')).toLowerCase();
     if(sn.indexOf(q)>-1)out.push({t:s.nameAr||s.name,sub:'مادة',h:'#/s/'+encodeURIComponent(s.id),e:s.emoji,c:hex2rgb(s.color)});
     (s.lectures||[]).forEach(function(l,i){if(((l.name||'')+' '+(l.nameAr||'')).toLowerCase().indexOf(q)>-1)out.push({t:l.nameAr||l.name,sub:'كويز · '+(s.nameAr||s.name),h:l.data?'#/q/'+encodeURIComponent(s.id)+'/'+i:encodeURI(l.file),e:'📝',c:hex2rgb(s.color),ext:!l.data})})});
-  $('res-list').innerHTML=out.length?out.slice(0,40).map(function(r){return'<a class="row" style="--c:'+(r.c||'109,93,252')+'" href="'+r.h+'"'+(r.ext?' target="_blank" rel="noopener"':'')+'><div class="num">'+esc(r.e||'📚')+'</div><div class="rmain"><b>'+esc(r.t)+'</b><span class="tag">'+esc(r.sub)+'</span></div><div class="go">فتح ←</div></a>'}).join(''):'<div class="empty">لا توجد نتائج.</div>';
+  $('res-list').innerHTML=out.length?out.slice(0,40).map(function(r){return'<a class="row" style="--c:'+(r.c||'109,93,252')+'" href="'+r.h+'"'+(r.ext?' target="_blank" rel="noopener"':'')+'><div class="num">'+esc(r.e||'📚')+'</div><div class="rmain"><b dir="auto">'+esc(r.t)+'</b><span class="tag">'+esc(r.sub)+'</span></div><div class="go">فتح ←</div></a>'}).join(''):'<div class="empty">لا توجد نتائج.</div>';
 }
 function voice(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return toast('المتصفح لا يدعم البحث الصوتي');
   var r=new SR();r.lang='ar-EG';r.onstart=function(){$('mic').classList.add('on')};r.onend=r.onerror=function(){$('mic').classList.remove('on')};
@@ -353,12 +353,12 @@ function qRender(){
   if(q.i>=q.qs.length){var pc=Math.round(q.score/q.qs.length*100);if(!q.rec||q.qs.length===q.full){recProg(q,pc)}
     box.innerHTML='<div class="score"><div class="ring" style="--v:'+pc+'"><div>'+pc+'%</div></div><h2>'+(pc>=85?'ممتاز! 🎉':pc>=60?'كويس! 👏':'كمّل مذاكرة 💪')+'</h2><p style="color:var(--tx2);margin:8px 0 24px;font-weight:700">'+q.score+' من '+q.qs.length+' إجابة صحيحة</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn pr" onclick="qRestart()">🔁 إعادة الكويز</button>'+(q.wrong.length?'<button class="btn" onclick="qWrong()">❌ راجع أخطائي ('+q.wrong.length+')</button>':'')+'<a class="btn" href="#/s/'+encodeURIComponent(q.sid)+'">رجوع للمادة</a></div></div>';return}
   var it=q.qs[q.i];
-  box.innerHTML='<div class="crumb"><a href="#/s/'+encodeURIComponent(q.sid)+'">→ رجوع</a></div><div class="qhead"><span>'+esc(q.title)+'</span><span>'+(q.i+1)+' / '+q.qs.length+'</span></div><div class="qbar"><i style="width:'+(q.i/q.qs.length*100)+'%"></i></div><div class="qq">'+esc(it.q)+'</div><div id="opts">'+it.options.map(function(o,k){return'<button class="opt" onclick="qPick('+k+')"><span class="l">'+'ABCDEFGH'[k]+'</span><span>'+esc(o)+'</span></button>'}).join('')+'</div><div id="qfb"></div>';
+  box.innerHTML='<div class="crumb"><a href="#/s/'+encodeURIComponent(q.sid)+'">→ رجوع</a></div><div class="qhead"><span dir="auto">'+esc(q.title)+'</span><span>'+(q.i+1)+' / '+q.qs.length+'</span></div><div class="qbar"><i style="width:'+(q.i/q.qs.length*100)+'%"></i></div><div class="qq" dir="auto">'+esc(it.q)+'</div><div id="opts">'+it.options.map(function(o,k){return'<button class="opt" onclick="qPick('+k+')"><span class="l">'+'ABCDEFGH'[k]+'</span><span dir="auto" style="flex:1;text-align:start">'+esc(o)+'</span></button>'}).join('')+'</div><div id="qfb"></div>';
 }
 function qPick(k){var q=QZ,it=q.qs[q.i],ob=document.querySelectorAll('#opts .opt');if(q.done)return;q.done=true;
   ob.forEach(function(b,j){b.classList.add('dis');if(j===it.answer)b.classList.add('ok');else if(j===k)b.classList.add('no')});
   if(k===it.answer)q.score++;else q.wrong.push(it);
-  $('qfb').innerHTML=(it.explain?'<div class="expl">💡 '+esc(it.explain)+'</div>':'')+'<button class="btn pr" onclick="qNext()">'+(q.i+1>=q.qs.length?'النتيجة 🏁':'التالي ←')+'</button>';}
+  $('qfb').innerHTML=(it.explain?'<div class="expl" dir="auto">💡 '+esc(it.explain)+'</div>':'')+'<button class="btn pr" onclick="qNext()">'+(q.i+1>=q.qs.length?'النتيجة 🏁':'التالي ←')+'</button>';}
 function qNext(){QZ.i++;QZ.done=false;qRender()}
 function qRestart(){QZ.i=0;QZ.score=0;QZ.wrong=[];QZ.done=false;qRender()}
 function qWrong(){QZ.qs=QZ.wrong;QZ.i=0;QZ.score=0;QZ.wrong=[];QZ.done=false;qRender()}
@@ -376,8 +376,8 @@ function viewProgress(){
   var arr=Object.keys(bySub).map(function(id){var a=bySub[id],s=subj(id);return{id:id,name:s?(s.nameAr||s.name):id,avg:Math.round(a.reduce(function(x,y){return x+y},0)/a.length)}}).sort(function(a,b){return a.avg-b.avg});
   if(!K.length){$('pcont').innerHTML='<div class="empty">📭 لسه ماعملتش أي كويز. ابدأ أول كويز وهيظهر تقدمك هنا.<br><br><a class="btn pr" href="#/">ابدأ الآن</a></div>';return}
   var h='<div class="pgrid"><div class="pbox"><b>'+K.length+'</b><span>كويز جربته</span></div><div class="pbox"><b>'+(sc.length?avg+'%':'-')+'</b><span>متوسط الدرجات</span></div><div class="pbox"><b>'+K.reduce(function(a,o){return a+o.n},0)+'</b><span>مرات المحاولة</span></div></div>';
-  if(arr.length){h+='<div class="sec"><h2>🎯 المواد من الأضعف للأقوى</h2></div>'+arr.map(function(a){return'<div class="prow" onclick="go(\'/s/'+encodeURIComponent(a.id)+'\')" style="cursor:pointer"><div class="t"><b>'+esc(a.name)+'</b><b>'+a.avg+'%</b></div><div class="pb"><i style="width:'+a.avg+'%"></i></div></div>'}).join('')}
-  h+='<div class="sec"><h2>🕘 آخر الكويزات</h2></div>'+K.sort(function(a,b){return b.t-a.t}).slice(0,15).map(function(o){return'<div class="prow"><div class="t"><b>'+esc(o.title)+'</b><b>'+(o.html?'فُتح':o.last+'%')+'</b></div><div class="t"><span>'+(o.html?'اختبار إلكتروني':'أفضل نتيجة '+o.best+'%')+'</span><span>'+o.n+' محاولة</span></div>'+(o.html?'':'<div class="pb"><i style="width:'+o.last+'%"></i></div>')+'</div>'}).join('');
+  if(arr.length){h+='<div class="sec"><h2>🎯 المواد من الأضعف للأقوى</h2></div>'+arr.map(function(a){return'<div class="prow" onclick="go(\'/s/'+encodeURIComponent(a.id)+'\')" style="cursor:pointer"><div class="t"><b dir="auto">'+esc(a.name)+'</b><b>'+a.avg+'%</b></div><div class="pb"><i style="width:'+a.avg+'%"></i></div></div>'}).join('')}
+  h+='<div class="sec"><h2>🕘 آخر الكويزات</h2></div>'+K.sort(function(a,b){return b.t-a.t}).slice(0,15).map(function(o){return'<div class="prow"><div class="t"><b dir="auto">'+esc(o.title)+'</b><b>'+(o.html?'فُتح':o.last+'%')+'</b></div><div class="t"><span>'+(o.html?'اختبار إلكتروني':'أفضل نتيجة '+o.best+'%')+'</span><span>'+o.n+' محاولة</span></div>'+(o.html?'':'<div class="pb"><i style="width:'+o.last+'%"></i></div>')+'</div>'}).join('');
   h+='<div style="text-align:center;margin-top:20px"><button class="btn sm dg" onclick="if(confirm(\'مسح كل التقدم من الجهاز ده؟\')){PG={};savePG();viewProgress()}">🗑️ مسح تقدمي</button></div><div class="help" style="margin-top:14px;text-align:center">التقدم محفوظ على جهازك أنت بس.</div>';
   $('pcont').innerHTML=h}
 function fbSt(){try{return JSON.parse(localStorage.getItem('app_fb')||'{}')}catch(e){return{}}}
