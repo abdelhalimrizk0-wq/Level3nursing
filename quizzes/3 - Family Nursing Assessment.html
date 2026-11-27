@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Family Nursing Assessment</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which phase is described as the most critical step in the nursing process because it directs the whole problem-solving process?",
+                options: [
+                    "Nursing diagnosis",
+                    "Planning",
+                    "Evaluation",
+                    "Assessment"
+                ],
+                correct: 3,
+                rationale: "The lecture states that family nursing assessment is the most critical step in the nursing process because it directs the whole problem-solving process."
+            },
+            {
+                id: 2,
+                question: "Who developed the ecomap in 1975 to help child welfare workers study family needs?",
+                options: [
+                    "Florence Nightingale",
+                    "Ann Hartman",
+                    "David Sackett",
+                    "Wright and Leahey"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the ecomap was developed by Ann Hartman in 1975 to help child welfare workers study family needs."
+            },
+            {
+                id: 3,
+                question: "Over at least how many generations does a genogram show family members and their relationships?",
+                options: [
+                    "2",
+                    "4",
+                    "5",
+                    "3"
+                ],
+                correct: 3,
+                rationale: "A genogram is a diagram of a family tree incorporating information about family members and their relationships over at least three generations."
+            },
+            {
+                id: 4,
+                question: "In an ecomap, what does the central circle represent?",
+                options: [
+                    "The health care agency",
+                    "The client's illness",
+                    "The community nurse",
+                    "The family"
+                ],
+                correct: 3,
+                rationale: "In an ecomap a central circle is drawn to represent the family, and smaller circles on the periphery represent people and systems such as school or work."
+            },
+            {
+                id: 5,
+                question: "Which tool is based on the genogram and records the family's medical and health histories?",
+                options: [
+                    "Family health tree",
+                    "Ecomap",
+                    "Social network map",
+                    "Family life cycle chart"
+                ],
+                correct: 0,
+                rationale: "The lecture states that, based on the genogram, the family health tree provides a mechanism for recording the family's medical and health histories."
+            },
+            {
+                id: 6,
+                question: "Which tool is described as an excellent method of family engagement when the community health nurse first encounters the family?",
+                options: [
+                    "Genogram",
+                    "Ecomap",
+                    "Family chart review",
+                    "Family health tree"
+                ],
+                correct: 0,
+                rationale: "The lecture states that creation of a genogram is an excellent method of family engagement when the community health nurse first encounters the family."
+            },
+            {
+                id: 7,
+                question: "What is the first priority in family assessment at the level of assessing individual needs?",
+                options: [
+                    "Collecting information about the client's response to the health problems",
+                    "Assessing the relationship of the family with agencies",
+                    "Assessing the roles and division of labor in the family",
+                    "Assessing the marital relationship in the family"
+                ],
+                correct: 0,
+                rationale: "At the individual level, adequate identification and collection of information about the client's response to actual or potential health problems is the first priority in family assessment."
+            },
+            {
+                id: 8,
+                question: "Which of the following is a family subsystem that should always be assessed?",
+                options: [
+                    "Sibling subsystem",
+                    "School subsystem",
+                    "Neighborhood subsystem",
+                    "Workplace subsystem"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the parent-child, marital, and sibling subsystems should always be assessed, and that the grandparent-grandchild subsystem should also be assessed."
+            },
+            {
+                id: 9,
+                question: "Which source of data is described as the most accurate and rich source for obtaining information about the family?",
+                options: [
+                    "Observing or interviewing the family",
+                    "Information from social service agencies",
+                    "Telephone calls with health team members",
+                    "Reviewing written health records"
+                ],
+                correct: 0,
+                rationale: "The lecture states that observing or interviewing the family is the most accurate and rich source of obtaining information about the family."
+            },
+            {
+                id: 10,
+                question: "What must be obtained before interviewing the family or reviewing family health records?",
+                options: [
+                    "Physician approval",
+                    "Supervisor approval",
+                    "Family permission",
+                    "A court order"
+                ],
+                correct: 2,
+                rationale: "The note in the lecture states that family permission should be obtained, especially before interviewing the family or reviewing family health records."
+            },
+            {
+                id: 11,
+                question: "How many requirements are needed for the nurse to complete a comprehensive family assessment?",
+                options: [
+                    "8",
+                    "5",
+                    "4",
+                    "6"
+                ],
+                correct: 3,
+                rationale: "The lecture states that six requirements are needed as the nurse completes a comprehensive family assessment."
+            },
+            {
+                id: 12,
+                question: "How many categories of components are listed for family nursing assessment?",
+                options: [
+                    "10",
+                    "8",
+                    "6",
+                    "12"
+                ],
+                correct: 3,
+                rationale: "The lecture lists 12 components, from family demographics to family social and cultural patterns."
+            },
+            {
+                id: 13,
+                question: "Which component of family nursing assessment refers to composition, socioeconomic status, and the age, education, occupation, ethnicity, and religious affiliation of members?",
+                options: [
+                    "Family health behavior",
+                    "Family roles",
+                    "Family functions",
+                    "Family demographics"
+                ],
+                correct: 3,
+                rationale: "Family demographics refer to the family's composition, socioeconomic status, and the age, education, occupation, ethnicity, and religious affiliation of members."
+            },
+            {
+                id: 14,
+                question: "Which component of family nursing assessment includes socialization processes, division of labor, and allocation and use of authority and power?",
+                options: [
+                    "Family functions",
+                    "Family roles",
+                    "Family values and beliefs",
+                    "Family decision making patterns"
+                ],
+                correct: 1,
+                rationale: "Family roles include socialization processes, division of labor, and allocation and use of authority and power."
+            },
+            {
+                id: 15,
+                question: "Which component describes how a family handles conflict and life changes and the quality of its support systems?",
+                options: [
+                    "Family communication patterns",
+                    "Family coping patterns",
+                    "Family problem solving patterns",
+                    "Family health behavior"
+                ],
+                correct: 1,
+                rationale: "Family coping patterns encompass how a family handles conflict and life changes, the nature and quality of family support systems, and family perceptions and responses to stressors."
+            },
+            {
+                id: 16,
+                question: "Which component refers to how decisions are made in a family, by whom, and how they are implemented?",
+                options: [
+                    "Family problem solving patterns",
+                    "Family decision making patterns",
+                    "Family roles",
+                    "Family functions"
+                ],
+                correct: 1,
+                rationale: "Family decision making patterns refer to how decisions are made in a family, by whom they are made, and how they are implemented."
+            },
+            {
+                id: 17,
+                question: "Which component of family nursing assessment includes familial health history and family use of health resources?",
+                options: [
+                    "Family functions",
+                    "Family health behavior",
+                    "Family demographics",
+                    "Family coping patterns"
+                ],
+                correct: 1,
+                rationale: "Family health behavior refers to familial health history, current physical health status of members, family use of health resources, and family health beliefs."
+            },
+            {
+                id: 18,
+                question: "Which guideline states that family health is more than the sum of its individual members' health?",
+                options: [
+                    "Ask goal-directed questions",
+                    "Focus on the family, not the member",
+                    "Exercise professional judgment",
+                    "Allow adequate time for data collection"
+                ],
+                correct: 1,
+                rationale: "Under the guideline to focus on the family, not the member, the lecture states that family health is more than the sum of its individual members' health."
+            },
+            {
+                id: 19,
+                question: "Why should the nurse allow adequate time for data collection?",
+                options: [
+                    "Families refuse to answer questions on early visits",
+                    "Records are unavailable on early visits",
+                    "Assessment tools take long to complete",
+                    "An appraisal done on the first or second visit gives only a partial picture"
+                ],
+                correct: 3,
+                rationale: "The lecture states that accurate family assessment takes time and that an appraisal done on the first or second visit will most likely give only a partial picture of how a family is functioning."
+            },
+            {
+                id: 20,
+                question: "According to the guidelines, how should the nurse appraise family communication patterns?",
+                options: [
+                    "By interviewing each member separately",
+                    "By observing the family as a group",
+                    "By reviewing the family chart",
+                    "By using a laboratory report"
+                ],
+                correct: 1,
+                rationale: "To appraise family communication patterns, the nurse needs to observe the family as a group, perhaps at mealtime or during some family activity."
+            },
+            {
+                id: 21,
+                question: "What is the quantitative measure of family health used for?",
+                options: [
+                    "Replacing professional judgment",
+                    "Avoiding the need for observation",
+                    "Determining the presence or absence of essential characteristics",
+                    "Determining the degree to which signs of health are present"
+                ],
+                correct: 3,
+                rationale: "Any appraisal must be qualitative, determining presence or absence of characteristics, while the quantitative measure determines the degree to which various signs of health are present."
+            },
+            {
+                id: 22,
+                question: "Which statement about family assessment is stated in the lecture under exercising professional judgment?",
+                options: [
+                    "Ultimately, any assessment is subjective",
+                    "Assessment tools remove all subjectivity",
+                    "Assessment is based only on tool scores",
+                    "Validated data make judgment unnecessary"
+                ],
+                correct: 0,
+                rationale: "The lecture states that assessment tools can guide observations and even quantify judgments, but ultimately any assessment is subjective."
+            },
+            {
+                id: 23,
+                question: "Which level of family assessment includes family processes, roles, division of labor, decision making, boundaries, and communication?",
+                options: [
+                    "Assessing individual needs",
+                    "Assessing the family as a unit",
+                    "Assessing family subsystems",
+                    "Assessing the family within the environment"
+                ],
+                correct: 1,
+                rationale: "The parameters often assessed when assessing the family as a unit include family processes, family roles, division of labor, decision making, boundaries, problem-solving and coping styles, and communication."
+            },
+            {
+                id: 24,
+                question: "Which data belong to assessing the family within the environment?",
+                options: [
+                    "Division of labor among members",
+                    "Presence of accident hazards and safe water supply",
+                    "Sibling and marital relationships",
+                    "Dates of birth and death of members"
+                ],
+                correct: 1,
+                rationale: "Assessing the family within the environment includes data about the physical environment such as accident hazards, safe water supply, and cooking facilities."
+            },
+            {
+                id: 25,
+                question: "Which of the following is an advantage of electronic family records?",
+                options: [
+                    "Charting time increases",
+                    "Data analysis becomes unnecessary",
+                    "Communication with other staff is reduced",
+                    "Family information can be accessed remotely"
+                ],
+                correct: 3,
+                rationale: "Listed advantages include easy access to information, remote access, improved communication between nurses and other staff, and time saved with less charting time."
+            },
+            {
+                id: 26,
+                question: "Which of the following is an example of an indication for family assessment?",
+                options: [
+                    "A nurse needs training hours",
+                    "A family has no health problems",
+                    "A family refuses all services",
+                    "A child is going to be admitted to the hospital"
+                ],
+                correct: 3,
+                rationale: "The lecture lists that a child going to be admitted to the hospital is one of the indications for a family assessment."
+            },
+            {
+                id: 27,
+                question: "What does the goal of family nursing assessment aim to allow the nurse and family to do together?",
+                options: [
+                    "Identify family needs and plan care",
+                    "Rank the family against other families",
+                    "Replace the family's decisions",
+                    "Document the family's income"
+                ],
+                correct: 0,
+                rationale: "The goal is to gather information that allows the nurse and family to identify family needs together and to plan care toward more optimal health."
+            },
+            {
+                id: 28,
+                question: "What are the three well-known graphic assessment tools for the community health nurse?",
+                options: [
+                    "Ecomap, genogram, and family health tree",
+                    "Ecomap, family tree, and care map",
+                    "Genogram, family chart, and health tree",
+                    "Ecomap, genogram, and life cycle chart"
+                ],
+                correct: 0,
+                rationale: "The lecture names three well-known graphic tools: ecomap, genogram, and family health tree."
+            },
+            {
+                id: 29,
+                question: "Which of the following is information included in a genogram?",
+                options: [
+                    "Insurance coverage",
+                    "Marriages, separations, and divorces",
+                    "Housing prices",
+                    "Family income per month"
+                ],
+                correct: 1,
+                rationale: "A genogram includes dates of birth and deaths, marriages, separations, divorces, health status, ethnicity, genetic inheritance, occupation, retirement, and significant family problems."
+            },
+            {
+                id: 30,
+                question: "Which of the following is one of the uses of an ecomap?",
+                options: [
+                    "Recording the causes of death of family members",
+                    "Showing genetically linked diseases",
+                    "Recording immunization schedules",
+                    "Discovering patterns of energy flow into and outside of the family"
+                ],
+                correct: 3,
+                rationale: "An ecomap helps discover patterns of energy flow into and outside the family, helps members visualize external relationships, and shows relationships to community resources."
+            },
+            {
+                id: 31,
+                question: "Why must data be analyzed after gathering family assessment data?",
+                options: [
+                    "The large amount of data would be confusing if not analyzed",
+                    "The analysis replaces the need for documentation",
+                    "The data must be shortened before they are stored",
+                    "The analysis is required by law before any home visit"
+                ],
+                correct: 0,
+                rationale: "The lecture states that family assessments provide a massive amount of data that, if not sorted and analyzed, will be confusing."
+            },
+            {
+                id: 32,
+                question: "What does the lecture note about families living in a resource-rich environment?",
+                options: [
+                    "They never need any form of community services",
+                    "They always use every resource available to them",
+                    "They may lack the connections needed to use those resources",
+                    "They have no health problems that need assessment"
+                ],
+                correct: 2,
+                rationale: "The note in the lecture states that some families can live within a fairly resource-rich environment and not be able to maintain the connections needed to tap those resources."
+            },
+            {
+                id: 33,
+                question: "Family nursing assessment is the least important step in the nursing process.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that family nursing assessment is the most critical step in the nursing process because it directs the whole problem-solving process."
+            },
+            {
+                id: 34,
+                question: "A genogram displays family information graphically and gives a quick view of complex family patterns.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Among the uses of a genogram, the lecture lists displaying family information graphically in a way that provides a quick view of complex family patterns."
+            },
+            {
+                id: 35,
+                question: "Quantitative measures can show a family's progression or regression by comparing its present score with its previous scores.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists this as a reason quantitative measures are important, since they provide a basis for comparison."
+            },
+            {
+                id: 36,
+                question: "The ecomap was developed by Ann Hartman in 1975.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the ecomap was developed by Ann Hartman in 1975 to help child welfare workers study family needs."
+            },
+            {
+                id: 37,
+                question: "Observing or interviewing the family is the least accurate source of data.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture describes observing or interviewing the family as the most accurate and rich source of information about the family."
+            },
+            {
+                id: 38,
+                question: "The nurse involves family members in the development of the ecomap.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the nurse involves family members in the map's development."
+            },
+            {
+                id: 39,
+                question: "Family assessment can occur at only one level.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that family nursing assessment can occur on multiple levels, and a comprehensive assessment should include information gathered about and from all levels."
+            },
+            {
+                id: 40,
+                question: "Family assessment should focus on individual members rather than on the family.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The first guideline states that the nurse should focus on the family, not the member, because family health is more than the sum of its members' health."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
