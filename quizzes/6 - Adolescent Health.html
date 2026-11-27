@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Adolescent Health</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "According to the WHO, adolescence is the phase of life between childhood and adulthood from which ages?",
+                options: [
+                    "12 to 18",
+                    "13 to 21",
+                    "10 to 19",
+                    "8 to 15"
+                ],
+                correct: 2,
+                rationale: "The lecture states that WHO defined adolescence as the phase of life between childhood and adulthood, from ages 10 to 19."
+            },
+            {
+                id: 2,
+                question: "Which stage of adolescence is characterized by the beginnings of sexual maturation?",
+                options: [
+                    "Late adolescence",
+                    "Pre-adolescence",
+                    "Middle adolescence",
+                    "Early adolescence"
+                ],
+                correct: 3,
+                rationale: "Early adolescence, from 10 to 13 years, is characterized by the beginnings of sexual maturation."
+            },
+            {
+                id: 3,
+                question: "Which stage of adolescence is characterized by completion of physical changes and development of individual identity?",
+                options: [
+                    "Late adolescence",
+                    "Early adolescence",
+                    "Middle adolescence",
+                    "Pre-adolescence"
+                ],
+                correct: 2,
+                rationale: "Middle adolescence, from 14 to 17 years, is characterized by completion of physical changes and development of individual identity."
+            },
+            {
+                id: 4,
+                question: "What proportion of the global population do adolescents represent?",
+                options: [
+                    "One third",
+                    "One sixth",
+                    "One quarter",
+                    "One tenth"
+                ],
+                correct: 1,
+                rationale: "The lecture states that adolescents represent one sixth of the global population."
+            },
+            {
+                id: 5,
+                question: "How many deaths occur globally every year among adolescents due to road traffic injuries, violence, suicide, HIV, and pregnancy related causes?",
+                options: [
+                    "2.8 million",
+                    "1.4 million",
+                    "0.5 million",
+                    "5 million"
+                ],
+                correct: 1,
+                rationale: "Investing in adolescent health helps prevent the estimated 1.4 million deaths that occur globally every year from these causes."
+            },
+            {
+                id: 6,
+                question: "Which age group has the lowest risk of death of all age groups?",
+                options: [
+                    "5 to 9 years",
+                    "20 to 24 years",
+                    "15 to 19 years",
+                    "10 to 14 years"
+                ],
+                correct: 3,
+                rationale: "The lecture states that young adolescents aged 10 to 14 years have the lowest risk of death of all age groups, according to WHO 2022."
+            },
+            {
+                id: 7,
+                question: "By what age do half of all mental health disorders in adulthood start?",
+                options: [
+                    "14",
+                    "21",
+                    "10",
+                    "18"
+                ],
+                correct: 0,
+                rationale: "The lecture states that half of all mental health disorders in adulthood start by age 14, but most cases are undetected and untreated."
+            },
+            {
+                id: 8,
+                question: "What is the leading cause of death and disability among adolescents?",
+                options: [
+                    "Cancer",
+                    "Infectious diseases",
+                    "Unintentional injuries",
+                    "Malnutrition"
+                ],
+                correct: 2,
+                rationale: "The lecture states that unintentional injuries are the leading cause of death and disability among adolescents."
+            },
+            {
+                id: 9,
+                question: "What percentage of adolescent boys were exposed to bullying according to the global school-based student health survey?",
+                options: [
+                    "42%",
+                    "37%",
+                    "65%",
+                    "12%"
+                ],
+                correct: 0,
+                rationale: "According to the survey, 42% of adolescent boys and 37% of adolescent girls were exposed to bullying."
+            },
+            {
+                id: 10,
+                question: "What proportion of young people report sexual abuse?",
+                options: [
+                    "1 in 8",
+                    "1 in 50",
+                    "1 in 20",
+                    "1 in 3"
+                ],
+                correct: 0,
+                rationale: "The lecture states that sexual violence affects a significant proportion of youth, as 1 in 8 young people report sexual abuse."
+            },
+            {
+                id: 11,
+                question: "What is the second leading cause of death in people aged 15 to 19 years?",
+                options: [
+                    "Suicide",
+                    "Road traffic accidents",
+                    "HIV infection",
+                    "Violence"
+                ],
+                correct: 0,
+                rationale: "The lecture states that depression is one of the leading causes of illness and disability among adolescents and suicide is the second leading cause of death in people aged 15-19 years."
+            },
+            {
+                id: 12,
+                question: "What percentage of the global burden of disease and injury in people aged 10 to 19 years is accounted for by mental health conditions?",
+                options: [
+                    "8%",
+                    "40%",
+                    "25%",
+                    "16%"
+                ],
+                correct: 3,
+                rationale: "The lecture states that mental health conditions account for 16% of the global burden of disease and injury in people aged 10-19 years."
+            },
+            {
+                id: 13,
+                question: "How many adolescents aged 15 to 19 years are current drinkers worldwide?",
+                options: [
+                    "15 million",
+                    "300 million",
+                    "50 million",
+                    "155 million"
+                ],
+                correct: 3,
+                rationale: "The lecture states that more than a quarter of all people aged 15-19 years are current drinkers, amounting to 155 million adolescents."
+            },
+            {
+                id: 14,
+                question: "What is the minimum percentage of adolescents aged 13 to 15 years who use tobacco globally?",
+                options: [
+                    "At least 1 in 2",
+                    "At least 1 in 10",
+                    "At least 1 in 20",
+                    "At least 1 in 5"
+                ],
+                correct: 1,
+                rationale: "The lecture states that globally at least 1 in 10 adolescents aged 13-15 years uses tobacco."
+            },
+            {
+                id: 15,
+                question: "Prohibiting the sale of tobacco products to minors applies to people under which age?",
+                options: [
+                    "16 years",
+                    "21 years",
+                    "18 years",
+                    "14 years"
+                ],
+                correct: 2,
+                rationale: "The lecture states that prohibiting the sale of tobacco products to minors, under 18 years, is a crucial measure."
+            },
+            {
+                id: 16,
+                question: "How many adolescents aged 10 to 19 years were living with HIV in 2019?",
+                options: [
+                    "1.7 million",
+                    "4 million",
+                    "10 million",
+                    "0.5 million"
+                ],
+                correct: 0,
+                rationale: "The lecture states that an estimated 1.7 million adolescents were living with HIV in 2019, with around 90% in the WHO African Region."
+            },
+            {
+                id: 17,
+                question: "What proportion of new adult HIV infections do adolescents account for?",
+                options: [
+                    "About 50%",
+                    "About 3%",
+                    "About 25%",
+                    "About 10%"
+                ],
+                correct: 3,
+                rationale: "The lecture states that adolescents still account for about 10% of new adult HIV infections, with three-quarters among adolescent girls."
+            },
+            {
+                id: 18,
+                question: "By how much did adolescent mortality from measles fall in the African Region between 2000 and 2012?",
+                options: [
+                    "10%",
+                    "90%",
+                    "50%",
+                    "30%"
+                ],
+                correct: 1,
+                rationale: "The lecture states that adolescent mortality from measles fell by 90% in the African Region between 2000 and 2012."
+            },
+            {
+                id: 19,
+                question: "Which infection that occurs after the onset of sexual activity can lead to cervical and other cancers decades later?",
+                options: [
+                    "Human papilloma virus",
+                    "Measles",
+                    "Pneumonia",
+                    "Hepatitis A"
+                ],
+                correct: 0,
+                rationale: "The lecture states that infections such as human papilloma virus can lead to short-term genital warts and, more importantly, cervical and other cancers decades later."
+            },
+            {
+                id: 20,
+                question: "How many girls under 15 years give birth each year in developing regions?",
+                options: [
+                    "At least 12 million",
+                    "At least 5 million",
+                    "At least 100000",
+                    "At least 777000"
+                ],
+                correct: 3,
+                rationale: "The lecture states that approximately 12 million girls aged 15-19 years and at least 777000 girls under 15 years give birth each year in developing regions."
+            },
+            {
+                id: 21,
+                question: "Which condition was the second leading cause of years lost by adolescents to death and disability in 2019?",
+                options: [
+                    "Iodine deficiency",
+                    "Iron deficiency anemia",
+                    "Protein malnutrition",
+                    "Vitamin A deficiency"
+                ],
+                correct: 1,
+                rationale: "The lecture states that iron deficiency anemia was the second leading cause of years lost by adolescents to death and disability in 2019."
+            },
+            {
+                id: 22,
+                question: "Which hormonal disorder should be tested for in a short adolescent with obesity and high blood pressure?",
+                options: [
+                    "Addison disease",
+                    "Diabetes insipidus",
+                    "Hypothyroidism",
+                    "Cushing syndrome"
+                ],
+                correct: 3,
+                rationale: "The lecture states that any adolescent with obesity who is short and has high blood pressure should be tested for the hormonal disorder Cushing syndrome."
+            },
+            {
+                id: 23,
+                question: "What proportion of adolescents aged 10 to 19 years was overweight globally in 2020?",
+                options: [
+                    "Over 1 in 2",
+                    "Over 1 in 3",
+                    "Over 1 in 20",
+                    "Over 1 in 6"
+                ],
+                correct: 3,
+                rationale: "The lecture states that globally in 2020, over 1 in 6 adolescents aged 10-19 years was overweight."
+            },
+            {
+                id: 24,
+                question: "How much physical activity does WHO recommend for adolescents on average per day?",
+                options: [
+                    "At least 60 minutes",
+                    "At least 30 minutes",
+                    "At least 15 minutes",
+                    "At least 90 minutes"
+                ],
+                correct: 0,
+                rationale: "WHO recommends that adolescents accumulate at least 60 minutes of moderate to vigorous intensity physical activity on average per day across the week."
+            },
+            {
+                id: 25,
+                question: "What proportion of adolescents globally are estimated to meet the physical activity guidelines?",
+                options: [
+                    "Only 1 in 5",
+                    "Only 1 in 3",
+                    "Only 1 in 10",
+                    "Only 1 in 2"
+                ],
+                correct: 0,
+                rationale: "The lecture states that globally only 1 in 5 adolescents are estimated to meet these guidelines."
+            },
+            {
+                id: 26,
+                question: "In which year was the Ishraq program launched in rural Upper Egypt?",
+                options: [
+                    "1990",
+                    "1996",
+                    "2010",
+                    "2001"
+                ],
+                correct: 3,
+                rationale: "The lecture states that Ishraq was a program launched in 2001 to meet the needs of out-of-school girls in rural Upper Egypt."
+            },
+            {
+                id: 27,
+                question: "What is the age group of the girls the Ishraq program was developed for?",
+                options: [
+                    "12 to 15 years",
+                    "10 to 19 years",
+                    "16 to 20 years",
+                    "6 to 12 years"
+                ],
+                correct: 0,
+                rationale: "The Ishraq program was developed to meet the needs of girls 12-15 years old who are out of school in rural Upper Egypt."
+            },
+            {
+                id: 28,
+                question: "Which parental style hampers the ability of adolescents to be independent?",
+                options: [
+                    "Parents who value the opinion of the adolescent",
+                    "Very strict parents who do not let the adolescent take any decision",
+                    "Parents who give more freedom as the adolescent grows",
+                    "Parents who take interest in activities of the adolescent"
+                ],
+                correct: 1,
+                rationale: "The lecture states that parents who are very strict, play the role of an authority figure, and do not let the adolescent take any decision seriously hamper the ability to be independent."
+            },
+            {
+                id: 29,
+                question: "Which parental behavior is associated with children who grow up with indifferent attitudes?",
+                options: [
+                    "Taking interest in the adolescent's activities",
+                    "Valuing the opinion of the adolescent",
+                    "Encouraging the adolescent to participate in family matters",
+                    "Leaving the adolescents with their problems without interacting"
+                ],
+                correct: 3,
+                rationale: "The lecture states that indifferent parents, who leave adolescents with their problems and do not interact with them, have children who grow up with indifferent attitudes."
+            },
+            {
+                id: 30,
+                question: "Which approach uses public health messages to promote healthy behaviors and the use of condoms and other health products?",
+                options: [
+                    "Youth development",
+                    "Community mobilization",
+                    "Peer education",
+                    "Social marketing"
+                ],
+                correct: 3,
+                rationale: "The lecture defines social marketing as the use of public health messages to promote healthy behaviors and the use of condoms and other health products and services."
+            },
+            {
+                id: 31,
+                question: "For which group are peer education programs especially appropriate?",
+                options: [
+                    "Children under 10 years",
+                    "Parents of adolescents",
+                    "Young people who are not in school",
+                    "Teachers in secondary schools"
+                ],
+                correct: 2,
+                rationale: "The lecture states that peer education programs are especially appropriate for young people who are not in school and for hard to reach, at risk subsets of the youth population."
+            },
+            {
+                id: 32,
+                question: "According to the lecture, which factor is protective against developing health-compromising behaviors?",
+                options: [
+                    "Peer pressure",
+                    "Connectedness to family",
+                    "Low parental monitoring",
+                    "Early independence"
+                ],
+                correct: 1,
+                rationale: "The lecture states that parental factors including open communication, consistent monitoring and control, and positive support help reduce risks, and connectedness to family is protective."
+            },
+            {
+                id: 33,
+                question: "Adolescents aged 10 to 14 years have the highest risk of death of all age groups.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that young adolescents aged 10 to 14 years have the lowest risk of death of all age groups."
+            },
+            {
+                id: 34,
+                question: "Late adolescence is from 18 to 19 years.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists late adolescence as 18 to 19 years, with the body taking adult form and a more settled identity."
+            },
+            {
+                id: 35,
+                question: "Hormonal disorders are the most common cause of obesity among adolescents.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that hormonal disorders may result in obesity but are rarely the cause."
+            },
+            {
+                id: 36,
+                question: "Most people using tobacco today began doing so when they were adolescents.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the vast majority of people using tobacco today began doing so when they were adolescents."
+            },
+            {
+                id: 37,
+                question: "Regular deworming is recommended in areas where intestinal helminths such as hookworm are common.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that regular deworming in such areas is recommended to prevent micronutrient deficiencies, including iron deficiency."
+            },
+            {
+                id: 38,
+                question: "Prevalence of physical inactivity is higher in male adolescents than in female adolescents.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the prevalence of inactivity is high across all WHO regions and higher in female adolescents than in male adolescents."
+            },
+            {
+                id: 39,
+                question: "AIDS-related deaths have fallen for every other age group but have risen dramatically for adolescents.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that while AIDS-related deaths have fallen for every other age group, they have risen dramatically for adolescents."
+            },
+            {
+                id: 40,
+                question: "Adolescents want independence from their parents and yet they are dependent on them for their needs.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that during this period adolescents want independence from their parents and yet depend on them for their needs, which leads to conflict."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
