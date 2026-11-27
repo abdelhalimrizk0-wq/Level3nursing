@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Evidence-Based Guidelines</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Evidence-based guidelines are derived from what?",
+                options: [
+                    "A systematic review and critical appraisal of the most relevant evidence",
+                    "A survey of the personal opinions of senior hospital administrators",
+                    "A vote among members of the national nursing association",
+                    "A summary of the most popular treatments on social media"
+                ],
+                correct: 0,
+                rationale: "Evidence-based guidelines are derived from a systematic review and critical appraisal of the most relevant evidence to answer a clinical question."
+            },
+            {
+                id: 2,
+                question: "Within what time must a rapid advice guideline be produced?",
+                options: [
+                    "Within 1 to 3 months",
+                    "Within 9 to 12 months",
+                    "Within 2 to 3 years",
+                    "Within 3 to 5 years"
+                ],
+                correct: 0,
+                rationale: "A rapid advice guideline is produced in response to a public health emergency and needs to be produced within 1 to 3 months."
+            },
+            {
+                id: 3,
+                question: "In the SIGN grading system, grade A recommendations are based on what?",
+                options: [
+                    "High-quality meta-analyses or randomized controlled trials",
+                    "Well-conducted cohort or case-control studies",
+                    "Non-analytical studies such as case reports",
+                    "Expert opinion"
+                ],
+                correct: 0,
+                rationale: "Grade A recommendations are based on high-quality meta-analyses or randomized controlled trials, grade B on well-conducted cohort or case-control studies, grade C on non-analytical studies, and grade D on expert opinion."
+            },
+            {
+                id: 4,
+                question: "A compilation of guidelines includes new recommendations developed by the compiling group.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "A compilation of guidelines contains current recommendations from WHO and other sources but does not include any new recommendations."
+            },
+            {
+                id: 5,
+                question: "What are the 2 parts of guidelines described in the lecture?",
+                options: [
+                    "The evidence foundation and the recommendations",
+                    "The introduction and the reference list",
+                    "The budget plan and the staffing schedule",
+                    "The patient register and the audit report"
+                ],
+                correct: 0,
+                rationale: "The 2 parts are the evidence foundation, which is a systematic review of the research evidence, and the recommendations, which involve both the evidence and value judgments regarding benefits and harms of alternative care options."
+            },
+            {
+                id: 6,
+                question: "How long does a full guideline usually take to complete?",
+                options: [
+                    "2 to 3 years",
+                    "1 to 3 months",
+                    "9 to 12 months",
+                    "4 to 6 weeks"
+                ],
+                correct: 0,
+                rationale: "A full guideline provides complete coverage of a health topic or disease and is likely to take 2 to 3 years to complete, requiring several meetings of a guideline development group."
+            },
+            {
+                id: 7,
+                question: "Which instrument is a standardized tool used to critically appraise clinical practice guidelines?",
+                options: [
+                    "The Appraisal of Guidelines for Research and Evaluation instrument",
+                    "The Morse Fall Scale",
+                    "The Braden Scale",
+                    "The physiotherapy evidence database scale"
+                ],
+                correct: 0,
+                rationale: "The Appraisal of Guidelines for Research and Evaluation instrument, in its second version, is a standardized instrument used to critically appraise clinical practice guidelines and assess the quality and methodological rigor of how they are developed."
+            },
+            {
+                id: 8,
+                question: "Which of the following is a criterion for selecting guideline topics?",
+                options: [
+                    "High burden of disease or healthcare cost",
+                    "Low public interest in the condition",
+                    "Absence of any published research on the topic",
+                    "Simplicity of writing the recommendations"
+                ],
+                correct: 0,
+                rationale: "Criteria for selecting guideline topics include high burden of disease or healthcare cost, evidence of variation in clinical practice, availability of new or updated evidence, and relevance to current healthcare priorities in Scotland."
+            },
+            {
+                id: 9,
+                question: "Grade D recommendations in the SIGN system are based on well-conducted cohort studies.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Grade D recommendations are based on expert opinion, while grade B is based on well-conducted cohort or case-control studies."
+            },
+            {
+                id: 10,
+                question: "How many steps does the SIGN guideline development process overview contain?",
+                options: [
+                    "11",
+                    "5",
+                    "8",
+                    "15"
+                ],
+                correct: 0,
+                rationale: "The SIGN guideline development process overview lists 11 steps, from choosing guideline topics to monitoring, updating, and revision."
+            },
+            {
+                id: 11,
+                question: "A standard guideline is produced in response to what?",
+                options: [
+                    "A request for guidance about a change in practice or controversy in a single clinical area",
+                    "A public health emergency such as pandemic influenza",
+                    "A demand for complete coverage of an entire disease",
+                    "A need to translate guidelines into other languages"
+                ],
+                correct: 0,
+                rationale: "A standard guideline is produced in response to a request for guidance in relation to a change in practice or controversy in a single clinical area and usually takes 9 to 12 months."
+            },
+            {
+                id: 12,
+                question: "Who is included in the guideline development group?",
+                options: [
+                    "Clinicians, nurses, pharmacists, allied health professionals, researchers, and patient representatives",
+                    "Only senior physicians from the hospital's largest department",
+                    "Only government officials and health ministry staff",
+                    "Only journal editors and medical publishing companies"
+                ],
+                correct: 0,
+                rationale: "The guideline development group is a multidisciplinary team including clinicians from relevant specialties, nurses, pharmacists, allied health professionals, health service researchers, and patients and public representatives."
+            },
+            {
+                id: 13,
+                question: "Adaptations of guidelines allow a guideline written for one setting to be used in another, such as routine obstetric care in emergency settings.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that guidelines originally intended for one setting may be adapted for use in another, such as routine obstetric care in emergency settings."
+            },
+            {
+                id: 14,
+                question: "In the SIGN grading system, levels of evidence range from what to what?",
+                options: [
+                    "1++ to 4",
+                    "A to D",
+                    "1 to 10",
+                    "High to low"
+                ],
+                correct: 0,
+                rationale: "The SIGN grading system assigns levels of evidence from 1++ to 4, based on study type and methodological quality."
+            },
+            {
+                id: 15,
+                question: "Which database is listed as a source for the systematic literature review step?",
+                options: [
+                    "The Cochrane Central Register of Controlled Trials",
+                    "Google Scholar",
+                    "Wikipedia",
+                    "Scopus"
+                ],
+                correct: 0,
+                rationale: "Sources for the systematic literature review include the Cochrane Central Register of Controlled Trials, EMBASE, and MEDLINE."
+            },
+            {
+                id: 16,
+                question: "What is the typical timeframe for monitoring and updating a guideline?",
+                options: [
+                    "Every 3 to 5 years",
+                    "Every 6 months",
+                    "Every 10 years",
+                    "Every 25 years"
+                ],
+                correct: 0,
+                rationale: "Monitoring keeps the guideline current through ongoing surveillance of new evidence, typically every 3 to 5 years."
+            },
+            {
+                id: 17,
+                question: "Which of the following is a benefit of clinical guidelines listed in the lecture?",
+                options: [
+                    "They can be used as a reference for professional audit to evaluate the quality of care",
+                    "They guarantee that every patient receives identical treatment regardless of condition",
+                    "They remove the need for clinical judgment in daily nursing practice",
+                    "They eliminate the cost of staff training in hospitals"
+                ],
+                correct: 0,
+                rationale: "Benefits of clinical guidelines include improving patient care, increasing efficiency, contributing to patient safety, including a systematic review of recent literature, and serving as a reference for professional audit to evaluate quality of care."
+            },
+            {
+                id: 18,
+                question: "Which formats is the final SIGN guideline produced in?",
+                options: [
+                    "The full guideline, a quick reference guide, and patient versions",
+                    "Only a single technical report for specialists",
+                    "Only a poster for hospital waiting rooms",
+                    "Only a video for social media platforms"
+                ],
+                correct: 0,
+                rationale: "The final guideline is produced as a full detailed guideline, a quick reference guide, and patient versions that are lay-friendly."
+            },
+            {
+                id: 19,
+                question: "Which of the following is a trigger for updating a guideline?",
+                options: [
+                    "Safety alerts",
+                    "Staff retirements",
+                    "Building renovations",
+                    "Budget surpluses"
+                ],
+                correct: 0,
+                rationale: "Triggers for updating a guideline include new treatments, safety alerts, and major trials or systematic reviews."
+            },
+            {
+                id: 20,
+                question: "Recommendations in a guideline should be phrased with vague language to allow flexibility.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The writing principles state that recommendations are phrased clearly with actionable verbs, reflect the strength of the recommendation, and use plain English while avoiding vague language and jargon."
+            },
+            {
+                id: 21,
+                question: "Who reviews the final version of a SIGN guideline before publication?",
+                options: [
+                    "The SIGN executive and oversight committees",
+                    "The pharmaceutical industry sponsors",
+                    "The local hospital cleaning contractors",
+                    "The medical equipment suppliers"
+                ],
+                correct: 0,
+                rationale: "Approval of the final version is done by the SIGN executive and oversight committees before the guideline is published."
+            },
+            {
+                id: 22,
+                question: "Which type of guideline provides complete coverage of a health topic or disease?",
+                options: [
+                    "A full guideline",
+                    "A rapid advice guideline",
+                    "A standard guideline",
+                    "A compilation of guidelines"
+                ],
+                correct: 0,
+                rationale: "A full guideline provides complete coverage of a health topic or disease, including recommendations for surveillance, diagnosis, public health, and clinical interventions, fully based on systematic reviews."
+            },
+            {
+                id: 23,
+                question: "Which reviewers take part in the public consultation and peer review step?",
+                options: [
+                    "Clinical experts not involved in development, professional organizations, and patient groups",
+                    "Only the members of the guideline development group itself",
+                    "Only the funders who paid for the guideline work",
+                    "Only the editors of medical journals"
+                ],
+                correct: 0,
+                rationale: "Reviewers include clinical experts not involved in development, relevant professional organizations, and patient groups."
+            },
+            {
+                id: 24,
+                question: "Clinical questions in the scope step are developed using the PICO format.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The scope step develops clinical questions using the PICO format: patient or population, intervention, comparison, and outcome."
+            },
+            {
+                id: 25,
+                question: "Which of the following is a dissemination strategy listed for the implementation step?",
+                options: [
+                    "Workshops, webinars, and educational outreach",
+                    "Television advertising and billboard campaigns",
+                    "Door-to-door sales visits to patients' homes",
+                    "Celebrity endorsements on entertainment programs"
+                ],
+                correct: 0,
+                rationale: "Dissemination and implementation strategies include workshops, webinars, educational outreach, and audit tools and checklists."
+            },
+            {
+                id: 26,
+                question: "How long does a standard guideline usually take to complete?",
+                options: [
+                    "9 to 12 months",
+                    "1 to 3 months",
+                    "2 to 3 years",
+                    "3 to 5 years"
+                ],
+                correct: 0,
+                rationale: "A standard guideline usually takes 9 to 12 months to complete and should be supported by systematic reviews of the evidence."
+            },
+            {
+                id: 27,
+                question: "What does the scope of a guideline define?",
+                options: [
+                    "What the guideline will and will not cover",
+                    "How much the guideline will cost to print",
+                    "Which journals may cite the guideline later",
+                    "How many copies each hospital will receive"
+                ],
+                correct: 0,
+                rationale: "Defining the scope and key clinical questions aims to clearly define what the guideline will and will not cover, including target population, interventions and settings, and intended audience."
+            },
+            {
+                id: 28,
+                question: "A rapid advice guideline is always supported by full systematic reviews of the evidence.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "A rapid advice guideline is evidence-informed but may not be supported by full reviews of the evidence because it must be produced within 1 to 3 months."
+            },
+            {
+                id: 29,
+                question: "What is the role of the guideline development group?",
+                options: [
+                    "Define scope, review evidence, and draft and grade recommendations",
+                    "Print, distribute, and sell the final guideline copies",
+                    "Inspect hospital kitchens, pharmacies, and supply stores",
+                    "Negotiate salaries and contracts for clinical staff"
+                ],
+                correct: 0,
+                rationale: "The role of the guideline development group is to define scope, review evidence, and draft and grade recommendations."
+            },
+            {
+                id: 30,
+                question: "In the formulation of recommendations step, recommendations should focus on what?",
+                options: [
+                    "The action that needs to be taken and, where appropriate, who needs to take it",
+                    "The history of the disease and the biography of its discoverer",
+                    "The profits that hospitals can make from the intervention",
+                    "The theories that future researchers might develop"
+                ],
+                correct: 0,
+                rationale: "The clarity and writing principles state that recommendations focus on the action that needs to be taken and, where appropriate, who needs to take this action."
+            },
+            {
+                id: 31,
+                question: "Compilations of guidelines are subject to Guidelines Review Committee approval.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Compilations of guidelines are subject to Guidelines Review Committee approval, and all recommendations included must be current and referenced thoroughly and accurately."
+            },
+            {
+                id: 32,
+                question: "What does the drafting the guideline step compile into the document?",
+                options: [
+                    "Background, methodology, evidence summary, graded recommendations, and tools like flowcharts",
+                    "Only the graded recommendations with no supporting explanation",
+                    "Only the statistical tables from the included studies",
+                    "Only the biographies of the development group members"
+                ],
+                correct: 0,
+                rationale: "Drafting compiles background and rationale, methodology of development, evidence summary and critical appraisal, graded recommendations, and tools such as flowcharts, pathways, and audit criteria."
+            },
+            {
+                id: 33,
+                question: "Which of the following is a tool mentioned for the dissemination and implementation step?",
+                options: [
+                    "Local champions or guideline leads",
+                    "Celebrity social media accounts",
+                    "Television shopping channels",
+                    "Radio entertainment shows"
+                ],
+                correct: 0,
+                rationale: "Tools for dissemination and implementation include local champions or guideline leads, clinical decision support systems, and posters, summaries, and algorithms."
+            },
+            {
+                id: 34,
+                question: "What do guideline recommendations help nurses, physicians, patients, and policy makers do?",
+                options: [
+                    "Make health care decisions in a specific health care setting to optimize patient care",
+                    "Choose which medical journals to subscribe to each year",
+                    "Decide how hospital budgets should be advertised publicly",
+                    "Select which conferences the staff should attend abroad"
+                ],
+                correct: 0,
+                rationale: "Evidence-based guidelines consist of statements with recommendations to help nurses, physicians, patients, or policy makers make health care decisions in a specific health care setting with the aim of optimizing patient care."
+            },
+            {
+                id: 35,
+                question: "In the systematic literature review step, which appraisal tools are mentioned?",
+                options: [
+                    "SIGN checklists for randomized controlled trials, cohort studies, and qualitative research",
+                    "The Morse Fall Scale and the Braden Scale",
+                    "The Glasgow Coma Scale and the Apgar Score",
+                    "The Hamilton scales for depression and anxiety"
+                ],
+                correct: 0,
+                rationale: "Study quality is assessed using critical appraisal tools, and the lecture names SIGN checklists for randomized controlled trials, cohort studies, qualitative research, and others."
+            },
+            {
+                id: 36,
+                question: "The value judgments in the recommendations part of a guideline concern the benefits and harms of alternative care options.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The recommendations part involves both the evidence and value judgments regarding the benefits and harms of alternative care options."
+            },
+            {
+                id: 37,
+                question: "Which types of recommendations are listed in the formulation step?",
+                options: [
+                    "Clinical interventions, service delivery models, and diagnostic pathways",
+                    "Staff hiring plans, salary scales, and pension schemes",
+                    "Building designs, parking layouts, and signage plans",
+                    "Journal subscriptions, book purchases, and software licenses"
+                ],
+                correct: 0,
+                rationale: "Types of recommendations include clinical interventions, service delivery models, and diagnostic pathways."
+            },
+            {
+                id: 38,
+                question: "What is the style of the drafted guideline supposed to be?",
+                options: [
+                    "Concise, clear, and user-focused",
+                    "Long, technical, and highly theoretical",
+                    "Informal, humorous, and entertaining",
+                    "Ambiguous, flexible, and open-ended"
+                ],
+                correct: 0,
+                rationale: "The drafting step specifies that the style should be concise, clear, and user-focused."
+            },
+            {
+                id: 39,
+                question: "During public consultation, where is the draft guideline made available?",
+                options: [
+                    "On the SIGN website",
+                    "In hospital waiting rooms",
+                    "In daily newspapers",
+                    "In pharmacy leaflets"
+                ],
+                correct: 0,
+                rationale: "During public consultation the draft is made available on the SIGN website and comments are invited from the public."
+            },
+            {
+                id: 40,
+                question: "What is the objective of the grading the evidence step?",
+                options: [
+                    "To assign levels to the quality of evidence and strength of recommendations",
+                    "To count how many studies were excluded from the review",
+                    "To translate the guideline into plain patient language",
+                    "To select the journal that will publish the guideline"
+                ],
+                correct: 0,
+                rationale: "The objective of grading the evidence is to assign levels to the quality of evidence and strength of recommendations."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
