@@ -248,7 +248,7 @@ footer{margin-top:20px;padding:0 4px 16px}
 <div class="ov" id="ov"><div class="modal" id="modal"></div></div>
 <div id="toast"></div>
 <input type="file" id="bookIn" accept=".pdf,application/pdf" style="display:none">
-<input type="file" id="fileIn" accept=".html,.htm" style="display:none">
+<input type="file" id="fileIn" accept=".html,.htm" multiple style="display:none">
 
 <script>
 var db=[],state={sid:null,did:null},favs=[];
@@ -515,7 +515,7 @@ function qeSave(){
 function delQuiz(i,ev){ev.preventDefault();ev.stopPropagation();var s=subj(state.sid),l=s.lectures[i];if(!confirm('حذف "'+(l.nameAr||l.name)+'" من الموقع؟'))return;
   s.lectures.splice(i,1);route();saveDb('حذف كويز: '+l.name);if(l.data)delFile(l.data,'حذف ملف كويز')}
 function mv(ev,i,d){ev.preventDefault();ev.stopPropagation();var L=subj(state.sid).lectures,j=i+d;if(j<0||j>=L.length)return;var t=L[i];L[i]=L[j];L[j]=t;route();saveDb('ترتيب الكويزات')}
-function addContent(){modal('<h2>➕ إضافة محتوى</h2><div class="sub">اختار النوع</div><div class="mact" style="flex-direction:column"><button class="btn pr" onclick="closeModal();uploadQuiz()">📝 كويز HTML</button><button class="btn pr" onclick="closeModal();uploadBook()">📕 كتاب PDF</button><button class="btn" onclick="closeModal()">إلغاء</button></div>')}
+function addContent(){modal('<h2>➕ إضافة محتوى</h2><div class="sub">اختار النوع</div><div class="mact" style="flex-direction:column"><button class="btn pr" onclick="closeModal();uploadQuiz()">📝 كويزات HTML <span style="font-size:12px;font-weight:700;opacity:.85">(اختار ملف أو أكتر)</span></button><button class="btn pr" onclick="closeModal();uploadBook()">📕 كتاب PDF</button><button class="btn" onclick="closeModal()">إلغاء</button></div>')}
 function ab64(buf){var b=new Uint8Array(buf),o='';for(var i=0;i<b.length;i+=8192)o+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return btoa(o)}
 function fmtB(n){return n>=1048576?(n/1048576).toFixed(1)+' MB':Math.round(n/1024)+' KB'}
 function ghPutProgress(path,bodyObj,onP){return new Promise(function(res,rej){var x=new XMLHttpRequest();x.open('PUT','https://api.github.com'+cpath(path));x.setRequestHeader('Accept','application/vnd.github+json');x.setRequestHeader('Authorization','Bearer '+G.tok);
@@ -540,9 +540,19 @@ function uploadBook(){var f=$('bookIn');f.value='';f.onchange=function(){var fil
       s.book={file:path,size:file.size};route();return saveDb('ربط كتاب بمادة: '+(s.nameAr||s.name)).then(function(){closeModal();toast('✅ تم رفع الكتاب. الموقع بيحتاج حوالي دقيقة لحد ما يفتح، لو جاتلك صفحة خطأ استنى دقيقة وجرب تاني');if(old)delFile(old,'حذف كتاب قديم')})}).catch(function(e){closeModal();toast('❌ فشل رفع الكتاب: '+e.message)})};
   rd.readAsArrayBuffer(file)};f.click()}
 function delBook(ev){ev.preventDefault();ev.stopPropagation();var s=subj(state.sid);if(!s.book||!confirm('حذف كتاب المادة؟'))return;var p=s.book.file;delete s.book;route();saveDb('حذف كتاب المادة').then(function(){return delFile(p,'حذف ملف كتاب')})}
-function uploadQuiz(){var f=$('fileIn');f.value='';f.onchange=function(){var file=f.files[0];if(!file)return;var rd=new FileReader();rd.onload=function(){
-  var name=file.name.replace(/\.html?$/i,''),path='quizzes/'+file.name;toast('⏳ جاري الرفع...');
-  putFile(path,rd.result,'رفع كويز: '+name).then(function(){var s=subj(state.sid);s.lectures=s.lectures||[];s.lectures.push({name:name,file:path,questions:0});route();return saveDb('رفع كويز: '+name)}).catch(function(e){toast('❌ فشل الرفع: '+e.message)})};rd.readAsText(file)};f.click()}
+function uploadQuiz(){var f=$('fileIn');f.value='';f.onchange=function(){var files=[];for(var k=0;k<f.files.length;k++)files.push(f.files[k]);if(!files.length)return;
+  var s=subj(state.sid);s.lectures=s.lectures||[];var done=0,fails=[],total=files.length;
+  toast(total>1?'⏳ جاري رفع '+total+' ملفات...':'⏳ جاري الرفع...');
+  (function next(i){
+    if(i>=total){
+      if(done){route();saveDb('رفع '+done+' كويز')}
+      if(done&&!fails.length)toast('✅ تم رفع '+done+(total>1?' كويزات':' كويز'));
+      else if(done&&fails.length)toast('✅ نجح '+done+' · ❌ فشل '+fails.length+': '+fails.join('، '));
+      else toast('❌ فشل الرفع');
+      return}
+    var file=files[i],name=file.name.replace(/\.html?$/i,''),path='quizzes/'+file.name,rd=new FileReader();
+    rd.onload=function(){putFile(path,rd.result,'رفع كويز: '+name).then(function(){s.lectures.push({name:name,file:path,questions:0});done++;if(total>1)toast('⏳ رفع الكويزات: '+(i+1)+' / '+total)}).catch(function(e){fails.push(name)}).then(function(){next(i+1)})};
+    rd.onerror=function(){fails.push(name);next(i+1)};rd.readAsText(file)})(0)};f.click()}
 
 window.addEventListener('scroll',function(){var h=document.documentElement.scrollHeight-document.documentElement.clientHeight;$('pbar').style.width=(h>0?document.documentElement.scrollTop/h*100:0)+'%'});
 (function init(){
