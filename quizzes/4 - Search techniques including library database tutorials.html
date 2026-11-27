@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Search techniques including library database tutorials</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "How does the lecture define literature searching?",
+                options: [
+                    "A systematic process of identifying, locating, and retrieving published evidence relevant to a specific question",
+                    "A quick scan of the first page of web search results for a clinical topic",
+                    "A memorized list of databases that nurses use during their training years",
+                    "A hospital archive of patient records kept for legal documentation"
+                ],
+                correct: 0,
+                rationale: "Literature searching is defined as a systematic process of identifying, locating, and retrieving published evidence relevant to a specific clinical, educational, or research question."
+            },
+            {
+                id: 2,
+                question: "Which Boolean operator narrows a search so the database retrieves results containing all the search terms?",
+                options: [
+                    "AND",
+                    "OR",
+                    "NOT",
+                    "NEAR"
+                ],
+                correct: 0,
+                rationale: "AND retrieves results that contain all the search terms, producing fewer and more specific results, so AND combines concepts."
+            },
+            {
+                id: 3,
+                question: "Which study design randomly assigns participants to an intervention group or a control group?",
+                options: [
+                    "Randomized controlled trial",
+                    "Cohort study",
+                    "Case-control study",
+                    "Cross-sectional study"
+                ],
+                correct: 0,
+                rationale: "A randomized controlled trial randomly assigns participants to different groups, such as an intervention group or a control group."
+            },
+            {
+                id: 4,
+                question: "Background questions are considered too general for primary literature databases like PubMed.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that background questions are too general for primary literature databases like PubMed, and are best answered by textbooks, narrative reviews, and point-of-care reference summaries."
+            },
+            {
+                id: 5,
+                question: "Which database is maintained by the United States National Library of Medicine?",
+                options: [
+                    "PubMed",
+                    "CINAHL",
+                    "Cochrane Library",
+                    "Scopus"
+                ],
+                correct: 0,
+                rationale: "PubMed is maintained by the United States National Library of Medicine and provides access to MEDLINE, which uses medical subject headings to organize biomedical concepts."
+            },
+            {
+                id: 6,
+                question: "What is the purpose of truncation in database searching?",
+                options: [
+                    "To search for different word endings by placing a symbol after the common root of a word",
+                    "To remove duplicate articles from the results list automatically",
+                    "To translate search terms into the official language of the database",
+                    "To limit the search to articles published within the last year"
+                ],
+                correct: 0,
+                rationale: "Truncation allows searching for different word endings by placing a truncation symbol, commonly an asterisk, after the common root of a word, such as a root that retrieves nurse, nurses, and nursing."
+            },
+            {
+                id: 7,
+                question: "Which study design follows a group of people over time to examine exposure and outcomes?",
+                options: [
+                    "Cohort study",
+                    "Case-control study",
+                    "Cross-sectional study",
+                    "Qualitative study"
+                ],
+                correct: 0,
+                rationale: "A cohort study follows a group of people over time to examine exposure and outcomes, and is particularly useful for risk factors, prognosis, incidence, and long-term outcomes."
+            },
+            {
+                id: 8,
+                question: "What does the OR operator do in a database search?",
+                options: [
+                    "It retrieves results containing either or both search terms and is useful for synonyms",
+                    "It retrieves only results containing all of the search terms",
+                    "It removes results containing a particular unwanted term",
+                    "It restricts results to the exact phrase typed by the searcher"
+                ],
+                correct: 0,
+                rationale: "OR retrieves results containing either or both search terms and is especially useful for synonyms and related terms, giving more results and greater coverage of the literature."
+            },
+            {
+                id: 9,
+                question: "A systematic review must always include a meta-analysis.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that a systematic review may or may not include a meta-analysis; a systematic review is a systematic synthesis of studies, while a meta-analysis is a statistical combination of study results."
+            },
+            {
+                id: 10,
+                question: "For a prognosis question, which study design may be particularly useful?",
+                options: [
+                    "Cohort studies",
+                    "Case reports",
+                    "Narrative reviews",
+                    "Editorials"
+                ],
+                correct: 0,
+                rationale: "The evidence hierarchy depends on the type of clinical question, and for a prognosis question cohort studies may be particularly useful."
+            },
+            {
+                id: 11,
+                question: "Which of the following is listed as a core category of foreground questions?",
+                options: [
+                    "Therapy",
+                    "Biography",
+                    "Geography",
+                    "Architecture"
+                ],
+                correct: 0,
+                rationale: "The core categories of foreground questions are therapy, prognosis, etiology or harm, and diagnosis."
+            },
+            {
+                id: 12,
+                question: "What are subject headings in a database?",
+                options: [
+                    "Standardized terms assigned to articles by a database to describe their main topics",
+                    "The first sentence of each abstract written by the article authors",
+                    "Keywords invented by the searcher at the moment of searching",
+                    "Chapter titles copied from nursing textbooks into the database"
+                ],
+                correct: 0,
+                rationale: "Subject headings are standardized terms assigned to articles by a database to describe their main topics, helping researchers find articles even when authors use different words."
+            },
+            {
+                id: 13,
+                question: "Which database is described as the premier database for nursing fields?",
+                options: [
+                    "CINAHL",
+                    "PubMed",
+                    "Google Scholar",
+                    "Web of Science"
+                ],
+                correct: 0,
+                rationale: "CINAHL, the Cumulative Index to Nursing and Allied Health Literature, is described as the premier database for nursing fields."
+            },
+            {
+                id: 14,
+                question: "The Cochrane Library is described as the gold standard for which type of evidence?",
+                options: [
+                    "High-quality independent evidence from systematic reviews and meta-analyses",
+                    "Freely accessible theses and dissertations from universities",
+                    "Government health statistics and disease surveillance data",
+                    "Professional standards and position statements for nurses"
+                ],
+                correct: 0,
+                rationale: "The Cochrane Library is described as the gold standard for high-quality, independent evidence and is essential for locating comprehensive systematic reviews and meta-analyses."
+            },
+            {
+                id: 15,
+                question: "Free-text searching captures new terminology better than subject heading searching.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "In the comparison table, free-text searching is good at capturing new terminology and recent articles, while subject headings may be limited until articles are indexed and terms are updated."
+            },
+            {
+                id: 16,
+                question: "A case-control study is particularly useful for which situations?",
+                options: [
+                    "Risk factors and rare diseases or outcomes",
+                    "Prevalence and describing populations",
+                    "Treatment, interventions, and prevention",
+                    "Incidence and long-term outcomes"
+                ],
+                correct: 0,
+                rationale: "A case-control study starts with people who have an outcome and compares them with people who do not, and is particularly useful for risk factors and rare diseases or outcomes."
+            },
+            {
+                id: 17,
+                question: "In the practical search example, what are the 3 concepts identified for the question about music therapy reducing anxiety in hospitalized children?",
+                options: [
+                    "Children, music therapy, and anxiety",
+                    "Nurses, medication, and pain",
+                    "Adults, surgery, and infection",
+                    "Infants, vaccination, and fever"
+                ],
+                correct: 0,
+                rationale: "Step 1 of the practical example identifies the concepts: population is children, intervention is music therapy, and outcome is anxiety."
+            },
+            {
+                id: 18,
+                question: "What is the purpose of parentheses in a database search strategy?",
+                options: [
+                    "They tell the database which search terms belong together and which operation is performed first",
+                    "They mark the terms that the database should permanently exclude from results",
+                    "They convert free-text words into the standardized vocabulary of the database",
+                    "They force the database to translate the enclosed terms into other languages"
+                ],
+                correct: 0,
+                rationale: "Parentheses tell the database which search terms belong together and which operation should be performed first, and are especially important when combining synonyms with OR and different concepts with AND."
+            },
+            {
+                id: 19,
+                question: "Qualitative research explores experiences, perceptions, beliefs, attitudes, and meanings.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Qualitative research is described as exploring experiences, perceptions, beliefs, attitudes, and meanings, using methods such as interviews, focus groups, observations, and thematic analysis."
+            },
+            {
+                id: 20,
+                question: "Which of the following is a tertiary source of evidence?",
+                options: [
+                    "A nursing textbook",
+                    "An original randomized controlled trial",
+                    "A systematic review",
+                    "A cohort study"
+                ],
+                correct: 0,
+                rationale: "Tertiary sources provide organized summaries of established knowledge, such as nursing textbooks, clinical handbooks, drug reference books, encyclopedias, and educational websites."
+            },
+            {
+                id: 21,
+                question: "What is the typical structure of a primary research article called?",
+                options: [
+                    "Introduction, methods, results, and discussion",
+                    "Title, summary, references, and appendix",
+                    "Question, search, appraisal, and decision",
+                    "Problem, plan, action, and evaluation"
+                ],
+                correct: 0,
+                rationale: "The typical structure of primary research articles is introduction, methods, results, and discussion."
+            },
+            {
+                id: 22,
+                question: "Instead of searching only the phrase heart attack, a researcher may search which standardized subject heading?",
+                options: [
+                    "Myocardial infarction",
+                    "Cardiac discomfort",
+                    "Chest pain",
+                    "Heart failure"
+                ],
+                correct: 0,
+                rationale: "The lecture gives the example that instead of searching only the word heart attack, a researcher may search the standardized subject heading myocardial infarction, retrieving articles indexed under that concept."
+            },
+            {
+                id: 23,
+                question: "Expert opinion should replace high-quality research evidence whenever the two disagree.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Expert opinion can be useful when strong research evidence is unavailable, but it generally should not replace high-quality research evidence when such evidence exists."
+            },
+            {
+                id: 24,
+                question: "For a treatment question, which types of studies are particularly valuable?",
+                options: [
+                    "Randomized controlled trials and systematic reviews",
+                    "Cross-sectional studies and editorials",
+                    "Case reports and narrative reviews",
+                    "Focus groups and interviews"
+                ],
+                correct: 0,
+                rationale: "For a treatment question, randomized controlled trials and systematic reviews are particularly valuable according to the evidence hierarchy discussion."
+            },
+            {
+                id: 25,
+                question: "Which advantage of free-text searching does the lecture list?",
+                options: [
+                    "It is useful for recently published articles",
+                    "It always uses standardized database terms",
+                    "It groups all synonyms automatically",
+                    "It removes the need to evaluate credibility"
+                ],
+                correct: 0,
+                rationale: "Advantages of free-text searching include capturing new terminology, usefulness for recently published articles, usefulness when a concept does not yet have an appropriate subject heading, and allowing searches for specific phrases."
+            },
+            {
+                id: 26,
+                question: "Which organization is given as an example of a government health database provider?",
+                options: [
+                    "The Centers for Disease Control and Prevention",
+                    "The American Nurses Association",
+                    "The International Council of Nurses",
+                    "The Cochrane Collaboration"
+                ],
+                correct: 0,
+                rationale: "Government health database examples include the World Health Organization, the Centers for Disease Control and Prevention, national health institutes, and national ministries of health, while the other options are professional organizations."
+            },
+            {
+                id: 27,
+                question: "A cross-sectional study examines exposure and outcome at a particular point in time.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "A cross-sectional study examines exposure and outcome at a particular point in time, and is useful for prevalence, describing populations, and exploring relationships between variables."
+            },
+            {
+                id: 28,
+                question: "Which of the 6 critical evaluation questions asks about the study's weaknesses?",
+                options: [
+                    "What are the study's strengths and limitations?",
+                    "Is the article relevant to my question?",
+                    "Is the source credible?",
+                    "Is the research recent enough?"
+                ],
+                correct: 0,
+                rationale: "The 6 critical evaluation questions include relevance, credibility, recency, study design, applicability to the patient, and the study's strengths and limitations."
+            },
+            {
+                id: 29,
+                question: "What does phrase searching mean in database searching?",
+                options: [
+                    "Putting 2 or more words inside quotation marks so the database searches them together in exact order",
+                    "Typing words separately so the database combines them freely",
+                    "Adding a symbol after a word root to capture every possible ending",
+                    "Replacing characters inside a word so spelling variants are found"
+                ],
+                correct: 0,
+                rationale: "Phrase searching means putting 2 or more words inside quotation marks so the database searches for the words together in the exact order, as in the example of a quoted phrase."
+            },
+            {
+                id: 30,
+                question: "Which publisher's product is Scopus?",
+                options: [
+                    "Elsevier",
+                    "Clarivate",
+                    "Springer",
+                    "Wiley"
+                ],
+                correct: 0,
+                rationale: "The lecture states that Elsevier's Scopus and Clarivate's Web of Science are large multidisciplinary databases."
+            },
+            {
+                id: 31,
+                question: "Secondary sources of evidence analyze, summarize, or synthesize existing research.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Secondary sources analyze, summarize, or synthesize existing research, and examples include systematic reviews, meta-analyses, evidence summaries, and critical reviews."
+            },
+            {
+                id: 32,
+                question: "Which wildcard example does the lecture give?",
+                options: [
+                    "A symbol replacing characters to retrieve both woman and women",
+                    "An asterisk added to a root to retrieve all of its endings",
+                    "Quotation marks forcing an exact 2-word phrase",
+                    "A minus sign removing a term from all results"
+                ],
+                correct: 0,
+                rationale: "Wildcards can replace one or more characters within a word, and the lecture gives the example of a pattern retrieving both woman and women."
+            },
+            {
+                id: 33,
+                question: "What is the highest level of primary evidence for interventions?",
+                options: [
+                    "Randomized controlled trials",
+                    "Cohort studies",
+                    "Case-control studies",
+                    "Qualitative studies"
+                ],
+                correct: 0,
+                rationale: "Randomized controlled trials are described as the highest level of primary evidence for interventions."
+            },
+            {
+                id: 34,
+                question: "For an experience question, which type of research may provide the most relevant evidence?",
+                options: [
+                    "Qualitative research",
+                    "Randomized controlled trials",
+                    "Diagnostic accuracy studies",
+                    "Cohort studies"
+                ],
+                correct: 0,
+                rationale: "The hierarchy depends on the type of clinical question, and for an experience question qualitative research may provide the most relevant evidence."
+            },
+            {
+                id: 35,
+                question: "Which of the following is listed as non-research evidence?",
+                options: [
+                    "Expert consensus",
+                    "Randomized controlled trials",
+                    "Cohort studies",
+                    "Meta-analyses"
+                ],
+                correct: 0,
+                rationale: "Non-research evidence includes clinical practice guidelines, expert consensus, professional standards, government reports, hospital policies and protocols, patient preferences and values, clinical expertise, and quality-improvement data."
+            },
+            {
+                id: 36,
+                question: "Google Scholar requires a paid university subscription before students can use it.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Google Scholar is described as a freely accessible search engine for scholarly literature, helpful when students do not have access to subscription databases."
+            },
+            {
+                id: 37,
+                question: "In the practical example, which databases does the lecture say to start with before expanding?",
+                options: [
+                    "PubMed, CINAHL, and Cochrane Library",
+                    "Google Scholar, Scopus, and Web of Science",
+                    "Embase, ScienceDirect, and JSTOR",
+                    "Wikipedia, Medscape, and WebMD"
+                ],
+                correct: 0,
+                rationale: "Step 4 of the practical example says to start with PubMed, CINAHL, and the Cochrane Library, then expand to Google Scholar and Scopus or Web of Science."
+            },
+            {
+                id: 38,
+                question: "A meta-analysis is best described as what?",
+                options: [
+                    "A statistical combination of results from multiple comparable quantitative studies",
+                    "A structured and reproducible method to appraise and synthesize research",
+                    "A narrative opinion piece written by a senior clinical expert",
+                    "A single large trial conducted across many hospitals"
+                ],
+                correct: 0,
+                rationale: "A meta-analysis statistically combines the results of multiple comparable quantitative studies to estimate the overall effect, as in the example of combining trials of music therapy for anxiety in hospitalized children."
+            },
+            {
+                id: 39,
+                question: "Why is using synonyms important when building a search?",
+                options: [
+                    "Because different authors may use different terms for the same concept",
+                    "Because databases charge fees for every repeated search term",
+                    "Because long search strings are always ranked higher by databases",
+                    "Because synonyms hide low-quality studies from the results"
+                ],
+                correct: 0,
+                rationale: "The lecture explains that different authors may use different terms for the same concept, such as the many terms for child, so searching only one term may miss relevant studies."
+            },
+            {
+                id: 40,
+                question: "For a diagnosis question, which type of study is important according to the evidence hierarchy discussion?",
+                options: [
+                    "Diagnostic accuracy studies",
+                    "Qualitative interview studies",
+                    "Cross-sectional surveys",
+                    "Expert consensus panels"
+                ],
+                correct: 0,
+                rationale: "The hierarchy depends on the type of clinical question, and for a diagnosis question diagnostic accuracy studies are important."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
