@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Role Of Community Health Nurse In Family Health</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which role of the family nurse involves tracking the sources of a sexually transmitted disease and helping contacts seek treatment?",
+                options: [
+                    "Researcher",
+                    "Case-finder",
+                    "Counselor",
+                    "Surrogate"
+                ],
+                correct: 1,
+                rationale: "In the case-finder role the nurse becomes a tracker of disease, for example sleuthing out the sources of transmission and helping sexual contacts seek treatment."
+            },
+            {
+                id: 2,
+                question: "Which role involves helping individuals and families solve problems or change behavior in a therapeutic way?",
+                options: [
+                    "Coordinator",
+                    "Manager",
+                    "Evaluator",
+                    "Counselor"
+                ],
+                correct: 3,
+                rationale: "The lecture states that the family nurse plays a therapeutic role in helping individuals and families solve problems or change behavior as a counselor."
+            },
+            {
+                id: 3,
+                question: "Which role does the nurse play when modifying the home so a patient with paraplegia can use a wheelchair?",
+                options: [
+                    "Role model",
+                    "Environmental specialist",
+                    "Health teacher",
+                    "Care provider"
+                ],
+                correct: 1,
+                rationale: "The environmental specialist consults with families and other professionals to modify the environment, for example helping a man with paraplegia move around in a wheelchair at home."
+            },
+            {
+                id: 4,
+                question: "Which role empowers family members to speak with their own voice, or speaks out for the family?",
+                options: [
+                    "Leader",
+                    "Family advocate",
+                    "Case manager",
+                    "Coordinator"
+                ],
+                correct: 1,
+                rationale: "The family advocate empowers family members to speak with their own voice, or speaks out for the family."
+            },
+            {
+                id: 5,
+                question: "What is the second goal of the community health nurse as an advocate?",
+                options: [
+                    "To deliver the care that families need in their home each day",
+                    "To help clients find out which services are available to them",
+                    "To influence change and make the system more responsive to clients",
+                    "To supervise the care that families receive in many settings"
+                ],
+                correct: 2,
+                rationale: "The first goal is to help clients find out what services are available and how to obtain them, and the second is to influence change and make the system more relevant and responsible to clients' needs."
+            },
+            {
+                id: 6,
+                question: "Which role is a school nurse demonstrating the right kind of personal self-care performing?",
+                options: [
+                    "Researcher",
+                    "Evaluator",
+                    "Surrogate",
+                    "Role model"
+                ],
+                correct: 3,
+                rationale: "The lecture states that a school nurse who demonstrates the right kind of health in personal self-care serves as a role model to parents and children alike."
+            },
+            {
+                id: 7,
+                question: "Which role focuses on effecting change so that the nurse becomes an agent of change?",
+                options: [
+                    "Leader",
+                    "Evaluator",
+                    "Case manager",
+                    "Manager"
+                ],
+                correct: 0,
+                rationale: "The leadership role focuses on effecting change, so the nurse becomes an agent of change."
+            },
+            {
+                id: 8,
+                question: "Which role is described by assessing family needs, planning and organizing, directing and leading, and controlling and evaluating?",
+                options: [
+                    "Coordinator",
+                    "Manager",
+                    "Case-finder",
+                    "Leader"
+                ],
+                correct: 1,
+                rationale: "As a manager, the nurse exercises administrative direction by assessing family needs, planning and organizing, directing and leading, and controlling and evaluating progress."
+            },
+            {
+                id: 9,
+                question: "Which role identifies practice problems and finds solutions through scientific investigation?",
+                options: [
+                    "Researcher",
+                    "Advocate",
+                    "Evaluator",
+                    "Health teacher"
+                ],
+                correct: 0,
+                rationale: "The researcher role identifies practice problems and finds the best solution through the process of scientific investigation."
+            },
+            {
+                id: 10,
+                question: "Which role involves clarifying and interpreting information about diagnosis, treatment, and prognosis to the family?",
+                options: [
+                    "Clarify and interpret",
+                    "Surrogate",
+                    "Counselor",
+                    "Care provider"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the nurse clarifies and interprets data to families, for example information about diagnosis, treatment, and prognosis of leukemia."
+            },
+            {
+                id: 11,
+                question: "Which role serves as the liaison among services such as inpatient care, home health care, and rehabilitation?",
+                options: [
+                    "Coordinator and collaborator",
+                    "Environmental specialist",
+                    "Clarifier and interpreter of data",
+                    "Deliverer and supervisor of care"
+                ],
+                correct: 0,
+                rationale: "The coordinator and collaborator role includes helping families access resources and serving as the liaison among these services."
+            },
+            {
+                id: 12,
+                question: "Which role is a contemporary name that involves coordination between a family and the health care system and formal charge of a case?",
+                options: [
+                    "Case manager",
+                    "Researcher",
+                    "Counselor",
+                    "Role model"
+                ],
+                correct: 0,
+                rationale: "The case manager role is a contemporary name that involves coordination and collaboration between a family and the health care system, and the case manager has been empowered formally to be in charge of a case."
+            },
+            {
+                id: 13,
+                question: "Which role is the nurse performing when going into the family home daily to help care for a child on a respirator?",
+                options: [
+                    "Case-finder",
+                    "Deliverer and supervisor of care",
+                    "Advocate",
+                    "Environmental specialist"
+                ],
+                correct: 1,
+                rationale: "The deliverer and supervisor of care role involves delivering or supervising care in various settings as a technical expert, for example going into the home daily to help care for a child on a respirator."
+            },
+            {
+                id: 14,
+                question: "Which role serves by substituting for another person?",
+                options: [
+                    "Case manager",
+                    "Leader",
+                    "Surrogate",
+                    "Coordinator"
+                ],
+                correct: 2,
+                rationale: "The lecture states that the family nurse serves as a surrogate by substituting for another person."
+            },
+            {
+                id: 15,
+                question: "Which role studies and evaluates her own job performance as part of continuous process?",
+                options: [
+                    "Leader",
+                    "Evaluator",
+                    "Manager",
+                    "Case manager"
+                ],
+                correct: 1,
+                rationale: "The evaluator role includes evaluating the effectiveness of care and services, studying her own job performance, and planning for continuing professional growth."
+            },
+            {
+                id: 16,
+                question: "Which role teaches new parents how to care for their infant?",
+                options: [
+                    "Surrogate",
+                    "Case-finder",
+                    "Health teacher",
+                    "Counselor"
+                ],
+                correct: 2,
+                rationale: "The lecture gives teaching new parents how to care for their infant as an example of the health teacher role."
+            },
+            {
+                id: 17,
+                question: "How is community health nursing defined in the lecture?",
+                options: [
+                    "A field of practice that applies nursing and public health skills to the total community",
+                    "A field of practice that provides hospital care for the sick families only",
+                    "A branch of public health that studies the diseases of whole populations",
+                    "A specialty that provides only maternal and child care in primary clinics"
+                ],
+                correct: 0,
+                rationale: "The lecture defines community health nursing as a field of nursing practice that applies knowledge and skills from nursing and public health toward the promotion of optimal health for the total community."
+            },
+            {
+                id: 18,
+                question: "Which stereotype does the lecture say is not the full range of community nurses' work?",
+                options: [
+                    "Occupational clinics",
+                    "Hospital wards",
+                    "School clinics",
+                    "Mother and baby clinics"
+                ],
+                correct: 3,
+                rationale: "The lecture states that the range of community nurses' work is much wider than the stereotype of mother and baby clinics."
+            },
+            {
+                id: 19,
+                question: "How does the lecture describe the term family health care?",
+                options: [
+                    "An exact term limited to family members",
+                    "A term used only in hospitals",
+                    "A misnomer, since it extends further than the immediate family circle",
+                    "A narrow term limited to mothers and children"
+                ],
+                correct: 2,
+                rationale: "The lecture states that the term family health care is actually a misnomer since it extends further than the immediate family circle."
+            },
+            {
+                id: 20,
+                question: "Which of the following is one of the three aims of a family health service?",
+                options: [
+                    "Research for new drugs and treatments",
+                    "Disability limitation and rehabilitation",
+                    "Management of hospitals and clinics",
+                    "Training of physicians and specialists"
+                ],
+                correct: 1,
+                rationale: "The aims are to promote good health and prevent ill-health, early detection of disease with prompt referral and treatment, and disability limitation and rehabilitation."
+            },
+            {
+                id: 21,
+                question: "Which service has the main aim of enabling children to achieve the maximum benefit from their education by ensuring optimal health?",
+                options: [
+                    "Occupational health",
+                    "Care of the aged",
+                    "School health services",
+                    "Maternal and child health"
+                ],
+                correct: 2,
+                rationale: "The lecture states that the main aim of school health services is to enable children to achieve the maximum benefit from their education by ensuring optimal health."
+            },
+            {
+                id: 22,
+                question: "Which of the following is a measure of school health services?",
+                options: [
+                    "Screening for scoliosis",
+                    "Recreation facilities",
+                    "Pre-employment screening",
+                    "Premarital care"
+                ],
+                correct: 0,
+                rationale: "School health measures include periodic medical examinations, health visits, audiometry and visual acuity testing, screening for scoliosis, health education, and home visits."
+            },
+            {
+                id: 23,
+                question: "Which of the following is part of occupational health services?",
+                options: [
+                    "Clinic sessions for the elderly people in homes",
+                    "Premarital care and counseling for couples",
+                    "Pre-employment screening to place people in suitable work",
+                    "Periodic screening for scoliosis in school children"
+                ],
+                correct: 2,
+                rationale: "Occupational health includes pre-employment screening to assist in placing people in suitable work, a treatment service, control of hazards, counselling, and environmental control."
+            },
+            {
+                id: 24,
+                question: "Which service includes recreation facilities and medical supervision of the elderly in old age homes?",
+                options: [
+                    "Care of the aged",
+                    "Community psychiatric nursing",
+                    "Occupational health",
+                    "School health services"
+                ],
+                correct: 0,
+                rationale: "Care of the aged includes home visiting, health assessment and screening for defects, clinic sessions, recreation facilities, and medical supervision in old age homes."
+            },
+            {
+                id: 25,
+                question: "Which service includes preventing mental ill health and following up patients receiving psychiatric treatment and their families?",
+                options: [
+                    "Control of communicable diseases",
+                    "Care of the aged",
+                    "Maternal and child health",
+                    "Community psychiatric nursing"
+                ],
+                correct: 3,
+                rationale: "Community psychiatric nursing includes preventing mental ill health, identifying persons at risk, and providing follow-up services for patients receiving psychiatric treatment and their families."
+            },
+            {
+                id: 26,
+                question: "Which of the following is part of maternal and child health care?",
+                options: [
+                    "Pre-employment screening",
+                    "Audiometry in school children",
+                    "Premarital care",
+                    "Recreation facilities"
+                ],
+                correct: 2,
+                rationale: "Maternal and child health includes premarital care, antenatal health education, infant and preschool childcare, home visits, family planning, cancer screening, and health education."
+            },
+            {
+                id: 27,
+                question: "Which of the following is part of control of communicable diseases?",
+                options: [
+                    "Routine immunization of infants",
+                    "Surveillance of catering facilities",
+                    "Home visiting of the aged",
+                    "Developmental testing of hearing"
+                ],
+                correct: 0,
+                rationale: "This service includes routine immunization of infants, immunization of adults at special risk, and health education about causes, prevention, and control of communicable diseases."
+            },
+            {
+                id: 28,
+                question: "According to the family perspective, what is the family considered?",
+                options: [
+                    "A unit of care",
+                    "A source of stress only",
+                    "A group of unrelated people",
+                    "A temporary system"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the family is a unit of care since people often live in households as families with identified roles and leadership."
+            },
+            {
+                id: 29,
+                question: "What can dysfunction in one family member lead to, according to the lecture?",
+                options: [
+                    "Reduced need for care",
+                    "Added stress and depletion of the family's resources",
+                    "No effect on the other members",
+                    "Improved functioning of the family"
+                ],
+                correct: 1,
+                rationale: "The lecture states that dysfunction in one member may lead to added stress and depletion of resources, as caring for an ill member can deplete financial resources, physical energy, and other family support."
+            },
+            {
+                id: 30,
+                question: "Which of the following is an objective of community health nursing?",
+                options: [
+                    "To limit health education",
+                    "To strengthen the community resources",
+                    "To replace family care",
+                    "To reduce the number of hospitals"
+                ],
+                correct: 1,
+                rationale: "The listed objectives include strengthening the community resources, health education, immunization, under five care, specialized services, and research."
+            },
+            {
+                id: 31,
+                question: "Which of the following is an aim of community health nursing?",
+                options: [
+                    "Management of private clinics",
+                    "Treatment of hospitalized patients",
+                    "Training of nurses for hospitals",
+                    "Need based health care to prolong life"
+                ],
+                correct: 3,
+                rationale: "The aims of community health nursing are to promote health, prevent and control diseases and disabilities, and provide need based health care to prolong life."
+            },
+            {
+                id: 32,
+                question: "Which skill is important for the community health nurse?",
+                options: [
+                    "Surgery",
+                    "Laboratory analysis",
+                    "Counselling",
+                    "Drug prescribing"
+                ],
+                correct: 2,
+                rationale: "The lecture states that skills in observation, listening, communication, counselling, and physical care are important for the community health nurse."
+            },
+            {
+                id: 33,
+                question: "Family nurses often work with patients throughout their whole life cycle.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that family nurses often work with patients throughout their whole life cycle."
+            },
+            {
+                id: 34,
+                question: "The family nurse never delivers care and only supervises the care.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the family nurse either delivers or supervises the care that families receive in various settings."
+            },
+            {
+                id: 35,
+                question: "The family is described as a unit of care with a crucial role in maintaining health.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the family is a unit of care and assumes a crucial role in maintaining health because health beliefs, values, and behaviors are learned and supported in the family."
+            },
+            {
+                id: 36,
+                question: "Health teaching is the only function of the community health nurse.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that one of the major functions is health educator, but the nurse also has many other roles such as counselor, advocate, and leader."
+            },
+            {
+                id: 37,
+                question: "The community health nurse provides care along the entire range of the wellness-illness continuum, while emphasizing promotion of health and prevention of illness.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the community health nurse provides care along the entire wellness-illness continuum, with promotion of health and prevention of illness emphasized."
+            },
+            {
+                id: 38,
+                question: "The role of the family nurse is fixed and does not change with the health care setting.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the roles of family health care nurses are evolving and that the health care setting affects the roles that nurses assume with families."
+            },
+            {
+                id: 39,
+                question: "Evaluation is a continuous process and part of the daily activities of the community health nurse.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that evaluation is a continuous process and part of the daily activities of the community health nurse."
+            },
+            {
+                id: 40,
+                question: "The family health nurse role includes providing education, information, and guidance to clients about community resources.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the role of the family health nurse would be to provide education, information, and guidance to clients to available and appropriate resources in the community."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
