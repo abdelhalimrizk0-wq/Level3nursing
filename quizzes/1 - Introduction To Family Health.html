@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Introduction To Family Health</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "How many stages does any family pass through in its life cycle?",
+                options: [
+                    "8",
+                    "6",
+                    "10",
+                    "5"
+                ],
+                correct: 0,
+                rationale: "The lecture states that any family passes through eight stages in its life cycle, each with its own developmental tasks."
+            },
+            {
+                id: 2,
+                question: "Which family type consists of a husband and wife without children?",
+                options: [
+                    "Step family",
+                    "Commuter family",
+                    "Nuclear family",
+                    "Nuclear dyad"
+                ],
+                correct: 3,
+                rationale: "The lecture defines the nuclear dyad as a husband and wife without children, while the nuclear family is a husband and wife with their children living together."
+            },
+            {
+                id: 3,
+                question: "Which family function is compared to a mirror that reflects back to members who they are and how valuable they are to others?",
+                options: [
+                    "Providing affection",
+                    "Establishing control",
+                    "Instilling identity and satisfaction",
+                    "Providing socialization"
+                ],
+                correct: 2,
+                rationale: "Under instilling identity and satisfaction, the family is described as acting like a mirror that reflects back to its members a picture of who they are and how valuable they are to others."
+            },
+            {
+                id: 4,
+                question: "Which factor affecting family health includes geography, housing space, sanitation, presence of water, ventilation, and climate?",
+                options: [
+                    "Socio-cultural factors",
+                    "Physical environment",
+                    "Psychological environment",
+                    "Family coping patterns"
+                ],
+                correct: 1,
+                rationale: "The lecture lists geography, housing space, sanitation, presence of water, ventilation, and climate under the physical (home) environment."
+            },
+            {
+                id: 5,
+                question: "Which type of family has two working parents whose jobs are in different cities?",
+                options: [
+                    "Commuter family",
+                    "Extended family",
+                    "Cohabitating family",
+                    "Communal family"
+                ],
+                correct: 0,
+                rationale: "The commuter family is a traditional family type that consists of two working parents whose jobs are in different cities."
+            },
+            {
+                id: 6,
+                question: "In which stage of the family life cycle is the eldest child 13 to 20 years old?",
+                options: [
+                    "Launching family",
+                    "Teenage family",
+                    "School-aged family",
+                    "Preschool-aged family"
+                ],
+                correct: 1,
+                rationale: "The teenage family stage is the one in which the eldest child is 13-20 years old, and its task is balancing freedom with responsibility as teenagers mature."
+            },
+            {
+                id: 7,
+                question: "Which family function includes the division of labor among members?",
+                options: [
+                    "Establishing control",
+                    "Promoting affiliation and companionship",
+                    "Providing security and acceptance",
+                    "Instilling identity and satisfaction"
+                ],
+                correct: 0,
+                rationale: "Division of labor is described as another aspect of the family control function, where roles, responsibilities, and tasks are allocated to ensure income, household management, and child care."
+            },
+            {
+                id: 8,
+                question: "Which developmental task belongs to the beginning family stage?",
+                options: [
+                    "Encouraging children's educational achievement",
+                    "Releasing young adults into work or college",
+                    "Accepting oneself as an aging person",
+                    "Determining whether to have children and the timing of pregnancy"
+                ],
+                correct: 3,
+                rationale: "In the life cycle table, the beginning family must establish a satisfying marriage and determine whether to have children and the timing of pregnancy."
+            },
+            {
+                id: 9,
+                question: "How many of the most important universal family characteristics should community health nurses recognize, according to the lecture?",
+                options: [
+                    "5",
+                    "3",
+                    "7",
+                    "4"
+                ],
+                correct: 0,
+                rationale: "The lecture states that five of the most important family characteristics are recognized by community health nurses: social system, values and rules, structure, functions, and life cycle stages."
+            },
+            {
+                id: 10,
+                question: "Which factor is described as the frequency and quality of communication within a family and between the family and its environment?",
+                options: [
+                    "Family communication patterns",
+                    "Family coping patterns",
+                    "Socio-cultural factors",
+                    "Psychological environment"
+                ],
+                correct: 0,
+                rationale: "Family communication patterns are defined as including the frequency and quality of communication within a family and between the family and its environment."
+            },
+            {
+                id: 11,
+                question: "Which family type consists of several adults and children living together because of religious or financial necessity?",
+                options: [
+                    "Communal family",
+                    "Cohabitating family",
+                    "Extended family",
+                    "Skip generation family"
+                ],
+                correct: 0,
+                rationale: "The lecture lists the communal family as a non-traditional type formed by several adults and children living together because of religious or financial necessity."
+            },
+            {
+                id: 12,
+                question: "Which of the following is cited as a disease strongly mediated by family factors?",
+                options: [
+                    "Tonsillitis",
+                    "Hypertension",
+                    "Appendicitis",
+                    "Bronchitis"
+                ],
+                correct: 1,
+                rationale: "The lecture states that certain diseases, such as coronary heart disease, hypertension, and diabetes, are strongly mediated by family factors."
+            },
+            {
+                id: 13,
+                question: "Which function of the family transmits its values, attitudes, goals, and behavior patterns to the young?",
+                options: [
+                    "Establishing control",
+                    "Providing socialization",
+                    "Providing security and acceptance",
+                    "Providing affection"
+                ],
+                correct: 1,
+                rationale: "Providing socialization means the family socializes its young by transmitting its culture, including values, attitudes, goals, and behavior patterns."
+            },
+            {
+                id: 14,
+                question: "In the family life cycle, the middle aged family is defined by which situation?",
+                options: [
+                    "The remaining marital dyad up to retirement",
+                    "The eldest child is in infancy",
+                    "The period from retirement to the death of both spouses",
+                    "The young adult leaves the family"
+                ],
+                correct: 0,
+                rationale: "The middle aged family stage is the remaining marital dyad for retirement, with tasks such as preparing for retirement in a planned fashion."
+            },
+            {
+                id: 15,
+                question: "Which family structure involves grandparents raising their grandchildren because the parents are working?",
+                options: [
+                    "Single parent family",
+                    "Skip generation family",
+                    "Step family",
+                    "Extended family"
+                ],
+                correct: 1,
+                rationale: "The skip generation family is a non-traditional type in which grandparents raise their grandchildren because of working parents."
+            },
+            {
+                id: 16,
+                question: "According to the lecture, which is a family factor with a protective influence on health and illness?",
+                options: [
+                    "Intra-family hostility",
+                    "Direct communication",
+                    "Perfectionism and rigidity",
+                    "Lack of extra-family support"
+                ],
+                correct: 1,
+                rationale: "Protective family factors include closeness and connectedness, problem-focused coping skills, clear organization and decision making, and direct communication."
+            },
+            {
+                id: 17,
+                question: "Why do families with a low level of health negatively influence community health?",
+                options: [
+                    "They lack the resources to manage their own affairs",
+                    "They refuse to join community activities",
+                    "They move frequently between communities",
+                    "They reject all health services"
+                ],
+                correct: 0,
+                rationale: "The lecture explains that families with a low level of health negatively influence community health because they lack the resources to manage their own affairs."
+            },
+            {
+                id: 18,
+                question: "Which family function provides members with food, shelter, clothing, and health care?",
+                options: [
+                    "Establishing control",
+                    "Providing security and acceptance",
+                    "Promoting affiliation and companionship",
+                    "Providing affection"
+                ],
+                correct: 1,
+                rationale: "Under providing security and acceptance, families meet physical needs by providing food, shelter, clothing, health care, and other necessities."
+            },
+            {
+                id: 19,
+                question: "Which pair of diseases is given as examples of prenatal or perinatal transmission within families?",
+                options: [
+                    "Malaria and cholera",
+                    "Syphilis and HIV infection",
+                    "Typhoid and polio",
+                    "Measles and mumps"
+                ],
+                correct: 1,
+                rationale: "The lecture states that generations of families have experienced prenatal or perinatal transmission of diseases ranging from syphilis to HIV infection."
+            },
+            {
+                id: 20,
+                question: "In which stage of the family life cycle does the young adult leave the family?",
+                options: [
+                    "Middle aged family",
+                    "Launching family",
+                    "Teenage family",
+                    "Aging family"
+                ],
+                correct: 1,
+                rationale: "The launching family stage is the one in which the young adult leaves the family, and families must release young adults with appropriate rituals and assistance."
+            },
+            {
+                id: 21,
+                question: "How many main functions does every family have for maintaining and promoting family health?",
+                options: [
+                    "8",
+                    "5",
+                    "4",
+                    "6"
+                ],
+                correct: 3,
+                rationale: "The lecture states that every family has six main functions that are essential for maintenance and promotion of family health."
+            },
+            {
+                id: 22,
+                question: "Which factor includes traditions, customs, religious influences, and loci of authority?",
+                options: [
+                    "Socio-cultural factors",
+                    "Family coping patterns",
+                    "Physical environment",
+                    "Family communication patterns"
+                ],
+                correct: 0,
+                rationale: "Traditions, customs, religious influences, and loci of authority are listed under socio-cultural factors affecting family health."
+            },
+            {
+                id: 23,
+                question: "Which statement describes family values according to the lecture?",
+                options: [
+                    "They are unrelated to the behavior of members",
+                    "They are an integral part of family life and very difficult to change",
+                    "They are rules imposed only by the community",
+                    "They change easily with each generation"
+                ],
+                correct: 1,
+                rationale: "The lecture states that values are an integral part of families' life and very difficult to change, and that they include beliefs transmitted by previous generations."
+            },
+            {
+                id: 24,
+                question: "Which task belongs to the aging family stage?",
+                options: [
+                    "Maintaining open communication with teenagers",
+                    "Expanding the family circle through marriage",
+                    "Finding meaning in life",
+                    "Setting limits for children"
+                ],
+                correct: 2,
+                rationale: "The aging family stage runs from retirement to the death of both spouses, and its tasks include accepting oneself as an aging person and finding meaning in life."
+            },
+            {
+                id: 25,
+                question: "In how many general categories does family structure fall?",
+                options: [
+                    "2",
+                    "4",
+                    "6",
+                    "3"
+                ],
+                correct: 0,
+                rationale: "The lecture states that family structure generally falls into two categories, traditional and non-traditional."
+            },
+            {
+                id: 26,
+                question: "Which family function creates an atmosphere of nurturance and care for all members?",
+                options: [
+                    "Instilling identity and satisfaction",
+                    "Providing socialization",
+                    "Establishing control",
+                    "Providing affection"
+                ],
+                correct: 3,
+                rationale: "Continued affection from the family creates an atmosphere of nurturance and care that is necessary for health, development, and survival."
+            },
+            {
+                id: 27,
+                question: "Which statement describes the family as a small social system?",
+                options: [
+                    "Each member's action affects the other members",
+                    "The system is unaffected by lack of input",
+                    "Members act independently of each other",
+                    "Only the parents influence family functioning"
+                ],
+                correct: 0,
+                rationale: "The lecture explains that the family is a social system directly affected by the input or lack of input from every member, so each member's action affects the other members."
+            },
+            {
+                id: 28,
+                question: "Which family type has one or both parents with children from a previous marriage?",
+                options: [
+                    "Commuter family",
+                    "Single parent family",
+                    "Step family",
+                    "Nuclear dyad"
+                ],
+                correct: 2,
+                rationale: "The step family is a traditional type in which one or both parents have children from a previous marriage."
+            },
+            {
+                id: 29,
+                question: "Which factor is stated to influence access to health care along with family socioeconomics?",
+                options: [
+                    "Birth order",
+                    "Parental age",
+                    "Family size",
+                    "Race and ethnicity"
+                ],
+                correct: 3,
+                rationale: "The lecture states that family socioeconomics along with race and ethnicity influence the ability to access health care and navigate complex health care systems."
+            },
+            {
+                id: 30,
+                question: "Which of the following is a task of the preschool-aged family stage?",
+                options: [
+                    "Preparing for retirement",
+                    "Adjusting to decreased income",
+                    "Releasing young adults into college",
+                    "Providing nurturing and socialization of children"
+                ],
+                correct: 3,
+                rationale: "The preschool-aged family stage, where the eldest child is 2.5-5 years, includes providing nurturing and socialization of children."
+            },
+            {
+                id: 31,
+                question: "Which family function gives members a sense of belonging throughout life?",
+                options: [
+                    "Instilling identity and satisfaction",
+                    "Providing security and acceptance",
+                    "Promoting affiliation and companionship",
+                    "Establishing control"
+                ],
+                correct: 2,
+                rationale: "Promoting affiliation and companionship gives members a sense of belonging throughout life through associational bonds and group membership."
+            },
+            {
+                id: 32,
+                question: "What is the main role of the family in the spread of infectious disease in epidemics?",
+                options: [
+                    "Families act as vectors",
+                    "Families act as treatment centers",
+                    "Families act as barriers",
+                    "Families act as reservoirs of immunity"
+                ],
+                correct: 0,
+                rationale: "The lecture states that many infectious illnesses pass from one family member to others in a household, and families are important vectors in times of epidemics."
+            },
+            {
+                id: 33,
+                question: "A nuclear dyad is a husband and wife living together with their children.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "A nuclear dyad is a husband and wife without children. The nuclear family is the one with children living together."
+            },
+            {
+                id: 34,
+                question: "Family values are very difficult to change.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that values are an integral part of families' life and very difficult to change."
+            },
+            {
+                id: 35,
+                question: "Families have 8 main functions that are essential for maintaining and promoting family health.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that every family has 6 main functions. It is the family life cycle that has 8 stages."
+            },
+            {
+                id: 36,
+                question: "Healthy families know when to seek help from professionals.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Characteristic 13 of healthy families is that they grow from problems and know when to seek help from professionals."
+            },
+            {
+                id: 37,
+                question: "Family effects through genetics are weak and disappear when the environment changes.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that family effects through genetics are particularly strong and, although they can be moderated by environment and behavior, the effects are with us for a lifetime."
+            },
+            {
+                id: 38,
+                question: "Families with a low level of health have a positive influence on community health.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Families with a low level of health have a negative influence on community health because they lack the resources to manage their own affairs."
+            },
+            {
+                id: 39,
+                question: "Family health is a dynamic changing state of wellbeing that includes biological, psychological, spiritual, sociological, and cultural factors.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "This is the first definition of family health given in the lecture."
+            },
+            {
+                id: 40,
+                question: "In the commuter family, grandparents are raising their grandchildren.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Grandparents raising grandchildren describes the skip generation family. The commuter family has two working parents whose jobs are in different cities."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
