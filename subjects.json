@@ -330,7 +330,11 @@
         "file": "quizzes/10 - Role Of Community Health Nurse In Family Health.html",
         "questions": 0
       }
-    ]
+    ],
+    "book": {
+      "file": "books/family-health-mwzivss5i1e.pdf",
+      "size": 2207260
+    }
   },
   {
     "id": "ebp",
