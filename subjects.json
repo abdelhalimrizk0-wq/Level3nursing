@@ -279,7 +279,58 @@
     "emoji": "👨‍👩‍👧‍👦",
     "color": "#10b981",
     "department": "common_t1",
-    "lectures": []
+    "lectures": [
+      {
+        "name": "1 - Introduction To Family Health",
+        "file": "quizzes/1 - Introduction To Family Health.html",
+        "questions": 0
+      },
+      {
+        "name": "2 - Family Health Care Nursing",
+        "file": "quizzes/2 - Family Health Care Nursing.html",
+        "questions": 0
+      },
+      {
+        "name": "3 - Family Nursing Assessment",
+        "file": "quizzes/3 - Family Nursing Assessment.html",
+        "questions": 0
+      },
+      {
+        "name": "4 - Health Promotion Through Family Health",
+        "file": "quizzes/4 - Health Promotion Through Family Health.html",
+        "questions": 0
+      },
+      {
+        "name": "5 - Child Health",
+        "file": "quizzes/5 - Child Health.html",
+        "questions": 0
+      },
+      {
+        "name": "6 - Adolescent Health",
+        "file": "quizzes/6 - Adolescent Health.html",
+        "questions": 0
+      },
+      {
+        "name": "7 - Reproductive Health",
+        "file": "quizzes/7 - Reproductive Health.html",
+        "questions": 0
+      },
+      {
+        "name": "8 - Adult Health",
+        "file": "quizzes/8 - Adult Health.html",
+        "questions": 0
+      },
+      {
+        "name": "9 - Family With Crisis",
+        "file": "quizzes/9 - Family With Crisis.html",
+        "questions": 0
+      },
+      {
+        "name": "10 - Role Of Community Health Nurse In Family Health",
+        "file": "quizzes/10 - Role Of Community Health Nurse In Family Health.html",
+        "questions": 0
+      }
+    ]
   },
   {
     "id": "ebp",
