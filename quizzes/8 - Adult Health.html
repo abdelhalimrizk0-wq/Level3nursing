@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Adult Health</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "What is the age range of the average adult, according to the lecture?",
+                options: [
+                    "25 to 50 years",
+                    "15 to 45 years",
+                    "21 to 65 years",
+                    "19 to 59 years"
+                ],
+                correct: 3,
+                rationale: "The lecture defines the adult as the longest period of life, determined by the start of complete puberty, with the average adult aged 19-59 years."
+            },
+            {
+                id: 2,
+                question: "Low back pain lasting less than 6 weeks is classified as which type?",
+                options: [
+                    "Acute",
+                    "Chronic",
+                    "Recurrent",
+                    "Sub-chronic"
+                ],
+                correct: 0,
+                rationale: "The lecture classifies low back pain by duration as acute for less than 6 weeks, sub-chronic for 6 to 12 weeks, and chronic for more than 12 weeks."
+            },
+            {
+                id: 3,
+                question: "Low back pain lasting more than 12 weeks is classified as which type?",
+                options: [
+                    "Chronic",
+                    "Acute",
+                    "Sub-chronic",
+                    "Referred"
+                ],
+                correct: 0,
+                rationale: "The lecture classifies pain lasting more than 12 weeks as chronic low back pain."
+            },
+            {
+                id: 4,
+                question: "What percentage of all lung cancers is caused by tobacco smoke?",
+                options: [
+                    "90%",
+                    "50%",
+                    "70%",
+                    "30%"
+                ],
+                correct: 0,
+                rationale: "The lecture states that tobacco smoke causes 90% of all lung cancers."
+            },
+            {
+                id: 5,
+                question: "Which cancer is the most common in men other than skin cancer?",
+                options: [
+                    "Bladder cancer",
+                    "Colon cancer",
+                    "Prostate cancer",
+                    "Lung cancer"
+                ],
+                correct: 2,
+                rationale: "The lecture states that prostate cancer is the most common cancer in men other than skin cancer."
+            },
+            {
+                id: 6,
+                question: "How much more likely are men to experience problem drinking and alcoholism than women?",
+                options: [
+                    "5 to 6 times",
+                    "3 to 4 times",
+                    "Twice",
+                    "10 times"
+                ],
+                correct: 1,
+                rationale: "The lecture states that men are 3-4 times more likely to experience problem drinking and alcoholism, and more than twice as likely to develop substance use disorders."
+            },
+            {
+                id: 7,
+                question: "According to the lecture, how does diabetes usually begin?",
+                options: [
+                    "With rapid weight gain",
+                    "Silently, without symptoms",
+                    "With an acute infection",
+                    "With sudden severe thirst"
+                ],
+                correct: 1,
+                rationale: "The lecture states that diabetes usually begins silently, without symptoms, and over years blood sugar levels creep higher."
+            },
+            {
+                id: 8,
+                question: "Which of the following is a physical occupational hazard?",
+                options: [
+                    "Pesticides",
+                    "Dust and fumes",
+                    "Stress and insecurity",
+                    "Infectious organisms"
+                ],
+                correct: 1,
+                rationale: "The lecture lists dust and fumes as physical factors, pesticides and heavy metals as chemical agents, and infectious organisms as biological agents."
+            },
+            {
+                id: 9,
+                question: "Which occupational hazard category includes stress, inferiority, and insecurity?",
+                options: [
+                    "Psychosocial factors",
+                    "Biological agents",
+                    "Adverse ergonomic conditions",
+                    "Physical factors"
+                ],
+                correct: 0,
+                rationale: "Psychosocial factors are listed as stress, inferiority, and insecurity."
+            },
+            {
+                id: 10,
+                question: "How many types of occupational hazards are listed in the lecture?",
+                options: [
+                    "9",
+                    "7",
+                    "4",
+                    "5"
+                ],
+                correct: 1,
+                rationale: "The lecture lists 7 types of occupational hazards, from chemical agents to psychosocial factors."
+            },
+            {
+                id: 11,
+                question: "How much vigorous exercise is recommended for adults, three times a week?",
+                options: [
+                    "60 minutes",
+                    "20 minutes",
+                    "45 minutes",
+                    "10 minutes"
+                ],
+                correct: 1,
+                rationale: "The lecture recommends moderate exercise for 30 minutes five times a week or vigorous exercise for 20 minutes three times a week."
+            },
+            {
+                id: 12,
+                question: "What is the maximum number of alcoholic drinks recommended per day among the steps to improve the quality and length of life?",
+                options: [
+                    "1",
+                    "4",
+                    "3",
+                    "2"
+                ],
+                correct: 3,
+                rationale: "The lecture states to limit alcohol to two drinks per day."
+            },
+            {
+                id: 13,
+                question: "Which type of exercise is lifting weights and sprinting an example of?",
+                options: [
+                    "Aerobic",
+                    "Anaerobic",
+                    "Passive",
+                    "Isometric"
+                ],
+                correct: 1,
+                rationale: "The lecture lists weightlifting and sprinting as examples of anaerobic exercise, which builds muscle and strengthens bones."
+            },
+            {
+                id: 14,
+                question: "What does aerobic exercise do, according to the lecture?",
+                options: [
+                    "Builds muscle and strengthens bones",
+                    "Improves flexibility only",
+                    "Reduces the need for sleep",
+                    "Strengthens the heart and burns fat"
+                ],
+                correct: 3,
+                rationale: "The lecture states that aerobic exercise involves increasing heart rate and breathing for an extended period, and it strengthens the heart and burns fat."
+            },
+            {
+                id: 15,
+                question: "What does the letter C stand for in the RICE routine?",
+                options: [
+                    "Cooling",
+                    "Care",
+                    "Circulation",
+                    "Compression"
+                ],
+                correct: 3,
+                rationale: "The RICE routine is rest, ice, compression, and elevation."
+            },
+            {
+                id: 16,
+                question: "For how long should an ice pack be put on the injured area each hour for the first day or two?",
+                options: [
+                    "5 minutes",
+                    "60 minutes",
+                    "20 minutes",
+                    "40 minutes"
+                ],
+                correct: 2,
+                rationale: "The lecture states to put an ice pack on the injured area for 20 minutes out of each hour for the first day or two."
+            },
+            {
+                id: 17,
+                question: "After how long following the RICE routine should the injured area be gently stretched?",
+                options: [
+                    "24 to 48 hours",
+                    "3 to 5 days",
+                    "1 to 2 hours",
+                    "1 week"
+                ],
+                correct: 0,
+                rationale: "The lecture states that after 24 to 48 hours of following the RICE routine, the injured area should be gently stretched, stopping before it becomes painful."
+            },
+            {
+                id: 18,
+                question: "For how long should an adult warm up before exercise?",
+                options: [
+                    "30 minutes",
+                    "15 to 20 minutes",
+                    "1 to 2 minutes",
+                    "5 to 10 minutes"
+                ],
+                correct: 3,
+                rationale: "The lecture advises warming up for five to 10 minutes before the start, followed by light stretching."
+            },
+            {
+                id: 19,
+                question: "What is the recommended daily duration of rest and sleep for adults?",
+                options: [
+                    "6 to 8 hours",
+                    "10 to 12 hours",
+                    "9 to 10 hours",
+                    "4 to 5 hours"
+                ],
+                correct: 0,
+                rationale: "The lecture recommends maintaining a regular schedule of rest and sleep of 6-8 hours per day."
+            },
+            {
+                id: 20,
+                question: "What is the maximum recommended length of day naps?",
+                options: [
+                    "10 minutes",
+                    "2 hours",
+                    "30 minutes",
+                    "1 hour"
+                ],
+                correct: 2,
+                rationale: "The lecture advises limiting day naps to 30 minutes or less."
+            },
+            {
+                id: 21,
+                question: "What is the second leading cause of accidental death mentioned in the lecture?",
+                options: [
+                    "Motor vehicle crashes",
+                    "Drowning",
+                    "Falls",
+                    "Accidental poisoning"
+                ],
+                correct: 3,
+                rationale: "The lecture states that accidental poisoning is the second leading cause of accidental death, and men are more than twice as likely as women to die from it."
+            },
+            {
+                id: 22,
+                question: "How often should the batteries of smoke and carbon monoxide detectors be replaced?",
+                options: [
+                    "Every 3 months",
+                    "Twice a year",
+                    "Once a year",
+                    "Every 2 years"
+                ],
+                correct: 1,
+                rationale: "The lecture advises installing smoke and carbon monoxide detectors in the home and replacing the batteries twice a year."
+            },
+            {
+                id: 23,
+                question: "In middle adulthood, the majority of cancer cases occur in those over which age?",
+                options: [
+                    "50 years",
+                    "65 years",
+                    "40 years",
+                    "30 years"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the majority of cancer cases occur in those over 50 years of age."
+            },
+            {
+                id: 24,
+                question: "Which carotenoid is found in fruits and vegetables and gives tomatoes their red coloration?",
+                options: [
+                    "Omega 3",
+                    "Fiber",
+                    "Lycopene",
+                    "Selenium"
+                ],
+                correct: 2,
+                rationale: "The lecture states that lycopene is a carotenoid found in fruits and vegetables that gives tomatoes their red coloration."
+            },
+            {
+                id: 25,
+                question: "Which mineral and antioxidant is associated with cancer prevention and is found in Brazil nuts and tuna?",
+                options: [
+                    "Calcium",
+                    "Selenium",
+                    "Iron",
+                    "Lycopene"
+                ],
+                correct: 1,
+                rationale: "The lecture states that selenium is a mineral and antioxidant associated with cancer prevention, with good sources in nuts, especially Brazil nuts, and fish, especially tuna."
+            },
+            {
+                id: 26,
+                question: "Which type of arthritis is one of the most commonly experienced illnesses in adults as they age?",
+                options: [
+                    "Rheumatoid arthritis",
+                    "Septic arthritis",
+                    "Gouty arthritis",
+                    "Osteoarthritis"
+                ],
+                correct: 3,
+                rationale: "The lecture states that osteoarthritis is one of the most commonly experienced illnesses in adults as they age."
+            },
+            {
+                id: 27,
+                question: "Which protein forms the neuritic plaques in Alzheimer's disease according to the lecture?",
+                options: [
+                    "Albumin",
+                    "Amyloid-beta",
+                    "Tau",
+                    "Fibrinogen"
+                ],
+                correct: 1,
+                rationale: "The lecture states that neuritic plaques consist of withering neuronal material from a protein, amyloid-beta."
+            },
+            {
+                id: 28,
+                question: "How much oil per day is recommended for men aged 31 years and older?",
+                options: [
+                    "6 teaspoons",
+                    "7 teaspoons",
+                    "10 teaspoons",
+                    "3 teaspoons"
+                ],
+                correct: 0,
+                rationale: "The lecture recommends seven teaspoons of oil per day for men 19-30 and 6 teaspoons for men 31 and older."
+            },
+            {
+                id: 29,
+                question: "According to the nutritional pattern for adults, how many cups of fruit should be eaten every day?",
+                options: [
+                    "5 cups",
+                    "4 cups",
+                    "2 cups",
+                    "1 cup"
+                ],
+                correct: 2,
+                rationale: "The lecture states to eat 2 cups of fruit every day."
+            },
+            {
+                id: 30,
+                question: "How many overarching goals does Healthy People 2030 have?",
+                options: [
+                    "5",
+                    "7",
+                    "4",
+                    "3"
+                ],
+                correct: 0,
+                rationale: "The lecture states that Healthy People 2030 has five overarching goals."
+            },
+            {
+                id: 31,
+                question: "Which of the following is part of health tests and screening for young adults?",
+                options: [
+                    "Mammography",
+                    "Dental assessment",
+                    "Colonoscopy",
+                    "Bone density scan"
+                ],
+                correct: 1,
+                rationale: "The lecture lists routine physical examination, dental assessment, and vision and hearing as health tests and screening for young adults."
+            },
+            {
+                id: 32,
+                question: "Which of the following is a step in the process of occupational health promotion services?",
+                options: [
+                    "Promotion of workers to higher positions",
+                    "Surveillance of workers health in relation to work",
+                    "Payment of workers for overtime hours",
+                    "Selection of workers for each occupation"
+                ],
+                correct: 1,
+                rationale: "The lecture lists surveillance of workers health in relation to work as step 4 of the occupational health promotion services process."
+            },
+            {
+                id: 33,
+                question: "The average adult is aged 19 to 59 years.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture defines the average adult as aged 19-59 years."
+            },
+            {
+                id: 34,
+                question: "Cardiovascular disease is described as the leading health threat for adults.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture describes cardiovascular disease as the leading health threat, with heart disease and stroke as the first and second leading causes of death worldwide."
+            },
+            {
+                id: 35,
+                question: "Men are less likely than women to be involved in a fatal motor vehicle crash.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that men are more likely to be involved in a fatal crash than women."
+            },
+            {
+                id: 36,
+                question: "Violence is a leading cause of death in adult males.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that violence is a leading cause of death in adult males."
+            },
+            {
+                id: 37,
+                question: "Aerobic exercise involves short periods of intense exercise followed by rest.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "That describes anaerobic exercise. Aerobic exercise keeps heart rate and breathing at higher levels for an extended period."
+            },
+            {
+                id: 38,
+                question: "Adults should drink at least 8 glasses of water per day.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists drinking at least eight glasses of water per day among the steps to improve the quality and length of life."
+            },
+            {
+                id: 39,
+                question: "Depression is described as one of the most common disorders that present in old age.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that depression is one of the most common disorders that presents in old age and is comorbid with other physical and psychiatric conditions."
+            },
+            {
+                id: 40,
+                question: "Adults are more likely than others to adopt preventive health measures.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that adults are more likely to engage in unhealthy behavior and less likely to adopt preventive health measures."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
