@@ -288,7 +288,13 @@
     "emoji": "📊",
     "color": "#8b5cf6",
     "department": "common_t1",
-    "lectures": [],
+    "lectures": [
+      {
+        "name": "1 - Evidence-Based Practice in Nursing",
+        "file": "quizzes/1 - Evidence-Based Practice in Nursing.html",
+        "questions": 0
+      }
+    ],
     "book": {
       "file": "books/ebp-mwwd7uolyab.pdf",
       "size": 2198829
