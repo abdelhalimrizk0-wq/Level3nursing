@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Critical Appraisal of Research</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "How is critical appraisal defined in the lecture?",
+                options: [
+                    "The process of carefully and systematically reviewing research to determine its reliability, value, and relevance",
+                    "The process of collecting research articles and filing them by publication date",
+                    "The process of writing a summary of a study for a hospital newsletter",
+                    "The process of translating research findings into several languages"
+                ],
+                correct: 0,
+                rationale: "Critical appraisal is defined as the process of carefully and systematically reviewing research to determine its reliability, value, and relevance in specific circumstances."
+            },
+            {
+                id: 2,
+                question: "Which step of the evidence-based practice process is the critical appraisal phase?",
+                options: [
+                    "Step 3",
+                    "Step 0",
+                    "Step 2",
+                    "Step 5"
+                ],
+                correct: 0,
+                rationale: "In the evidence-based practice process table, Step 3 is appraising the evidence and is highlighted as the key focus, the critical appraisal phase."
+            },
+            {
+                id: 3,
+                question: "What are the 3 criteria for critical appraisal listed in the lecture?",
+                options: [
+                    "Validity, reliability, and applicability",
+                    "Cost, speed, and popularity",
+                    "Length, language, and readability",
+                    "Novelty, funding, and authorship"
+                ],
+                correct: 0,
+                rationale: "The criteria for critical appraisal listed in the lecture are validity, reliability, and applicability."
+            },
+            {
+                id: 4,
+                question: "Validity is the degree to which a result from a study is likely to be true and free from bias.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Validity is defined as the degree to which a result from a study is likely to be true and free from bias."
+            },
+            {
+                id: 5,
+                question: "How is reliability defined in the lecture?",
+                options: [
+                    "The degree to which a measuring instrument gives consistent results under the same conditions",
+                    "The degree to which a study can be finished within its planned budget",
+                    "The degree to which a journal is trusted by the research community",
+                    "The degree to which participants complete every page of a questionnaire"
+                ],
+                correct: 0,
+                rationale: "Reliability is the degree to which a measuring instrument gives consistent results; applying the same method to the same sample under the same conditions should give the same results."
+            },
+            {
+                id: 6,
+                question: "Generalizability refers to which features of a study?",
+                options: [
+                    "Sample size and representativeness",
+                    "Budget size and staffing levels",
+                    "Journal ranking and citation count",
+                    "Article length and writing style"
+                ],
+                correct: 0,
+                rationale: "Generalizability refers to sample size and representativeness, while applicability evaluates the applicability of study findings to other populations."
+            },
+            {
+                id: 7,
+                question: "When examining the methodology section of a research article, what should the nurse ask?",
+                options: [
+                    "Is the research design appropriate to the research question?",
+                    "Is the research topic clear and does the abstract summarize the study?",
+                    "Are the conclusions supported by the results?",
+                    "Are important weaknesses and possible biases acknowledged?"
+                ],
+                correct: 0,
+                rationale: "For the methodology section the nurse examines whether the research design is appropriate to the research question; the other options belong to the title and abstract, conclusion, and limitations sections."
+            },
+            {
+                id: 8,
+                question: "In the generalized checklist for appraising the introduction, how recent should the article be?",
+                options: [
+                    "Published within 5 years",
+                    "Published within 20 years",
+                    "Published within 50 years",
+                    "Published in the current year"
+                ],
+                correct: 0,
+                rationale: "The checklist for the introduction asks whether the article is recently published, within 5 years."
+            },
+            {
+                id: 9,
+                question: "Critical appraisal helps nurses distinguish strong, trustworthy evidence from misleading or unsuitable evidence.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Critical appraisal is an essential step in evidence-based nursing because it helps nurses distinguish strong, trustworthy evidence from evidence that may be misleading or unsuitable for clinical decision-making."
+            },
+            {
+                id: 10,
+                question: "What does significance fishing refer to in the results checklist?",
+                options: [
+                    "Changing statistical tests to ensure significance",
+                    "Removing tables that describe subject demographics",
+                    "Adding new participants after the results are known",
+                    "Choosing a more prestigious journal after rejection"
+                ],
+                correct: 0,
+                rationale: "The results checklist asks whether there is evidence of significance fishing, meaning changing statistical tests to ensure significance."
+            },
+            {
+                id: 11,
+                question: "Which question belongs to the methods section of the generalized appraisal checklist?",
+                options: [
+                    "Are both inclusion and exclusion criteria described?",
+                    "Is there a table that describes the subjects' demographics?",
+                    "Do the authors present a hypothesis?",
+                    "Are there any conflicts of interests noted?"
+                ],
+                correct: 0,
+                rationale: "The methods checklist asks whether both inclusion and exclusion criteria are described; the demographics table belongs to results, the hypothesis to the introduction, and conflicts of interest to the discussion."
+            },
+            {
+                id: 12,
+                question: "Which of the following is one of the important questions when appraising an experimental study?",
+                options: [
+                    "Was the allocation of participants to groups randomized?",
+                    "Was the article published in an open access journal?",
+                    "Were the authors affiliated with a university?",
+                    "Was the abstract structured into labeled sections?"
+                ],
+                correct: 0,
+                rationale: "Important questions for appraising an experimental study include whether the allocation of participants to groups was randomized, along with control group, concealed allocation, baseline similarity, blinding, follow-up, intention-to-treat analysis, and between-group comparisons."
+            },
+            {
+                id: 13,
+                question: "What is an intention-to-treat analysis part of?",
+                options: [
+                    "The important questions for appraising an experimental study",
+                    "The checklist for appraising the introduction of an article",
+                    "The criteria for appraising a narrative opinion piece",
+                    "The rules for writing an abstract for a journal"
+                ],
+                correct: 0,
+                rationale: "Whether an intention-to-treat analysis was performed is one of the 8 important questions to ask when appraising an experimental study."
+            },
+            {
+                id: 14,
+                question: "Which question belongs to the discussion and conclusion part of the generalized checklist?",
+                options: [
+                    "Do the authors interpret non-significant data to show significance?",
+                    "Are the outcome measures valid for the health condition researched?",
+                    "Are the statistical tests appropriate for the study design?",
+                    "Is the journal peer-reviewed?"
+                ],
+                correct: 0,
+                rationale: "The discussion and conclusion checklist asks whether the authors interpret non-significant data to show significance, whether they acknowledge limitations, and whether conflicts of interest are noted."
+            },
+            {
+                id: 15,
+                question: "Which appraisal tool is designed for physiotherapy evidence?",
+                options: [
+                    "The physiotherapy evidence database scale",
+                    "The Cochrane risk-of-bias tool",
+                    "The Joanna Briggs Institute tools",
+                    "The Scottish Intercollegiate Guidelines Network"
+                ],
+                correct: 0,
+                rationale: "The PEDro scale comes from the physiotherapy evidence database and is listed among the critical appraisal tools."
+            },
+            {
+                id: 16,
+                question: "Nurses should use the same appraisal checklist for every article regardless of its design.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Nurses should select an appraisal tool that matches the research design and study purpose rather than using the same checklist for every article."
+            },
+            {
+                id: 17,
+                question: "When appraising a systematic review, which of the following questions does the lecture list?",
+                options: [
+                    "Does the review have a comprehensive literature search strategy?",
+                    "Was the allocation of participants concealed from recruiters?",
+                    "Were the participants and study personnel blinded?",
+                    "Was the follow-up of participants adequate?"
+                ],
+                correct: 0,
+                rationale: "Questions for appraising a systematic review include a clearly focused question, defined eligibility criteria, a comprehensive literature search strategy, a risk of bias assessment, an appropriate meta-analysis, precise results, and relevance to the patient or problem."
+            },
+            {
+                id: 18,
+                question: "What is Step 6 of the evidence-based practice process?",
+                options: [
+                    "Disseminating results of evaluation",
+                    "Appraising the evidence",
+                    "Searching the evidence",
+                    "Asking answerable questions"
+                ],
+                correct: 0,
+                rationale: "Step 6 of the evidence-based practice process is disseminating results of evaluation."
+            },
+            {
+                id: 19,
+                question: "Applicability evaluates the applicability of study findings to other populations by comparing outcomes.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Applicability evaluates the applicability of study findings to other populations by comparing outcomes, while generalizability refers to sample size and representativeness."
+            },
+            {
+                id: 20,
+                question: "Which of the following is a reason why critical appraisal is important in evidence-based nursing?",
+                options: [
+                    "It helps distinguish evidence from opinion, assumptions, misreporting, and belief",
+                    "It guarantees that every published study can be applied to every patient",
+                    "It removes the need to read the methods section of an article",
+                    "It replaces clinical expertise when making patient care decisions"
+                ],
+                correct: 0,
+                rationale: "The importance of critical appraisal includes distinguishing evidence from opinion, assumptions, misreporting, and belief, along with identifying strengths and weaknesses, assessing validity, and recognizing potential for bias."
+            },
+            {
+                id: 21,
+                question: "In the observational study appraisal questions, what is asked about follow-up?",
+                options: [
+                    "Was follow-up complete and long enough for outcomes to be observed?",
+                    "Was follow-up done by the same researcher every time?",
+                    "Was follow-up limited to a maximum of 12 weeks?",
+                    "Was follow-up conducted only by telephone calls?"
+                ],
+                correct: 0,
+                rationale: "The observational study questions ask whether follow-up was complete and long enough for outcomes to be observed."
+            },
+            {
+                id: 22,
+                question: "In the results checklist, what is asked about baseline demographics?",
+                options: [
+                    "Are the baseline demographics between groups similar?",
+                    "Are the baseline demographics listed in a single combined table?",
+                    "Are the baseline demographics identical to those of the nurse's patients?",
+                    "Are the baseline demographics measured before recruitment ends?"
+                ],
+                correct: 0,
+                rationale: "The results checklist asks whether there is a table describing the subjects' demographics and whether the baseline demographics between groups are similar."
+            },
+            {
+                id: 23,
+                question: "When examining the limitations section of an article, what should the nurse check?",
+                options: [
+                    "Are important weaknesses and possible biases acknowledged?",
+                    "Are the statistical analysis methods appropriate?",
+                    "Is a research gap identified?",
+                    "Are the objectives and questions clear and specific?"
+                ],
+                correct: 0,
+                rationale: "For the limitations section the nurse examines whether important weaknesses and possible biases are acknowledged."
+            },
+            {
+                id: 24,
+                question: "Blinding is mentioned in the methods checklist as a methodological protocol used to limit possible bias.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The methods checklist asks whether methodological protocols such as blinding are used to limit other possible bias."
+            },
+            {
+                id: 25,
+                question: "What does evidence-based nursing integrate to guide clinical decision-making?",
+                options: [
+                    "Best available research evidence, clinical expertise, and patient values and preferences",
+                    "Hospital policies, staff opinions, and insurance requirements",
+                    "Textbook knowledge, unit traditions, and seniority",
+                    "Government rules, budget limits, and staffing schedules"
+                ],
+                correct: 0,
+                rationale: "Evidence-based nursing integrates the best available research evidence with clinical expertise and patient values and preferences to guide clinical decision-making."
+            },
+            {
+                id: 26,
+                question: "Which of the following is one of the 8 questions for appraising an experimental study?",
+                options: [
+                    "Were the groups similar at baseline?",
+                    "Did the review address a clearly focused question?",
+                    "Was the exposure measured in a valid manner?",
+                    "Were confounding factors taken into account?"
+                ],
+                correct: 0,
+                rationale: "Whether the groups were similar at baseline is one of the 8 experimental study questions; the focused question belongs to systematic review appraisal, and exposure and confounding questions belong to observational study appraisal."
+            },
+            {
+                id: 27,
+                question: "When appraising a systematic review, the reviewer should ask whether the review performed a meta-analysis and whether it was appropriate.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "One of the systematic review appraisal questions asks whether the review performed a meta-analysis and whether it was appropriate to do so."
+            },
+            {
+                id: 28,
+                question: "When examining the data analysis section, what should the nurse ask?",
+                options: [
+                    "Are the statistical or qualitative analysis methods appropriate?",
+                    "Are the participants and setting clearly described?",
+                    "Is the clinical problem important?",
+                    "Are the findings interpreted appropriately?"
+                ],
+                correct: 0,
+                rationale: "For data analysis the nurse asks whether the statistical or qualitative analysis methods are appropriate; participants and setting belong to the sample section, the clinical problem to the introduction, and interpretation to the discussion."
+            },
+            {
+                id: 29,
+                question: "Which appraisal tool is named after Oxford's Centre for Evidence Based Medicine?",
+                options: [
+                    "The centre for evidence based medicine tool",
+                    "The critical appraisal skills programme",
+                    "The Joanna Briggs Institute tools",
+                    "The McMaster evidence review forms"
+                ],
+                correct: 0,
+                rationale: "The CEBM tool comes from Oxford's Centre for Evidence Based Medicine and is listed among the critical appraisal tools."
+            },
+            {
+                id: 30,
+                question: "Why must nurses critically evaluate research before using it to guide patient care?",
+                options: [
+                    "Because some studies have methodological weaknesses, biased results, or findings that do not apply to a setting",
+                    "Because most journals charge readers for access to the full text of articles",
+                    "Because research articles are usually too long for nurses to read completely",
+                    "Because statistical results are always wrong when they are first published"
+                ],
+                correct: 0,
+                rationale: "Research publications are not all equally reliable or relevant; some have methodological weaknesses, biased results, or findings that cannot be applied to a particular clinical setting, so nurses must critically evaluate research."
+            },
+            {
+                id: 31,
+                question: "In the introduction checklist, what is asked about the journal?",
+                options: [
+                    "Is the journal peer-reviewed?",
+                    "Is the journal published monthly?",
+                    "Is the journal freely accessible online?",
+                    "Is the journal older than the article?"
+                ],
+                correct: 0,
+                rationale: "The introduction checklist asks whether the article answers the same question as the clinical question, whether it was published within 5 years, whether the journal is peer-reviewed, and whether the authors present a hypothesis."
+            },
+            {
+                id: 32,
+                question: "Which of the following is one of the important questions for appraising an observational study?",
+                options: [
+                    "Were participants recruited in an appropriate manner?",
+                    "Was an intention-to-treat analysis performed?",
+                    "Was the group allocation sequence concealed?",
+                    "Were between-group statistical comparisons performed?"
+                ],
+                correct: 0,
+                rationale: "Observational study questions include a clearly focused issue, appropriate recruitment, valid and reliable exposure measurement, confounding factors addressed, valid and reliable outcome measurement, and complete follow-up; the other options are experimental study questions."
+            },
+            {
+                id: 33,
+                question: "Critical appraisal of an article covers the introduction, methods, results, and discussion or conclusion.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture presents how to construct a critical appraisal for an article across 4 parts: the introduction, the methods, the results, and the discussion or conclusion."
+            },
+            {
+                id: 34,
+                question: "When examining the sample and setting section, what should the nurse check?",
+                options: [
+                    "Are the participants and setting clearly described?",
+                    "Are the instruments and procedures appropriate and reliable?",
+                    "Are the findings clearly presented and supported by the data?",
+                    "Is the background evidence relevant and adequate?"
+                ],
+                correct: 0,
+                rationale: "For the sample and setting section the nurse examines whether the participants and setting are clearly described."
+            },
+            {
+                id: 35,
+                question: "Which question about confounding variables appears in the methods checklist?",
+                options: [
+                    "Do the research methods limit the influence of confounding variables?",
+                    "Do the authors report funding from manufacturers of confounding products?",
+                    "Are confounding variables removed from the results tables?",
+                    "Are confounding variables listed in the article title?"
+                ],
+                correct: 0,
+                rationale: "The methods checklist asks whether the research methods limit the influence of confounding variables."
+            },
+            {
+                id: 36,
+                question: "The Cochrane risk-of-bias tools are listed among the critical appraisal tools.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The listed critical appraisal tools include CASP, SIGN, CAS, Cochrane risk-of-bias tools, CEBM, the PEDro scale, JBI tools, and CanChild or McMaster evidence review forms."
+            },
+            {
+                id: 37,
+                question: "In the experimental study questions, what is asked about statistical comparisons?",
+                options: [
+                    "Were between-group statistical comparisons performed?",
+                    "Were all statistical tests chosen before the study began?",
+                    "Were the statistical results checked by the journal editors?",
+                    "Were the statistics repeated by an independent laboratory?"
+                ],
+                correct: 0,
+                rationale: "One of the 8 experimental study questions asks whether between-group statistical comparisons were performed."
+            },
+            {
+                id: 38,
+                question: "When examining the title and abstract, what should the nurse ask?",
+                options: [
+                    "Is the research topic clear, and does the abstract accurately summarize the study?",
+                    "Are the instruments and procedures appropriate and reliable?",
+                    "Are the conclusions supported by the results?",
+                    "Is the research design appropriate to the question?"
+                ],
+                correct: 0,
+                rationale: "For the title and abstract the nurse examines whether the research topic is clear and whether the abstract accurately summarizes the study."
+            },
+            {
+                id: 39,
+                question: "What is Step 2 of the evidence-based practice process?",
+                options: [
+                    "Searching the evidence",
+                    "Asking answerable questions",
+                    "Appraising the evidence",
+                    "Evaluating practice change"
+                ],
+                correct: 0,
+                rationale: "The evidence-based practice process steps are: Step 0 cultivating curiosity, Step 1 asking answerable questions, Step 2 searching the evidence, Step 3 appraising the evidence, Step 4 integrating evidence into practice, Step 5 evaluating practice change, and Step 6 disseminating results of evaluation."
+            },
+            {
+                id: 40,
+                question: "When examining the discussion section of an article, what should the nurse check?",
+                options: [
+                    "Are the findings interpreted appropriately and compared with previous research?",
+                    "Are the participants and setting clearly described?",
+                    "Are the instruments and procedures appropriate and reliable?",
+                    "Is the research topic clear in the title?"
+                ],
+                correct: 0,
+                rationale: "For the discussion section the nurse examines whether the findings are interpreted appropriately and compared with previous research."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
