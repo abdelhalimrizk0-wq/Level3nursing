@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Health Promotion Through Family Health</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which approach to health promotion aims at freedom from medically-defined disease and disability through early detection and treatment?",
+                options: [
+                    "Educational approach",
+                    "Social change approach",
+                    "Behavior change approach",
+                    "Medical approach"
+                ],
+                correct: 3,
+                rationale: "The medical approach aims at freedom from medically-defined disease and disability by encouraging people to seek early detection and treatment of related disorders."
+            },
+            {
+                id: 2,
+                question: "Which approach to health promotion focuses on changing society rather than the behavior of individuals?",
+                options: [
+                    "Educational approach",
+                    "Social change approach",
+                    "Medical approach",
+                    "Client centered approach"
+                ],
+                correct: 1,
+                rationale: "The social change approach aims to change the physical, social, and economic environment, and its focus is on changing society, not on changing the behavior of individuals."
+            },
+            {
+                id: 3,
+                question: "How many approaches does the framework for health promotion include?",
+                options: [
+                    "3",
+                    "5",
+                    "4",
+                    "6"
+                ],
+                correct: 1,
+                rationale: "The lecture states that a framework of five approaches to health promotion is used to clarify aims and the values implicit in any approach."
+            },
+            {
+                id: 4,
+                question: "Which approach aims to give information and ensure knowledge and understanding of health issues so that well-informed decisions can be made?",
+                options: [
+                    "Educational approach",
+                    "Behavior change approach",
+                    "Medical approach",
+                    "Client centered approach"
+                ],
+                correct: 0,
+                rationale: "The educational approach aims to give information and ensure knowledge and understanding of health issues, enabling well-informed decisions."
+            },
+            {
+                id: 5,
+                question: "Which approach works with clients to help them identify what they want to know and make decisions according to their own interests and values?",
+                options: [
+                    "Client centered approach",
+                    "Medical approach",
+                    "Social change approach",
+                    "Educational approach"
+                ],
+                correct: 0,
+                rationale: "The client centered approach aims to work with clients so they identify what they want to know about, take action, and make their own decisions according to their own interests and values."
+            },
+            {
+                id: 6,
+                question: "In which city was the First International Conference on Health Promotion held in 1986?",
+                options: [
+                    "Alma-Ata",
+                    "Ottawa",
+                    "Jakarta",
+                    "Geneva"
+                ],
+                correct: 1,
+                rationale: "The lecture refers to the Ottawa Charter for Health Promotion, from the First International Conference on Health Promotion held in Ottawa from 17 to 21 November 1986."
+            },
+            {
+                id: 7,
+                question: "According to the lecture, how many dimensions does health promotion focus on?",
+                options: [
+                    "4",
+                    "8",
+                    "6",
+                    "5"
+                ],
+                correct: 2,
+                rationale: "The lecture states that health promotion focuses on six dimensions: individual, family, community, socioeconomic, cultural, and environmental."
+            },
+            {
+                id: 8,
+                question: "Which dimension of health promotion states that culture says who we are but not what we can be?",
+                options: [
+                    "Cultural dimension",
+                    "Environmental dimension",
+                    "Community dimension",
+                    "Family dimension"
+                ],
+                correct: 0,
+                rationale: "The cultural dimension is described by the statement that culture says who we are but not what we can be."
+            },
+            {
+                id: 9,
+                question: "Which dimension identifies poverty, insufficient food, inadequate housing, and poor sanitation as major factors to address?",
+                options: [
+                    "Socioeconomic dimension",
+                    "Community dimension",
+                    "Cultural dimension",
+                    "Individual dimension"
+                ],
+                correct: 0,
+                rationale: "Under the socioeconomic dimension, poverty, insufficient food, inadequate housing, and poor sanitation are major factors that must be addressed by health promotion strategies."
+            },
+            {
+                id: 10,
+                question: "Which dimension of health promotion is described by self-care as the dominant mode of health care in our society?",
+                options: [
+                    "Environmental dimension",
+                    "Family dimension",
+                    "Individual dimension",
+                    "Socioeconomic dimension"
+                ],
+                correct: 2,
+                rationale: "Under the individual dimension, individuals play a critical role in determining their own health status because self-care represents the dominant mode of health care in our society."
+            },
+            {
+                id: 11,
+                question: "According to the lecture, which is the major unit responsible for the socialization of children and an ideal target for health promotion?",
+                options: [
+                    "The workplace",
+                    "The family",
+                    "The community",
+                    "The school"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the family is the major unit responsible for socialization of children, and thus an ideal target for health promotion and prevention planning efforts."
+            },
+            {
+                id: 12,
+                question: "What is the essential role of the family according to the lecture?",
+                options: [
+                    "Managing the economic resources of the wider community",
+                    "Providing medical treatment and nursing care for all ill members",
+                    "Building human capital by investing in the health, education, values, and skills of members",
+                    "Enforcing public health laws and regulations in the community"
+                ],
+                correct: 2,
+                rationale: "The lecture states that the essential role of the family is to build human capital by investing in the health, education, values, and skills of its members."
+            },
+            {
+                id: 13,
+                question: "Which approach to the family defines how members operate by their relationship to each other, such as parent or sibling?",
+                options: [
+                    "Functional approach",
+                    "Structural approach",
+                    "Developmental approach",
+                    "Systems approach"
+                ],
+                correct: 1,
+                rationale: "The structural approach defines how family members operate by their relationship to each other, while family functioning describes what families do together to meet their needs."
+            },
+            {
+                id: 14,
+                question: "How many types of influences do families exert, according to the lecture?",
+                options: [
+                    "2",
+                    "5",
+                    "4",
+                    "3"
+                ],
+                correct: 3,
+                rationale: "Families exert three types of influences: cultural or attitudinal, social or interpersonal, and intrapersonal."
+            },
+            {
+                id: 15,
+                question: "Which type of family influence includes self-esteem, coping, and depression?",
+                options: [
+                    "Cultural or attitudinal",
+                    "Environmental",
+                    "Social or interpersonal",
+                    "Intrapersonal"
+                ],
+                correct: 3,
+                rationale: "Intrapersonal influences are those such as self-esteem, coping, and depression."
+            },
+            {
+                id: 16,
+                question: "Which of the following are macronutrients?",
+                options: [
+                    "Water and fiber",
+                    "Iron and calcium",
+                    "Vitamins and minerals",
+                    "Proteins, fats, and carbohydrates"
+                ],
+                correct: 3,
+                rationale: "The lecture states that macronutrients are proteins, fats, and carbohydrates, while micronutrients are vitamins and minerals."
+            },
+            {
+                id: 17,
+                question: "Which tool is mentioned as helping consumers make informed food choices in the context of a healthy diet?",
+                options: [
+                    "Calorie calendar",
+                    "Nutrition passport",
+                    "Body mass chart",
+                    "Food Guide Pyramid"
+                ],
+                correct: 3,
+                rationale: "The lecture states that the Food Guide Pyramid is a tool to help consumers make informed food choices in the context of a healthy diet."
+            },
+            {
+                id: 18,
+                question: "What is the average number of sleeping hours per day, according to the self-care section?",
+                options: [
+                    "8 hours",
+                    "10 hours",
+                    "6 hours",
+                    "7 hours"
+                ],
+                correct: 0,
+                rationale: "Under self-care, the lecture states that the average sleeping hours are 8 hours per day."
+            },
+            {
+                id: 19,
+                question: "How often is a routine physical examination recommended under self-care?",
+                options: [
+                    "Once every 5 years",
+                    "Once every 2 years",
+                    "At least twice per year",
+                    "Only when ill"
+                ],
+                correct: 2,
+                rationale: "The lecture states that a routine physical examination is recommended at least twice per year."
+            },
+            {
+                id: 20,
+                question: "Which condition is joint pain caused by excess uric acid listed as among the hazards of excess weight?",
+                options: [
+                    "Sciatica",
+                    "Osteoporosis",
+                    "Gout",
+                    "Arthritis"
+                ],
+                correct: 2,
+                rationale: "The lecture lists joint pain caused by excess uric acid, which it names gout, among the hazards of excess weight and physical inactivity."
+            },
+            {
+                id: 21,
+                question: "Which problem is interrupted breathing during sleep caused by excess weight?",
+                options: [
+                    "Insomnia",
+                    "Narcolepsy",
+                    "Asthma",
+                    "Sleep apnea"
+                ],
+                correct: 3,
+                rationale: "The lecture lists sleep apnea, defined as interrupted breathing during sleep, among the hazards of excess weight."
+            },
+            {
+                id: 22,
+                question: "Which is stated as a factor that contributes to the initial decision to use a substance?",
+                options: [
+                    "Limited leisure time",
+                    "High academic achievement",
+                    "High self-esteem",
+                    "Low religiosity"
+                ],
+                correct: 3,
+                rationale: "Factors listed include male gender, increased leisure time, financial resources with lack of recreational alternatives, poor self-esteem, psychological distress, poor academic achievement, and low religiosity."
+            },
+            {
+                id: 23,
+                question: "Which type of stressor includes polluted air and water, noise, and crowding?",
+                options: [
+                    "Social stressors",
+                    "Physical stressors",
+                    "Psychological stressors",
+                    "Environmental stressors"
+                ],
+                correct: 3,
+                rationale: "Environmental stressors are given as polluted air and water, noise, and crowding."
+            },
+            {
+                id: 24,
+                question: "Which type of stressor includes frustration, anger, and worry?",
+                options: [
+                    "Physical stressors",
+                    "Environmental stressors",
+                    "Social stressors",
+                    "Psychological stressors"
+                ],
+                correct: 3,
+                rationale: "Psychological stressors are those such as frustration, anger, and worry."
+            },
+            {
+                id: 25,
+                question: "Which type of barrier to health behavior is described by badly run prevention programs and lack of follow-up for non-responders?",
+                options: [
+                    "Interpersonal relationship barriers",
+                    "Administrative barriers",
+                    "Internal barriers",
+                    "Social barriers"
+                ],
+                correct: 1,
+                rationale: "Administrative barriers are described as badly run prevention programs, with inadequate lists, unachievable targets, and lack of follow-up for non-responders."
+            },
+            {
+                id: 26,
+                question: "Which type of barrier is peer pressure that drives young people to experiment with drugs?",
+                options: [
+                    "Internal barriers",
+                    "Social barriers",
+                    "Cost barriers",
+                    "Administrative barriers"
+                ],
+                correct: 1,
+                rationale: "The lecture gives peer pressure, which drives young people to experiment with drugs and drive dangerously, as an example of social barriers."
+            },
+            {
+                id: 27,
+                question: "How does the lecture describe a person with an internal locus of control?",
+                options: [
+                    "Believes that luck alone decides their health outcomes",
+                    "Feels like a victim with little control over life events",
+                    "Believes that other people control all of their choices",
+                    "Feels able to influence significant events and is responsible for own life"
+                ],
+                correct: 3,
+                rationale: "A person with an internal locus of control feels able to influence significant events and sees themselves as responsible for their own lives, so they are more willing to make lifestyle changes."
+            },
+            {
+                id: 28,
+                question: "What is self-efficacy, according to the lecture?",
+                options: [
+                    "Belief in one's capacity to succeed at tasks",
+                    "Level of formal education",
+                    "Ability to avoid risk behaviors",
+                    "Sense of being able to influence events"
+                ],
+                correct: 0,
+                rationale: "Self-efficacy is defined as belief in one's capacity to succeed at tasks, and it affects motivation and outcome expectations."
+            },
+            {
+                id: 29,
+                question: "Which of the following is among the health hazards of smoking listed in the lecture?",
+                options: [
+                    "Blindness",
+                    "Osteoporosis",
+                    "Anemia",
+                    "Hypothyroidism"
+                ],
+                correct: 0,
+                rationale: "The hazards of smoking listed include coronary heart disease, cancer, COPD, heart attacks, strokes, blood vessel diseases, and blindness and other problems."
+            },
+            {
+                id: 30,
+                question: "What is the first goal of the three-pronged effort for health promotion?",
+                options: [
+                    "Reduce the costs of treatment",
+                    "Increase the number of hospitals",
+                    "Expand screening for chronic disease",
+                    "Increase the span of healthy life for all citizens"
+                ],
+                correct: 3,
+                rationale: "The three-pronged effort is to increase the span of healthy life for all citizens, reduce health disparities among population groups, and achieve access to preventive services for everyone."
+            },
+            {
+                id: 31,
+                question: "Which of the following is one of the components of a healthy lifestyle?",
+                options: [
+                    "Genetic screening",
+                    "Insurance enrollment",
+                    "Injury prevention",
+                    "Medication adherence"
+                ],
+                correct: 2,
+                rationale: "The six components of a healthy lifestyle are eating a healthy diet and weight control, regular exercise, self-care, risk taking behaviors, injury prevention, and stress management."
+            },
+            {
+                id: 32,
+                question: "Which of the following is a factor affecting the choice of a healthy lifestyle?",
+                options: [
+                    "Hair color",
+                    "Level of education",
+                    "Blood group",
+                    "Place of birth"
+                ],
+                correct: 1,
+                rationale: "The factors listed are socioeconomic status, level of education, family, kin and social networks, gender, age, and interpersonal influences."
+            },
+            {
+                id: 33,
+                question: "Health promotion is the responsibility of the health sector alone.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that health promotion is not just the responsibility of the health sector but goes beyond healthy lifestyles to well-being, and it demands inter-sectoral collaboration."
+            },
+            {
+                id: 34,
+                question: "Good nutrition is described as the cornerstone of good health.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that good nutrition is the cornerstone of good health."
+            },
+            {
+                id: 35,
+                question: "Women who smoke are more likely to have a miscarriage or a lower birth-weight baby.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists this under special risks to women and babies among the hazards of smoking."
+            },
+            {
+                id: 36,
+                question: "Smoking is only a physical addiction.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that smoking is not only a physical addiction but a psychological addiction, used as a coping mechanism, and a habit."
+            },
+            {
+                id: 37,
+                question: "People with an external locus of control are more willing to make lifestyle changes.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that people with an internal locus of control are more willing to make lifestyle changes that will lead to wellness."
+            },
+            {
+                id: 38,
+                question: "The lecture states that healthy living is too expensive for most people.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the idea that healthy living is too expensive is a fallacy, and it is often the poorest members of society who choose to smoke and drink to excess."
+            },
+            {
+                id: 39,
+                question: "Health promotion strategies are based on local needs and adapted to differing social, cultural, and economic systems.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "This is one of the principles of health promotion listed in the lecture."
+            },
+            {
+                id: 40,
+                question: "Health promotion focuses only on persons at risk for specific diseases.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that health promotion includes the population as a whole in the context of everyday life rather than focusing on persons at risk for specific disease."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
