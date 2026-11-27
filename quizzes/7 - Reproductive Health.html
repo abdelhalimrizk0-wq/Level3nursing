@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Reproductive Health</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "About how many women and adolescent girls die every day from problems related to pregnancy and childbirth?",
+                options: [
+                    "1500",
+                    "3000",
+                    "500",
+                    "10000"
+                ],
+                correct: 0,
+                rationale: "The lecture states that every day about 1,500 women and adolescent girls die from problems related to pregnancy and childbirth."
+            },
+            {
+                id: 2,
+                question: "Approximately how many women and adolescent girls experience complications during pregnancy every year?",
+                options: [
+                    "5 million",
+                    "1 million",
+                    "10 million",
+                    "50 million"
+                ],
+                correct: 2,
+                rationale: "The lecture states that every year some 10 million women and adolescent girls experience complications during pregnancy."
+            },
+            {
+                id: 3,
+                question: "Which statement best defines reproductive health?",
+                options: [
+                    "The entire set of methods used to avoid unwanted births in couples",
+                    "A state of complete physical, mental, and social well-being in all matters relating to the reproductive system",
+                    "The absence of disease or infirmity in the reproductive system of women",
+                    "The care provided to women during pregnancy, delivery, and the puerperium"
+                ],
+                correct: 1,
+                rationale: "Reproductive health is defined as a state of complete physical, mental, and social well-being and not merely the absence of disease or infirmity in all matters relating to the reproductive system."
+            },
+            {
+                id: 4,
+                question: "According to the lecture, the reproductive age group of women is from which ages?",
+                options: [
+                    "20 to 40",
+                    "15 to 49",
+                    "10 to 19",
+                    "18 to 45"
+                ],
+                correct: 1,
+                rationale: "The lecture mentions women of reproductive age groups from 15 to 49."
+            },
+            {
+                id: 5,
+                question: "Which of the following is part of reproductive rights?",
+                options: [
+                    "Receiving free treatment for all kinds of illnesses at any age",
+                    "Choosing the sex of the child before the time of pregnancy",
+                    "Avoiding premarital examinations and counseling by law",
+                    "Deciding freely and responsibly the number, spacing, and timing of children"
+                ],
+                correct: 3,
+                rationale: "Reproductive rights are the basic right of all couples and individuals to decide freely and responsibly the number, spacing, and timing of their children and to have the information and means to do so."
+            },
+            {
+                id: 6,
+                question: "In which year was the Safe Motherhood Conference sponsored in Nairobi?",
+                options: [
+                    "1987",
+                    "2000",
+                    "1994",
+                    "1974"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in 1987 the World Bank, in collaboration with WHO and UNFPA, sponsored the Safe Motherhood Conference in Nairobi."
+            },
+            {
+                id: 7,
+                question: "Which organization sponsored the Safe Motherhood Conference together with WHO and UNFPA?",
+                options: [
+                    "The Red Cross",
+                    "The World Bank",
+                    "The Ministry of Health",
+                    "UNICEF"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the World Bank, in collaboration with WHO and UNFPA, sponsored the conference."
+            },
+            {
+                id: 8,
+                question: "What is the legal age at marriage for girls mentioned in the lecture?",
+                options: [
+                    "18",
+                    "15",
+                    "16",
+                    "21"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the legal age at marriage for girls is 18."
+            },
+            {
+                id: 9,
+                question: "Out of 1.2 billion adolescents worldwide, what percentage live in developing countries?",
+                options: [
+                    "About 50%",
+                    "About 65%",
+                    "About 85%",
+                    "About 95%"
+                ],
+                correct: 2,
+                rationale: "The lecture states that out of 1.2 billion adolescents worldwide, about 85% live in developing countries and the remainder live in the industrialized world."
+            },
+            {
+                id: 10,
+                question: "Until what age is exclusive breastfeeding continued for girl children according to the lecture?",
+                options: [
+                    "12 months",
+                    "1 to 2 months",
+                    "4 to 5 months",
+                    "8 to 9 months"
+                ],
+                correct: 2,
+                rationale: "The lecture lists continuation of exclusive breast feeding till 4-5 months of age and initiation of weaning from 4-6 months of age."
+            },
+            {
+                id: 11,
+                question: "From which age does weaning start according to the girl child needs?",
+                options: [
+                    "4 to 6 months",
+                    "1 to 3 months",
+                    "12 to 14 months",
+                    "8 to 10 months"
+                ],
+                correct: 0,
+                rationale: "The lecture lists initiation of weaning from 4-6 months of age under nutrition needs of the girl child."
+            },
+            {
+                id: 12,
+                question: "Which is the most common form of malnutrition among women, afflicting an estimated 47 percent of women worldwide?",
+                options: [
+                    "Anemia",
+                    "Goiter",
+                    "Scurvy",
+                    "Rickets"
+                ],
+                correct: 0,
+                rationale: "The lecture states that anemia is the most common form of malnutrition, afflicting an estimated 47 percent of women worldwide."
+            },
+            {
+                id: 13,
+                question: "According to the lecture, malnutrition among women in developing countries results from which two inequities?",
+                options: [
+                    "Poverty and the status of women",
+                    "Illiteracy and unemployment",
+                    "War and displacement",
+                    "Climate and geography"
+                ],
+                correct: 0,
+                rationale: "The lecture states that malnutrition is the result of two inequities: poverty and the status of women."
+            },
+            {
+                id: 14,
+                question: "How many new cases of curable sexually transmitted infections occur every year?",
+                options: [
+                    "340 million",
+                    "34 million",
+                    "1 billion",
+                    "100 million"
+                ],
+                correct: 0,
+                rationale: "The lecture states that 340 million new cases of curable sexually transmitted infections occur every year."
+            },
+            {
+                id: 15,
+                question: "Which of the following is one of the most common curable sexually transmitted infections?",
+                options: [
+                    "Hepatitis B",
+                    "Herpes",
+                    "Trichomoniasis",
+                    "HIV infection"
+                ],
+                correct: 2,
+                rationale: "The most common curable STIs are gonorrhea, syphilis, chlamydia, and trichomoniasis."
+            },
+            {
+                id: 16,
+                question: "What percentage of sexually transmitted diseases are asymptomatic?",
+                options: [
+                    "Over 50%",
+                    "Over 10%",
+                    "Over 90%",
+                    "Over 25%"
+                ],
+                correct: 0,
+                rationale: "The lecture states that over 50% of STDs are asymptomatic and diagnosis is difficult."
+            },
+            {
+                id: 17,
+                question: "What is the disease burden of STIs in women compared with men?",
+                options: [
+                    "About half that of men",
+                    "About twice that of men",
+                    "Equal to that of men",
+                    "More than 5 times that of men"
+                ],
+                correct: 3,
+                rationale: "The lecture states that worldwide the disease burden of STIs in women is more than five times that of men."
+            },
+            {
+                id: 18,
+                question: "How is infertility defined?",
+                options: [
+                    "Inability to conceive within 1 year of regular coital exposure without contraceptive means",
+                    "Inability to conceive within 6 months of regular coital exposure without contraceptive means",
+                    "Inability to conceive within 2 years of any sexual activity",
+                    "Inability to maintain a pregnancy until term"
+                ],
+                correct: 0,
+                rationale: "The lecture defines infertility as the inability to conceive a pregnancy within one year of regular coital exposure without the use of contraceptive means."
+            },
+            {
+                id: 19,
+                question: "What percentage of reported infertility cases is due to problems in the male?",
+                options: [
+                    "60%",
+                    "20%",
+                    "80%",
+                    "40%"
+                ],
+                correct: 3,
+                rationale: "The lecture states that approximately 40% of reported cases are due to problems in the male, another 40% to problems in the female, and 20% are of unknown cause or both."
+            },
+            {
+                id: 20,
+                question: "Which term is restricted to lack of sperm production or inability to ovulate?",
+                options: [
+                    "Sub-fertility",
+                    "Menopause",
+                    "Infertility",
+                    "Sterility"
+                ],
+                correct: 3,
+                rationale: "The lecture states that sterility is restricted to lack of sperm production or inability to ovulate."
+            },
+            {
+                id: 21,
+                question: "Between which ages does menopause typically occur?",
+                options: [
+                    "40 and 50",
+                    "45 and 55",
+                    "50 and 65",
+                    "35 and 45"
+                ],
+                correct: 1,
+                rationale: "The lecture states that menopause typically occurs between the ages of 45 and 55."
+            },
+            {
+                id: 22,
+                question: "Which hormones are produced in smaller amounts in menopause?",
+                options: [
+                    "Thyroxine and cortisol",
+                    "Insulin and glucagon",
+                    "Estrogen and progesterone",
+                    "Oxytocin and prolactin"
+                ],
+                correct: 2,
+                rationale: "The lecture states that the body begins producing smaller amounts of the hormones estrogen and progesterone."
+            },
+            {
+                id: 23,
+                question: "By what percentage can early detection increase survival rates of breast cancer?",
+                options: [
+                    "50%",
+                    "81%",
+                    "30%",
+                    "10%"
+                ],
+                correct: 1,
+                rationale: "The lecture states that early detection can increase survival rates by 81%."
+            },
+            {
+                id: 24,
+                question: "How often is a mammogram recommended for women over 50 or at risk?",
+                options: [
+                    "Once every year",
+                    "Once every 5 years",
+                    "Once every 2 years",
+                    "Once every 10 years"
+                ],
+                correct: 2,
+                rationale: "The lecture lists a mammogram once every two years for women over 50 or at risk."
+            },
+            {
+                id: 25,
+                question: "By how much may increased regular physical activity reduce the risk of breast cancer?",
+                options: [
+                    "10 to 20 percent",
+                    "30 to 40 percent",
+                    "50 to 60 percent",
+                    "70 to 80 percent"
+                ],
+                correct: 1,
+                rationale: "The lecture states that increased regular physical activity may reduce the risk of breast cancer by 30 to 40 per cent."
+            },
+            {
+                id: 26,
+                question: "Which of the following is a risk factor for breast cancer?",
+                options: [
+                    "Early menstruation before age 12",
+                    "Menstruation after age 15",
+                    "Having more than 3 children",
+                    "Breastfeeding for a long period"
+                ],
+                correct: 0,
+                rationale: "Risk factors listed include early menstruation before age 12, family history, age, and having no children or a first child after age 30."
+            },
+            {
+                id: 27,
+                question: "Which screening test is the prevention method listed for cervical cancer?",
+                options: [
+                    "Pap smear",
+                    "Bone density scan",
+                    "Blood glucose test",
+                    "Mammogram"
+                ],
+                correct: 0,
+                rationale: "The lecture lists screening Pap smears as the prevention for cervical cancer."
+            },
+            {
+                id: 28,
+                question: "Which of the following is a major risk factor for cervical cancer?",
+                options: [
+                    "Having a single sex partner",
+                    "Late first marriage",
+                    "More than 4 pregnancies",
+                    "Having fewer than 2 pregnancies"
+                ],
+                correct: 2,
+                rationale: "The major risk factors listed are first marriage or intercourse at an early age, multiple sex partners, history of HIV infection, and more than four pregnancies."
+            },
+            {
+                id: 29,
+                question: "Which test is recommended for all pregnant women for the prevention of syphilis?",
+                options: [
+                    "Ultrasound",
+                    "Urine culture",
+                    "Serological testing",
+                    "Pap smear"
+                ],
+                correct: 2,
+                rationale: "The lecture states to institute screening and case-finding of syphilis by serological testing of all pregnant women."
+            },
+            {
+                id: 30,
+                question: "Which of the following is a type of induced abortion?",
+                options: [
+                    "Spontaneous abortion",
+                    "Missed abortion",
+                    "Threatened abortion",
+                    "Therapeutic abortion"
+                ],
+                correct: 3,
+                rationale: "The lecture lists spontaneous abortion, called miscarriage, and induced abortion, which is either therapeutic or elective."
+            },
+            {
+                id: 31,
+                question: "Which of the following is one of the family planning methods listed?",
+                options: [
+                    "Spiritual counseling",
+                    "Dietary control",
+                    "Mechanical barrier",
+                    "Herbal therapy"
+                ],
+                correct: 2,
+                rationale: "The methods listed are hormonal, mechanical barrier, chemical, and surgical."
+            },
+            {
+                id: 32,
+                question: "Which of the following is listed as a consequence of sexually transmitted diseases?",
+                options: [
+                    "Congenital malformation",
+                    "Gallstones",
+                    "Hypertension",
+                    "Osteoporosis"
+                ],
+                correct: 0,
+                rationale: "The lecture states that STDs cause pregnancy related complications, sepsis, spontaneous abortion, premature birth, still birth, congenital malformation, and ectopic pregnancy."
+            },
+            {
+                id: 33,
+                question: "Reproductive health is limited to the health of women in the reproductive age group.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that reproductive health indicates life-long, wide ranging health and not only the health of women of reproductive age."
+            },
+            {
+                id: 34,
+                question: "Female genital mutilation has recently been banned by law.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists that female genital mutilation has recently been banned by law."
+            },
+            {
+                id: 35,
+                question: "Sterility and infertility mean the same thing in the lecture.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Infertility is the inability to conceive within one year, while sterility is restricted to lack of sperm production or inability to ovulate."
+            },
+            {
+                id: 36,
+                question: "Menopause means the permanent cessation of spontaneous menstruation.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture defines menopause as the permanent cessation of spontaneous menstruation."
+            },
+            {
+                id: 37,
+                question: "Anemia in pregnancy is one of the leading causes of maternal death.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that anemia in pregnancy is one of the leading causes of maternal death."
+            },
+            {
+                id: 38,
+                question: "Around 4 in 10 women in Egypt had some degree of anemia.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in Egypt around 4 in 10 women had some degree of anemia."
+            },
+            {
+                id: 39,
+                question: "Cervical cancer is rare among women in developing countries.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that cervical cancer is one of the most common cancers and a leading cause of cancer related deaths among women in developing countries."
+            },
+            {
+                id: 40,
+                question: "Reproductive health calls for the rights of couples to select their family planning method.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that reproductive health calls for the rights of individuals and couples, especially the right to select the method of family planning."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
