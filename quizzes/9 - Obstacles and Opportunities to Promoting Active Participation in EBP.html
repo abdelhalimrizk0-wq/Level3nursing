@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Obstacles and Opportunities to Promoting Active Participation in EBP</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "What are the 5 Cs of evidence-based practice participation?",
+                options: [
+                    "Competence, confidence, collaboration, culture, and commitment",
+                    "Cost, compliance, control, communication, and care",
+                    "Curiosity, caution, creativity, courage, and consistency",
+                    "Citations, checklists, charts, calculations, and claims"
+                ],
+                correct: 0,
+                rationale: "The key take-home messages list the 5 Cs: competence, confidence, collaboration, culture, and commitment."
+            },
+            {
+                id: 2,
+                question: "In the framework table, which strategy is paired with the barrier of lack of time?",
+                options: [
+                    "Protected time for evidence-based practice",
+                    "Journal clubs",
+                    "Search training",
+                    "Leadership training"
+                ],
+                correct: 0,
+                rationale: "The framework table pairs lack of time with protected evidence-based practice time, with the nurse manager as the responsible person and increased participation as the expected outcome."
+            },
+            {
+                id: 3,
+                question: "A staff nurse avoids reading an article because she believes she cannot understand research statistics. Which barrier does this illustrate?",
+                options: [
+                    "Lack of confidence",
+                    "Lack of time",
+                    "Information overload",
+                    "Language barriers"
+                ],
+                correct: 0,
+                rationale: "The example of the nurse who does not read an article because she believes she cannot understand research statistics illustrates lack of confidence, an individual barrier."
+            },
+            {
+                id: 4,
+                question: "Evidence-based practice means finding one article and following it.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The important lesson states that evidence-based practice does not mean finding one article and following it; nurses should appraise the body of evidence and determine its applicability to the clinical context."
+            },
+            {
+                id: 5,
+                question: "Which solution does the lecture give for the barrier of language difficulties with research publications?",
+                options: [
+                    "Research vocabulary training",
+                    "Longer working shifts",
+                    "Stricter discipline for staff",
+                    "More documentation forms"
+                ],
+                correct: 0,
+                rationale: "Solutions for language barriers include research vocabulary training, guided reading, structured appraisal worksheets, faculty mentoring, and evidence summaries."
+            },
+            {
+                id: 6,
+                question: "What is a journal club?",
+                options: [
+                    "A structured meeting where nurses discuss research evidence",
+                    "A social gathering where nurses exchange favorite novels",
+                    "A licensing exam that nurses retake every 5 years",
+                    "A billing committee that reviews hospital invoices"
+                ],
+                correct: 0,
+                rationale: "A journal club is a structured meeting where nurses discuss research evidence, and it transforms research from an individual activity into a team learning activity."
+            },
+            {
+                id: 7,
+                question: "A nurse has used the same technique for 15 years and says the old method has always worked. Which barrier is this?",
+                options: [
+                    "Resistance to change",
+                    "Lack of access to evidence",
+                    "Lack of research skills",
+                    "Limited clinical resources"
+                ],
+                correct: 0,
+                rationale: "Resistance to changing established practices is one of the most important barriers, illustrated by the nurse who used the same technique for 15 years and said the old method has always worked."
+            },
+            {
+                id: 8,
+                question: "Which of the following is one of the things an evidence-based practice champion can do?",
+                options: [
+                    "Help colleagues search for evidence",
+                    "Prescribe medications for patients",
+                    "Write hospital staff contracts",
+                    "Approve new building designs"
+                ],
+                correct: 0,
+                rationale: "An evidence-based practice champion can identify clinical questions, help colleagues search, encourage participation, facilitate projects, communicate with leadership, and disseminate evidence."
+            },
+            {
+                id: 9,
+                question: "Information overload means nurses cannot find any research on their clinical question.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Information overload is the opposite of lack of evidence: there may be too much information, with hundreds of articles, different study designs, conflicting results, and different recommendations for one clinical question."
+            },
+            {
+                id: 10,
+                question: "In the education opportunity, what is Level 3 of progressive evidence-based practice teaching?",
+                options: [
+                    "How to search",
+                    "What evidence-based practice is",
+                    "How to appraise evidence",
+                    "How to evaluate outcomes"
+                ],
+                correct: 0,
+                rationale: "Progressive teaching moves through 6 levels: what evidence-based practice is, how to formulate clinical questions, how to search, how to appraise evidence, how to apply evidence, and how to evaluate outcomes."
+            },
+            {
+                id: 11,
+                question: "Which organizational barrier example describes a nurse who stops trying to initiate change?",
+                options: [
+                    "The organization has no mechanism for reviewing and implementing staff suggestions",
+                    "The organization provides too many evidence summaries to staff",
+                    "The organization pays nurses extra for every article they read",
+                    "The organization schedules too many journal club meetings"
+                ],
+                correct: 0,
+                rationale: "The organizational barrier example describes a nurse who identifies evidence for a new intervention, but the organization has no mechanism for reviewing and implementing staff suggestions, so she may eventually stop trying to initiate change."
+            },
+            {
+                id: 12,
+                question: "When studies conflict, with one reporting benefit, one reporting no significant effect, and one reporting possible harm, what should nurses do?",
+                options: [
+                    "Appraise the body of evidence and determine its applicability to the clinical context",
+                    "Follow the most recently published study and ignore the rest",
+                    "Choose the study with the largest sample and discard the others",
+                    "Stop using evidence until all studies reach full agreement"
+                ],
+                correct: 0,
+                rationale: "The lecture's important lesson is to appraise the body of evidence and determine its applicability to the clinical context rather than following a single article."
+            },
+            {
+                id: 13,
+                question: "Which of the following is a strategy for the negative attitudes barrier?",
+                options: [
+                    "Connect evidence directly to clinical problems",
+                    "Increase the number of theoretical lectures",
+                    "Remove clinical examples from all training",
+                    "Avoid discussing systematic reviews entirely"
+                ],
+                correct: 0,
+                rationale: "The strategy for negative attitudes is to connect evidence directly to clinical problems, for example asking about the best evidence for preventing pressure injuries instead of announcing a discussion of systematic reviews."
+            },
+            {
+                id: 14,
+                question: "Effective evidence-based practice leaders model evidence-based decision-making.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Effective evidence-based practice leaders encourage questions, support education, provide resources, facilitate implementation, recognize staff contributions, monitor outcomes, and model evidence-based decision-making."
+            },
+            {
+                id: 15,
+                question: "Which of the following is listed as a reason why nurses may lack time for evidence-based practice?",
+                options: [
+                    "High patient workload",
+                    "Excessive vacation days",
+                    "Oversized nursing teams",
+                    "Minimal documentation requirements"
+                ],
+                correct: 0,
+                rationale: "Nurses may lack time because of high patient workload, staff shortages, documentation requirements, emergency responsibilities, and multiple competing priorities."
+            },
+            {
+                id: 16,
+                question: "In the strategies framework, who is the responsible person for the mentoring strategy?",
+                options: [
+                    "The evidence-based practice champion",
+                    "The hospital administration",
+                    "The nurse manager",
+                    "The librarian or faculty"
+                ],
+                correct: 0,
+                rationale: "The framework table pairs lack of confidence with mentoring, the evidence-based practice champion as the responsible person, and increased confidence as the expected outcome."
+            },
+            {
+                id: 17,
+                question: "What does the point-of-care evidence opportunity reduce the gap between?",
+                options: [
+                    "Evidence and clinical decision",
+                    "Patients and insurance companies",
+                    "Hospitals and medical schools",
+                    "Nurses and their licensing boards"
+                ],
+                correct: 0,
+                rationale: "Point-of-care evidence makes current guidelines, protocols, evidence summaries, and medication information rapidly available where decisions are made, reducing the gap between evidence and clinical decision."
+            },
+            {
+                id: 18,
+                question: "EBP should be limited to one dedicated course in nursing education.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Evidence-based practice should not be limited to one course; it should appear across fundamentals, medical-surgical, pediatric, maternal, psychiatric, community health, and critical care nursing."
+            },
+            {
+                id: 19,
+                question: "Which of the following is a solution the lecture offers for lack of access to evidence?",
+                options: [
+                    "Providing access to institutional libraries",
+                    "Removing computers from clinical units",
+                    "Restricting database use to physicians only",
+                    "Limiting article reading to annual leave"
+                ],
+                correct: 0,
+                rationale: "Solutions for lack of access include providing access to CINAHL, PubMed or MEDLINE, the Cochrane Library, institutional libraries, clinical guidelines, and evidence summaries."
+            },
+            {
+                id: 20,
+                question: "Which of the following is one of the major barrier categories in the lecture's classification?",
+                options: [
+                    "Attitudinal barriers",
+                    "Financial profit barriers",
+                    "Marketing barriers",
+                    "Agricultural barriers"
+                ],
+                correct: 0,
+                rationale: "The major categories of evidence-based practice barriers include individual barriers, knowledge and skill barriers, attitudinal barriers, time and workload barriers, organizational, leadership, resource, evidence-related, technological, and patient and clinical-context barriers."
+            },
+            {
+                id: 21,
+                question: "What does the collaboration opportunity of interprofessional teamwork include?",
+                options: [
+                    "Nurse, physician, pharmacist, dietitian, physiotherapist, and patient or family",
+                    "Only nurses working alone on separate shifts",
+                    "Only physicians and their administrative secretaries",
+                    "Only pharmacists and equipment suppliers"
+                ],
+                correct: 0,
+                rationale: "Interprofessional collaboration can involve the nurse, physician, pharmacist, dietitian, physiotherapist, and patient or family, with different professionals contributing different expertise."
+            },
+            {
+                id: 22,
+                question: "Change can create fear, uncertainty, increased workload, and disruption of routines, which feeds resistance.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Resistance occurs because change can create uncertainty, fear, increased workload, loss of confidence, concern about making mistakes, and disruption of routines."
+            },
+            {
+                id: 23,
+                question: "A nurse searching a broad phrase like pain in children instead of a focused question gets thousands of results. Which barrier does this example illustrate?",
+                options: [
+                    "Lack of knowledge about evidence-based practice",
+                    "Lack of leadership support",
+                    "Limited clinical resources",
+                    "Conflicting evidence"
+                ],
+                correct: 0,
+                rationale: "The example of searching a broad phrase instead of developing a focused question illustrates lack of knowledge about evidence-based practice, including how to formulate a clinical question and search databases."
+            },
+            {
+                id: 24,
+                question: "Which of the following is a skill listed under lack of research skills?",
+                options: [
+                    "Interpreting basic statistics",
+                    "Designing hospital buildings",
+                    "Negotiating insurance contracts",
+                    "Scheduling staff vacations"
+                ],
+                correct: 0,
+                rationale: "Important research skills include literature searching, Boolean operators, database use, critical appraisal, understanding research designs, interpreting basic statistics, assessing validity and reliability, and applying evidence to clinical situations."
+            },
+            {
+                id: 25,
+                question: "In an evidence-based practice culture, which question do nurses routinely ask?",
+                options: [
+                    "What is the evidence?",
+                    "Who is the manager today?",
+                    "When is the next vacation?",
+                    "Where is the cafeteria?"
+                ],
+                correct: 0,
+                rationale: "An evidence-based practice culture encourages nurses to routinely ask what the evidence is, whether it applies to their patients, and what the outcomes are."
+            },
+            {
+                id: 26,
+                question: "What does the mentorship opportunity help novice nurses with?",
+                options: [
+                    "Question development, database searching, appraisal, interpretation, implementation, and evaluation",
+                    "Salary negotiation, contract review, and pension planning",
+                    "Uniform selection, parking permits, and meal cards",
+                    "Housing applications, transport routes, and banking"
+                ],
+                correct: 0,
+                rationale: "A mentor can help novice nurses with question development, database searching, appraisal, interpretation, implementation, and evaluation."
+            },
+            {
+                id: 27,
+                question: "When evidence recommends an intervention requiring unavailable resources like specialized equipment or expensive technology, what must happen?",
+                options: [
+                    "The evidence must be evaluated for feasibility and applicability",
+                    "The intervention must be applied immediately regardless of cost",
+                    "The evidence must be discarded as invalid research",
+                    "The patients must be transferred to another country"
+                ],
+                correct: 0,
+                rationale: "Under limited clinical resources, the lecture concludes that evidence must be evaluated for feasibility and applicability."
+            },
+            {
+                id: 28,
+                question: "In the framework table, which expected outcome is paired with search training for information overload?",
+                options: [
+                    "More efficient searching",
+                    "Stronger evidence-based culture",
+                    "Improved appraisal skills",
+                    "Better evidence access"
+                ],
+                correct: 0,
+                rationale: "The framework table pairs information overload with search training, the librarian or faculty as responsible, and more efficient searching as the expected outcome."
+            },
+            {
+                id: 29,
+                question: "The problem with negative attitudes is always a lack of ability.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture's important distinction is that the problem may not always be lack of ability; sometimes it is a problem of perceived relevance."
+            },
+            {
+                id: 30,
+                question: "Which of the following is a strategy organizations can provide for the lack of time barrier?",
+                options: [
+                    "Clinical librarian support",
+                    "Longer documentation forms",
+                    "More emergency responsibilities",
+                    "Additional patient assignments"
+                ],
+                correct: 0,
+                rationale: "Strategies for lack of time include protected evidence-based practice time, short evidence summaries, clinical librarian support, champions, journal clubs, and evidence resources at point of care."
+            },
+            {
+                id: 31,
+                question: "When a family has concerns about an evidence-supported pain-management approach for their child, what must the nurse integrate?",
+                options: [
+                    "Evidence, clinical expertise, and patient or family preferences",
+                    "Evidence, hospital profits, and insurer policies",
+                    "Evidence, staff convenience, and equipment availability",
+                    "Evidence, media trends, and public opinion"
+                ],
+                correct: 0,
+                rationale: "Under clinical and patient-level barriers, the nurse must integrate evidence, clinical expertise, and patient or family preferences."
+            },
+            {
+                id: 32,
+                question: "Managers can promote evidence-based practice by establishing committees and recognizing participation.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Managers can promote evidence-based practice by providing protected time, supporting training, facilitating database access, recognizing participation, establishing committees, and supporting quality-improvement projects."
+            },
+            {
+                id: 33,
+                question: "What is the ultimate goal described in the create a culture opportunity?",
+                options: [
+                    "To move from evidence-based practice as a project to evidence-based practice as a culture",
+                    "To move from daily practice to full-time research careers",
+                    "To move from hospital care to home-based businesses",
+                    "To move from nursing to hospital administration"
+                ],
+                correct: 0,
+                rationale: "The ultimate goal is to move from evidence-based practice as a project to evidence-based practice as a culture."
+            },
+            {
+                id: 34,
+                question: "Which of the following is a solution provided for lack of confidence?",
+                options: [
+                    "Journal clubs",
+                    "Stricter supervision",
+                    "Longer probation periods",
+                    "Fewer training sessions"
+                ],
+                correct: 0,
+                rationale: "Solutions for lack of confidence include research-literacy training, journal clubs, mentoring, simple critical-appraisal tools, and faculty support."
+            },
+            {
+                id: 35,
+                question: "Which of the following is listed as an organizational barrier?",
+                options: [
+                    "Hierarchical decision-making",
+                    "Limited academic English proficiency",
+                    "Difficulty interpreting statistics",
+                    "Concern about making mistakes"
+                ],
+                correct: 0,
+                rationale: "Organizational barriers include lack of policies, lack of protected time, insufficient staffing, limited educational programs, lack of resources, poor communication, hierarchical decision-making, lack of incentives, and lack of leadership."
+            },
+            {
+                id: 36,
+                question: "Which of the following does modern evidence-based practice require nurses to know how to use?",
+                options: [
+                    "Clinical information systems",
+                    "Architectural design software",
+                    "Accounting ledgers",
+                    "Marketing platforms"
+                ],
+                correct: 0,
+                rationale: "Modern evidence-based practice requires digital literacy, including searching databases, using filters and Boolean operators, accessing full text, managing references, using clinical information systems, and locating guidelines."
+            },
+            {
+                id: 37,
+                question: "In the pediatric nursing education example, what could students ask instead of simply learning how to manage fever?",
+                options: [
+                    "What evidence supports different methods of fever management in children?",
+                    "Which textbook describes fever management in the most detail?",
+                    "How many fever cases occur in hospitals every year?",
+                    "Who first described fever in medical history?"
+                ],
+                correct: 0,
+                rationale: "The example suggests that instead of simply teaching how to manage fever, students could ask what evidence supports different methods of fever management in children."
+            },
+            {
+                id: 38,
+                question: "Nurses should participate in the change process rather than simply being told to change.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The strategy for resistance to change is to explain, involve, support, implement, and evaluate, with nurses participating in the change process rather than simply being told to change."
+            },
+            {
+                id: 39,
+                question: "Which of the following is an example of a technological opportunity listed in the lecture?",
+                options: [
+                    "Clinical decision-support systems",
+                    "Paper-only patient charts",
+                    "Manual appointment books",
+                    "Postal mailing of research articles"
+                ],
+                correct: 0,
+                rationale: "Technology opportunities include electronic databases, clinical decision-support systems, electronic health records, mobile applications, online guidelines, virtual journal clubs, and online educational platforms."
+            },
+            {
+                id: 40,
+                question: "In the strategies framework, which strategy is paired with the barrier of lack of leadership?",
+                options: [
+                    "Leadership training",
+                    "Journal clubs",
+                    "Protected time",
+                    "Mentoring"
+                ],
+                correct: 0,
+                rationale: "The framework table pairs lack of leadership with leadership training, hospital administration as the responsible person, and a stronger evidence-based practice culture as the expected outcome."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
