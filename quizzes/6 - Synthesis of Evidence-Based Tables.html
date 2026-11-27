@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Synthesis of Evidence-Based Tables</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "A summary table is also called what?",
+                options: [
+                    "A synthesis matrix",
+                    "A citation index",
+                    "A grading ledger",
+                    "A reference list"
+                ],
+                correct: 0,
+                rationale: "The definitions section states that a summary table is also called a synthesis matrix."
+            },
+            {
+                id: 2,
+                question: "How many columns does a standard evidence table have according to the lecture?",
+                options: [
+                    "10",
+                    "5",
+                    "7",
+                    "14"
+                ],
+                correct: 0,
+                rationale: "A standard evidence table has 10 columns, and all columns must be filled in for each study to properly review the available evidence."
+            },
+            {
+                id: 3,
+                question: "What does the comparison column of the standard NICE evidence table record?",
+                options: [
+                    "Placebo or alternative treatment",
+                    "Journal name and volume",
+                    "Government funding sources",
+                    "Sample recruitment method"
+                ],
+                correct: 0,
+                rationale: "In the standard NICE evidence table, the comparison column records the placebo or alternative treatment."
+            },
+            {
+                id: 4,
+                question: "Synthesis tables serve as the foundation for evidence-based recommendations as part of an evidence-based practice initiative.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The introduction states that these tables serve as the foundation for evidence-based recommendations as part of an evidence-based practice initiative."
+            },
+            {
+                id: 5,
+                question: "Which of the following is one of the aims of a summary table?",
+                options: [
+                    "Document how sources relate to each other",
+                    "Replace the need to read the original articles",
+                    "Assign grades to the authors of each study",
+                    "Translate foreign-language articles into English"
+                ],
+                correct: 0,
+                rationale: "A summary table helps record the main points of each source, document how sources relate to each other, organize ideas, synthesize research, compare quickly, and stay organized."
+            },
+            {
+                id: 6,
+                question: "In the essential components of a synthesis table, what does the synthesis across studies component identify?",
+                options: [
+                    "Patterns, agreements, disagreements, and possible explanations",
+                    "Funding sources, journal names, and page counts",
+                    "Author affiliations, contact details, and conflict statements",
+                    "Reference styles, citation counts, and impact factors"
+                ],
+                correct: 0,
+                rationale: "Synthesis across studies identifies patterns, agreements, disagreements, and possible explanations."
+            },
+            {
+                id: 7,
+                question: "What information does the number of patients column of the NICE table record?",
+                options: [
+                    "The total number of patients and the numbers who started and completed the study",
+                    "Only the number of patients who withdrew from the study early",
+                    "Only the number of patients who received the active treatment",
+                    "The number of patients planned in the original grant proposal"
+                ],
+                correct: 0,
+                rationale: "The number of patients column records the total number of patients and also the numbers of patients who started and completed the study."
+            },
+            {
+                id: 8,
+                question: "Building a synthesis matrix involves repeating what is already written in the literature.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Building a synthesis matrix involves taking information from a variety of sources, re-evaluating it, and forming new ideas or insights in an original way, which is challenging for students used to just repeating what is already in the literature."
+            },
+            {
+                id: 9,
+                question: "Which source of funding does the NICE table give as an example of voluntary or charity funding?",
+                options: [
+                    "Wellcome Trust",
+                    "World Health Organization",
+                    "Red Cross",
+                    "United Nations"
+                ],
+                correct: 0,
+                rationale: "The source of funding column lists government funding such as the NHS, voluntary or charity funding such as Wellcome Trust, and pharmaceutical company funding."
+            },
+            {
+                id: 10,
+                question: "Which component of a synthesis table describes the participants, sample size, and clinical environment?",
+                options: [
+                    "Sample and setting",
+                    "Study aim",
+                    "Research design",
+                    "Key findings"
+                ],
+                correct: 0,
+                rationale: "The sample and setting component describes the participants, sample size, and clinical environment."
+            },
+            {
+                id: 11,
+                question: "In the qualitative review question evidence table, how is the quality of the study rated?",
+                options: [
+                    "Using a scale of double plus, plus, and minus",
+                    "Using a scale of gold, silver, and bronze",
+                    "Using a score from 1 to 100 points",
+                    "Using letter grades from A to F"
+                ],
+                correct: 0,
+                rationale: "The qualitative review question table includes a quality assessment that rates the study using double plus, plus, and minus."
+            },
+            {
+                id: 12,
+                question: "Which column of the standard NICE evidence table includes associated harms?",
+                options: [
+                    "Outcome measures",
+                    "Intervention",
+                    "Additional comments",
+                    "Patient characteristics"
+                ],
+                correct: 0,
+                rationale: "The outcome measures column lists all outcome measures defined in the review protocol, including associated harms."
+            },
+            {
+                id: 13,
+                question: "Evidence tables are never included in systematic reviews.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Evidence tables are often included in systematic reviews and are a great tool for taking evidence-based practice from the page into the clinical setting."
+            },
+            {
+                id: 14,
+                question: "What does the research design component of a synthesis table identify?",
+                options: [
+                    "The methodology, such as a randomized controlled trial, cohort study, or qualitative study",
+                    "The journal in which the study was published and its impact factor",
+                    "The statistical software package used to analyze the data",
+                    "The funding body that paid for the research project"
+                ],
+                correct: 0,
+                rationale: "The research design component identifies the methodology, such as a randomized controlled trial, cohort study, or qualitative study."
+            },
+            {
+                id: 15,
+                question: "Which patient characteristics does the NICE table list as relevant to the area of interest?",
+                options: [
+                    "Age, sex, ethnic origin, comorbidity, or disease status",
+                    "Height, weight, eye color, and blood type",
+                    "Occupation, income, education, and housing",
+                    "Nationality, religion, language, and diet"
+                ],
+                correct: 0,
+                rationale: "Patient characteristics relevant to the area of interest include age, sex, ethnic origin, comorbidity, or disease status."
+            },
+            {
+                id: 16,
+                question: "In the qualitative review table, whose limitations are recorded in the limitations column?",
+                options: [
+                    "Both those identified by the authors and those identified by the reviewer",
+                    "Only those identified by the journal editors before publication",
+                    "Only those identified by the funding organization",
+                    "Only those admitted by the participants themselves"
+                ],
+                correct: 0,
+                rationale: "The limitations column of the qualitative review table records both those identified by the authors and those identified by the reviewer."
+            },
+            {
+                id: 17,
+                question: "The level of evidence column tells you nothing about a study's impact on the field.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The table identifies the level of evidence each item represents, which the lecture says tells you a lot about its impact on the field of study."
+            },
+            {
+                id: 18,
+                question: "What does the clinical implications component of a synthesis table describe?",
+                options: [
+                    "The potential relevance of the findings to nursing practice",
+                    "The statistical significance of every reported outcome",
+                    "The salary costs of repeating the study in a hospital",
+                    "The legal risks of applying the study in clinical care"
+                ],
+                correct: 0,
+                rationale: "Clinical implications describe the potential relevance of the findings to nursing practice."
+            },
+            {
+                id: 19,
+                question: "Which of the following is a column in the standard 10-column evidence table?",
+                options: [
+                    "Length of follow-up",
+                    "Journal impact factor",
+                    "Author affiliation",
+                    "Peer review score"
+                ],
+                correct: 0,
+                rationale: "The standard evidence table has 10 columns: authors, year of publication, article title, study type and level of evidence, number of patients and patient characteristics, intervention, length of follow-up, outcome measures, limitation, and additional comments."
+            },
+            {
+                id: 20,
+                question: "What does the key findings component of a synthesis table summarize?",
+                options: [
+                    "The important results relevant to the clinical question",
+                    "The complete statistical output of every analysis performed",
+                    "The biographies and qualifications of the study authors",
+                    "The history of the disease being studied in the paper"
+                ],
+                correct: 0,
+                rationale: "Key findings summarize the important results relevant to the clinical question."
+            },
+            {
+                id: 21,
+                question: "The summary table helps organize and compare information for a systematic review, scholarly report, dissertation, or thesis.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The definitions section states that the table helps you organize and compare information for your systematic review, scholarly report, dissertation, or thesis."
+            },
+            {
+                id: 22,
+                question: "What does the length of follow-up column of the NICE table measure?",
+                options: [
+                    "The time patients take part in the study until the end of the data-gathering phase",
+                    "The time between submitting the article and its final publication",
+                    "The time the reviewer spends reading each included study",
+                    "The time between 2 consecutive meetings of the research team"
+                ],
+                correct: 0,
+                rationale: "Length of follow-up is the length of time that patients take part in the study until the end of the data-gathering phase is reached."
+            },
+            {
+                id: 23,
+                question: "In the qualitative review table, what does the evidence gap column identify?",
+                options: [
+                    "Gaps in current evidence and directions for future investigation",
+                    "Pages of the article that the reviewers could not access",
+                    "Missing references in the article's bibliography section",
+                    "Disagreements between the funders and the authors"
+                ],
+                correct: 0,
+                rationale: "The evidence gap and recommendations for future research column identifies gaps in current evidence and directions for future investigation."
+            },
+            {
+                id: 24,
+                question: "Which component of a synthesis table records important appraisal judgments and methodological limitations?",
+                options: [
+                    "Quality and limitations",
+                    "Intervention or phenomenon",
+                    "Author and year",
+                    "Outcomes or themes"
+                ],
+                correct: 0,
+                rationale: "The quality and limitations component records important appraisal judgments and methodological limitations."
+            },
+            {
+                id: 25,
+                question: "The table identifies each item by its author, purpose, type of work, level of evidence, and major findings.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The definitions section states that the table identifies each item according to its author and date of publication, its purpose or thesis, what type of work it is, the level of evidence it represents, and its major findings."
+            },
+            {
+                id: 26,
+                question: "What does the study aim component of a synthesis table describe?",
+                options: [
+                    "What the researchers intended to investigate",
+                    "How the researchers funded their project",
+                    "Where the researchers published their findings",
+                    "When the researchers plan their next study"
+                ],
+                correct: 0,
+                rationale: "The study aim component describes what the researchers intended to investigate."
+            },
+            {
+                id: 27,
+                question: "In the data collection column of the qualitative review table, which details should be given?",
+                options: [
+                    "The method, by whom, the settings, and when",
+                    "The cost, the software, and the file format",
+                    "The journal, the volume, and the page numbers",
+                    "The hypothesis, the variables, and the conclusions"
+                ],
+                correct: 0,
+                rationale: "The data collection column asks how the data were collected, with details of the methods, by whom, the settings, and when."
+            },
+            {
+                id: 28,
+                question: "For whom is building a summary table specifically important according to the lecture?",
+                options: [
+                    "Nurses, nurse practitioners, and researchers",
+                    "Hospital accountants, lawyers, and architects",
+                    "Drug manufacturers, insurers, and advertisers",
+                    "Medical illustrators, translators, and editors"
+                ],
+                correct: 0,
+                rationale: "The lecture states that building a summary table is important for nurses, nurse practitioners, and researchers."
+            },
+            {
+                id: 29,
+                question: "Which of the following is listed as an aim of a summary table?",
+                options: [
+                    "Great for literature reviews",
+                    "Great for billing patients",
+                    "Great for hiring staff",
+                    "Great for ordering supplies"
+                ],
+                correct: 0,
+                rationale: "The listed aims include recording main points, documenting how sources relate, organizing ideas, synthesizing research, quick comparison, staying organized, and being great for literature reviews."
+            },
+            {
+                id: 30,
+                question: "In the qualitative review table, what does the population and sample collection column include?",
+                options: [
+                    "How participants were recruited, how many were recruited, and exclusion and inclusion criteria",
+                    "How much participants were paid, where they lived, and their occupations",
+                    "How participants were diagnosed, treated, and followed after the study",
+                    "How participants rated the researchers and the hospital facilities"
+                ],
+                correct: 0,
+                rationale: "The population and sample collection column asks what population the sample was recruited from and includes how they were recruited, how many participants were recruited, and specific exclusion and inclusion criteria."
+            },
+            {
+                id: 31,
+                question: "What does the intervention or phenomenon component of a synthesis table describe?",
+                options: [
+                    "The intervention being evaluated or the experience being explored",
+                    "The statistical tests applied to the collected data",
+                    "The journal process used to review the article",
+                    "The funding requested for the next research phase"
+                ],
+                correct: 0,
+                rationale: "The intervention or phenomenon component describes the intervention being evaluated or the experience being explored."
+            },
+            {
+                id: 32,
+                question: "The study type column of the NICE table can include randomized controlled trials, cohort studies, or case-control studies.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The study type column gives examples of randomized controlled trial, cohort, or case-control studies."
+            },
+            {
+                id: 33,
+                question: "Which component of a synthesis table identifies the main variables, outcomes, or qualitative themes?",
+                options: [
+                    "Outcomes or themes",
+                    "Study aim",
+                    "Sample and setting",
+                    "Clinical implications"
+                ],
+                correct: 0,
+                rationale: "The outcomes or themes component identifies the main variables, outcomes, or qualitative themes."
+            },
+            {
+                id: 34,
+                question: "Why are synthesis tables considered a powerful tool according to the introduction?",
+                options: [
+                    "They organize and communicate the existing body of evidence to stakeholders",
+                    "They eliminate the need for critical appraisal of individual studies",
+                    "They guarantee publication of the review in a high-ranking journal",
+                    "They replace statistical analysis in quantitative research"
+                ],
+                correct: 0,
+                rationale: "Synthesis tables are a powerful tool for organizing and communicating the existing body of evidence to stakeholders, highlighting the most effective strategies for driving meaningful improvements."
+            },
+            {
+                id: 35,
+                question: "What does the method and process of analysis column of the qualitative review table ask?",
+                options: [
+                    "What methods were used to analyze the data, for example the comparative method",
+                    "How much funding was spent on statistical software licenses",
+                    "How the article was formatted before journal submission",
+                    "How the reviewers rated the writing style of the authors"
+                ],
+                correct: 0,
+                rationale: "The method and process of analysis column asks what methods were used to analyze the data, giving the comparative method as an example."
+            },
+            {
+                id: 36,
+                question: "What does the author and year component of a synthesis table identify?",
+                options: [
+                    "The study and its publication date",
+                    "The journal and its impact factor",
+                    "The funder and its payment schedule",
+                    "The reviewer and their appraisal score"
+                ],
+                correct: 0,
+                rationale: "The author and year component identifies the study and its publication date."
+            },
+            {
+                id: 37,
+                question: "In the qualitative review table, what does the theoretical approach column ask?",
+                options: [
+                    "What theoretical approach the study takes, if specified",
+                    "Which statistical theory the analysts preferred to use",
+                    "Which nursing school trained the research team",
+                    "Which ethical theory the participants believed in"
+                ],
+                correct: 0,
+                rationale: "The theoretical approach column asks what theoretical approach the study takes, if specified."
+            },
+            {
+                id: 38,
+                question: "Evidence tables are especially useful when making an administrative change in the treatment of patients.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Evidence tables are a great tool in taking evidence-based practice from the page into the clinical setting, especially when making an administrative change in the treatment of patients."
+            },
+            {
+                id: 39,
+                question: "What does the bibliographic reference column of the NICE table include?",
+                options: [
+                    "Authors, year, article title, journal, volume, and pages",
+                    "Author biography, contact address, and phone number",
+                    "Review date, reviewer name, and appraisal score",
+                    "Funding amount, grant number, and payment dates"
+                ],
+                correct: 0,
+                rationale: "The bibliographic reference column includes the authors, year, article title, journal, volume, and pages."
+            },
+            {
+                id: 40,
+                question: "What does the additional comments column of the NICE table record?",
+                options: [
+                    "Additional characteristics and interpretations that the reviewer wishes to record",
+                    "The statistical code used for each analysis in the study",
+                    "The marketing plan for distributing the review findings",
+                    "The salaries paid to each member of the research team"
+                ],
+                correct: 0,
+                rationale: "The additional comments column records additional characteristics and interpretations of the studies that the reviewer wishes to record."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
