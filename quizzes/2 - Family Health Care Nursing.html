@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Family Health Care Nursing</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "In which specialty is the family as context approach rooted?",
+                options: [
+                    "Psychiatric nursing",
+                    "Community health nursing",
+                    "Primary care nursing",
+                    "Maternal-child nursing"
+                ],
+                correct: 3,
+                rationale: "The lecture states that the family as context approach is rooted in the specialty of maternal-child nursing."
+            },
+            {
+                id: 2,
+                question: "In which specialty is the family as a client approach rooted?",
+                options: [
+                    "Maternal-child nursing",
+                    "Primary care nursing",
+                    "Community health nursing",
+                    "Psychiatric nursing"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the family as a client approach is rooted in the specialty of primary care nursing."
+            },
+            {
+                id: 3,
+                question: "In which specialty is the family as a system approach rooted?",
+                options: [
+                    "Maternal-child nursing",
+                    "Psychiatric and mental health nursing",
+                    "Primary care nursing",
+                    "Community health nursing"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the family as a system approach is rooted in the specialty of psychiatric and mental health nursing."
+            },
+            {
+                id: 4,
+                question: "In which specialty is the family as a component of society approach rooted?",
+                options: [
+                    "Primary care nursing",
+                    "Psychiatric nursing",
+                    "Maternal-child nursing",
+                    "Community health nursing"
+                ],
+                correct: 3,
+                rationale: "The lecture states that the family as a component of society approach is rooted in the specialty of community health nursing."
+            },
+            {
+                id: 5,
+                question: "Which approach views the whole as more than the sum of its parts?",
+                options: [
+                    "Family as a client",
+                    "Family as a system",
+                    "Family as a component of society",
+                    "Family as context"
+                ],
+                correct: 1,
+                rationale: "In the family as a system approach, the family is viewed as an interactional system in which the whole is more than the sum of its parts."
+            },
+            {
+                id: 6,
+                question: "In which approach is the individual in the foreground and the family in the background?",
+                options: [
+                    "Family as a system",
+                    "Family as a component of society",
+                    "Family as a client",
+                    "Family as context"
+                ],
+                correct: 3,
+                rationale: "In the family as context approach, the individual is foreground and the family is background, the traditional nursing focus."
+            },
+            {
+                id: 7,
+                question: "Which approach sees all family members in the foreground, with the nurse assessing and caring for each person?",
+                options: [
+                    "Family as context",
+                    "Family as a client",
+                    "Family as a component of society",
+                    "Family as a system"
+                ],
+                correct: 1,
+                rationale: "In the family as a client approach, all members are in the foreground and the nurse assesses and provides health care for each person in the family."
+            },
+            {
+                id: 8,
+                question: "Which approach looks at the family as a basic unit of society that interacts with other institutions?",
+                options: [
+                    "Family as a client of the nurse",
+                    "Family as the context of the individual",
+                    "Family as a component of society",
+                    "Family as an interactional system"
+                ],
+                correct: 2,
+                rationale: "In this approach the family is a primary unit of society and as a whole interacts with other institutions to receive, exchange, or give communication and services."
+            },
+            {
+                id: 9,
+                question: "During which period did the development of nursing families become more explicit?",
+                options: [
+                    "The early 1900s",
+                    "The late 1700s",
+                    "The late 1800s",
+                    "The late 1900s"
+                ],
+                correct: 2,
+                rationale: "The lecture states that during the Nightingale era in the late 1800s the development of nursing families became more explicit."
+            },
+            {
+                id: 10,
+                question: "Which war is mentioned when Florence Nightingale encouraged family members of fighting troops to come into hospitals?",
+                options: [
+                    "The Crimean War",
+                    "The Korean War",
+                    "The First World War",
+                    "The Civil War"
+                ],
+                correct: 0,
+                rationale: "Nightingale encouraged family members of the fighting troops to come into the hospitals during the Crimean War to take care of their loved ones."
+            },
+            {
+                id: 11,
+                question: "According to the lecture, what did Florence Nightingale believe could eradicate high infant mortality and morbidity rates?",
+                options: [
+                    "Cleanliness in the home",
+                    "Larger hospital wards",
+                    "Regular vaccination",
+                    "Early marriage"
+                ],
+                correct: 0,
+                rationale: "The lecture states that she believed cleanliness in the home could eradicate high infant mortality and morbidity rates."
+            },
+            {
+                id: 12,
+                question: "Which two activities did Florence Nightingale influence, according to the lecture?",
+                options: [
+                    "Hospital construction and military training",
+                    "District nursing of the sick and poor and health missionary work",
+                    "Midwifery schools and public health laws",
+                    "Nursing licensure and school nursing"
+                ],
+                correct: 1,
+                rationale: "The lecture states that she influenced the establishment of district nursing of the sick and poor and the work of health missionaries through health-at-home teaching."
+            },
+            {
+                id: 13,
+                question: "Who was historically responsible for caring for ill family members and seeking herbs or remedies?",
+                options: [
+                    "Women",
+                    "Religious leaders",
+                    "Elders of the community",
+                    "Physicians"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the historical role of women has been interwoven with the family because it was their responsibility to care for ill family members and seek herbs or remedies."
+            },
+            {
+                id: 14,
+                question: "Which of the following is another name for family nursing?",
+                options: [
+                    "Home-based care",
+                    "Family-centered care",
+                    "Person-focused care",
+                    "Community-oriented care"
+                ],
+                correct: 1,
+                rationale: "The lecture lists family-centered care, family-centered nursing, and family-focused nursing as other names for family nursing."
+            },
+            {
+                id: 15,
+                question: "According to the core assumptions, whose work states that health and illness affect all members of a family?",
+                options: [
+                    "Wright and Leahey",
+                    "Hartman",
+                    "Kaakinen",
+                    "Nightingale"
+                ],
+                correct: 0,
+                rationale: "The core assumption that health and illness affect all members of a family is attributed to Wright and Leahey in 2013."
+            },
+            {
+                id: 16,
+                question: "Which authors provided the definition and framework for family health care nursing in the lecture?",
+                options: [
+                    "Sackett and colleagues",
+                    "Hartman and colleagues",
+                    "Wright and Leahey",
+                    "Kaakinen and colleagues"
+                ],
+                correct: 3,
+                rationale: "The lecture states that the definition and framework for family health care nursing is by Kaakinen and colleagues in 2010."
+            },
+            {
+                id: 17,
+                question: "Which of the following is a benefit of incorporating a family systems approach into clinical practice?",
+                options: [
+                    "Families depend less on the nurse",
+                    "Team members work separately",
+                    "Nurses spend more time listening",
+                    "Nurses spend less time with families"
+                ],
+                correct: 2,
+                rationale: "The lecture lists greater awareness of needs and concerns, nurses spending more time listening, enhanced family communication, and increased support from family members."
+            },
+            {
+                id: 18,
+                question: "How does the family-nurse relationship change when nurses incorporate the family systems approach?",
+                options: [
+                    "It becomes shorter and limited to the patient only",
+                    "It becomes more open, reciprocal, caring, and respectful",
+                    "It becomes focused on the physician orders only",
+                    "It becomes more formal and distant over time"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the family-nurse relationship becomes more open, reciprocal, caring, respectful, positive, and honest."
+            },
+            {
+                id: 19,
+                question: "Nurses who use the family systems approach are more receptive to what?",
+                options: [
+                    "Family expertise",
+                    "Insurance rules",
+                    "Hospital policies",
+                    "Physician orders"
+                ],
+                correct: 0,
+                rationale: "The lecture states that nurses who use the family systems approach are more receptive to family expertise."
+            },
+            {
+                id: 20,
+                question: "What can information from a family assessment help ensure in the event of transfer to other health institutions?",
+                options: [
+                    "Continuity of care",
+                    "Shorter hospital stays",
+                    "Faster discharge",
+                    "Reduction of costs"
+                ],
+                correct: 0,
+                rationale: "The lecture states that information from a family assessment can help resolve family issues and ensure continuity of care in the event of transfer to other health institutions."
+            },
+            {
+                id: 21,
+                question: "Which of the following is a reported outcome for nurses who incorporate the family systems approach?",
+                options: [
+                    "Reduced work hours",
+                    "Enhanced self-esteem",
+                    "Less patient contact",
+                    "Higher salaries"
+                ],
+                correct: 1,
+                rationale: "Nurses report improvements in professional practice, enhanced self-esteem, and greater satisfaction in their work."
+            },
+            {
+                id: 22,
+                question: "How many interventions does the lecture describe in the nature of interventions in family nursing?",
+                options: [
+                    "12",
+                    "5",
+                    "8",
+                    "10"
+                ],
+                correct: 3,
+                rationale: "The lecture states that the following 10 interventions family nurses use provide structure to working with families regardless of the theoretical approach."
+            },
+            {
+                id: 23,
+                question: "Which intervention states that family care considers both the history and the future of the family group?",
+                options: [
+                    "Definition of who constitutes the family",
+                    "Focus on the strengths of the family",
+                    "Concern with the experience of the family over time",
+                    "Consideration of the community context"
+                ],
+                correct: 2,
+                rationale: "The first intervention states that family care is concerned with the experience of the family over time and considers both the history and future of the family group."
+            },
+            {
+                id: 24,
+                question: "According to the interventions, on what does family nursing focus to promote mutual support and growth?",
+                options: [
+                    "The strengths of individual members and the family group",
+                    "The weaknesses of individual members",
+                    "The illness of the most symptomatic member",
+                    "The needs of the nurse"
+                ],
+                correct: 0,
+                rationale: "The ninth intervention states that family nursing focuses on the strengths of individual family members and the family group to promote their mutual support and growth."
+            },
+            {
+                id: 25,
+                question: "What must family nurses define together with the family?",
+                options: [
+                    "The cost of the care",
+                    "Which persons constitute the family",
+                    "The diagnosis of each member",
+                    "The length of hospital stay"
+                ],
+                correct: 1,
+                rationale: "The tenth intervention states that family nurses must define with the family which persons constitute the family and where they will place their therapeutic energies."
+            },
+            {
+                id: 26,
+                question: "What does the lecture say about the person in a family who is most symptomatic?",
+                options: [
+                    "This person is always the same",
+                    "This person is always the youngest",
+                    "This person may change over time",
+                    "This person never changes"
+                ],
+                correct: 2,
+                rationale: "The eighth intervention states that the person who is most symptomatic may change over time, so the focus of the nurse's attention will also change over time."
+            },
+            {
+                id: 27,
+                question: "Which statement is correct about the physical absence of family members?",
+                options: [
+                    "It makes the family a client",
+                    "It ends the family nursing process",
+                    "It prevents the nurse from offering family care",
+                    "It does not preclude the nurse from offering family care"
+                ],
+                correct: 3,
+                rationale: "The seventh intervention states that the physical absence of family members does not preclude the nurse from offering family care."
+            },
+            {
+                id: 28,
+                question: "Which of the following is stated as a variable that influences family nursing?",
+                options: [
+                    "Hospital building design",
+                    "Local weather patterns",
+                    "National and state health care policies",
+                    "Nursing uniform standards"
+                ],
+                correct: 2,
+                rationale: "The variables include changing nursing theory, new knowledge from family social sciences, national and state health care policies, changing health care behavior, and political events."
+            },
+            {
+                id: 29,
+                question: "What determines which approach to family nursing a nurse uses?",
+                options: [
+                    "The health care setting, family circumstances, and nurse resources",
+                    "The age of the nurse and the size of the hospital",
+                    "The type of insurance and the length of hospital stay",
+                    "The cost of equipment and the preference of the physician"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the approach used is determined by many factors, including the health care setting, family circumstances, and nurse resources."
+            },
+            {
+                id: 30,
+                question: "In the family as a system approach, which interactions are given as an example?",
+                options: [
+                    "Those between the parental couple or between the couple and the child",
+                    "Those between the family and the health agency",
+                    "Those between the nurse and the physician",
+                    "Those between the family and the school"
+                ],
+                correct: 0,
+                rationale: "The example given is interactions that occur directly between the parental couple or indirectly between the couple and the child."
+            },
+            {
+                id: 31,
+                question: "How many perspectives does the lecture say are important to keep in mind when working with any given family?",
+                options: [
+                    "4",
+                    "2",
+                    "3",
+                    "5"
+                ],
+                correct: 0,
+                rationale: "The lecture states that all four approaches have legitimate implications and it is important to keep all four perspectives in mind when working with any given family."
+            },
+            {
+                id: 32,
+                question: "According to the definition of family health care nursing, nursing care can be aimed toward which of the following?",
+                options: [
+                    "The family as a whole",
+                    "The hospital as a system",
+                    "The physician as a component",
+                    "The nurse as a client"
+                ],
+                correct: 0,
+                rationale: "The definition states that care can be aimed toward the family as context, the family as a whole, the family as a system, or the family as a component of society."
+            },
+            {
+                id: 33,
+                question: "Family-focused nursing is another name for family nursing.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists family-centered care, family-centered nursing, and family-focused nursing as other names for family nursing."
+            },
+            {
+                id: 34,
+                question: "The family as context approach is rooted in psychiatric nursing.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The family as context approach is rooted in maternal-child nursing, while the family as a system approach is rooted in psychiatric and mental health nursing."
+            },
+            {
+                id: 35,
+                question: "Nurses who conduct a family assessment can give the health care team a better understanding of the patient's family context.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists this as a benefit under enhanced interprofessional collaboration."
+            },
+            {
+                id: 36,
+                question: "Family nursing is directed only at families whose members are ill.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The fourth intervention states that family nursing is directed at families whose members are both healthy and ill regardless of the severity of the illness."
+            },
+            {
+                id: 37,
+                question: "Florence Nightingale believed that cleanliness in the home could eradicate high infant mortality.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that she believed cleanliness in the home could eradicate high infant mortality and morbidity rates."
+            },
+            {
+                id: 38,
+                question: "In the family as a client approach, the family is seen as the sum of individual family members.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "In this approach the family is seen as the sum of individual members, and the nurse assesses and provides health care for each person."
+            },
+            {
+                id: 39,
+                question: "The family system is not influenced by changes in its members.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The sixth intervention states that the family system is influenced by any change in its members."
+            },
+            {
+                id: 40,
+                question: "Only one of the four approaches to family nursing has legitimate implications for assessment and intervention.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that all four approaches have legitimate implications for nursing assessment and intervention."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
