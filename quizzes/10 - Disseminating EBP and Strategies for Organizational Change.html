@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Disseminating EBP and Strategies for Organizational Change</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "How does the lecture define dissemination?",
+                options: [
+                    "The planned process of communicating and spreading evidence, knowledge, interventions, or recommendations to appropriate audiences",
+                    "The random sharing of articles between colleagues during lunch breaks",
+                    "The archiving of research papers in the hospital library for storage",
+                    "The translation of clinical guidelines into foreign languages"
+                ],
+                correct: 0,
+                rationale: "Dissemination is defined as the planned process of communicating and spreading evidence, knowledge, interventions, or evidence-based practice recommendations to appropriate audiences to increase awareness, adoption, and use in practice."
+            },
+            {
+                id: 2,
+                question: "In evidence-based practice, dissemination means getting the right evidence to the right people, in the right format, and at what?",
+                options: [
+                    "The right time",
+                    "The lowest price",
+                    "The longest length",
+                    "The highest speed"
+                ],
+                correct: 0,
+                rationale: "In evidence-based practice, dissemination means getting the right evidence to the right people, in the right format, at the right time, so that evidence can influence practice."
+            },
+            {
+                id: 3,
+                question: "Which of the following is an example of passive dissemination?",
+                options: [
+                    "Posting a guideline",
+                    "Conducting a simulation",
+                    "Bedside coaching",
+                    "Interactive training"
+                ],
+                correct: 0,
+                rationale: "Passive dissemination makes information available without actively engaging the audience, with examples including posting a guideline, sending an email, publishing an article, and placing posters in the clinical area."
+            },
+            {
+                id: 4,
+                question: "Passive dissemination may increase awareness but may not change behavior.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states as a limitation that passive dissemination may increase awareness but may not change behavior."
+            },
+            {
+                id: 5,
+                question: "In the pediatric procedural pain example, what do hospital administrators need to know?",
+                options: [
+                    "Cost, quality, and organizational impact",
+                    "Benefits and safety for the child",
+                    "Practical steps for implementation",
+                    "Knowledge and practical skills"
+                ],
+                correct: 0,
+                rationale: "In the audience table, hospital administrators need cost, quality, and organizational impact; benefits and safety are for parents, practical steps for staff nurses, and knowledge and skills for nursing students."
+            },
+            {
+                id: 6,
+                question: "What is a stakeholder?",
+                options: [
+                    "A person or group affected by the change, able to influence it, or with an interest in the outcome",
+                    "Only a hospital executive who approves budgets for new projects",
+                    "Only a researcher who published the original study",
+                    "Only a patient who received the new intervention"
+                ],
+                correct: 0,
+                rationale: "A stakeholder is a person or group who is affected by the change, can influence the change, or has an interest in the outcome."
+            },
+            {
+                id: 7,
+                question: "Which of the following is an example of internal dissemination?",
+                options: [
+                    "In-service training",
+                    "Scientific publication",
+                    "Professional conference",
+                    "Webinar for outside hospitals"
+                ],
+                correct: 0,
+                rationale: "Internal dissemination shares information within an organization, with examples including staff meetings, nursing rounds, hospital newsletters, educational sessions, in-service training, clinical protocols, posters, and electronic hospital systems."
+            },
+            {
+                id: 8,
+                question: "What is the key principle of identifying the target audience?",
+                options: [
+                    "A single message does not fit everyone",
+                    "The same poster works for every audience",
+                    "Administrators should receive all messages first",
+                    "Patients should never receive evidence directly"
+                ],
+                correct: 0,
+                rationale: "The key principle is that one message does not fit everyone, so dissemination must be audience specific."
+            },
+            {
+                id: 9,
+                question: "Organizational change only involves changing technology and nothing else.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Organizational change is the process through which an organization modifies its policies, procedures, practices, structures, technology, culture, roles, and behaviors to achieve improved outcomes."
+            },
+            {
+                id: 10,
+                question: "In the change agent example, what does the pediatric nurse notice?",
+                options: [
+                    "Frequent anxiety among children before procedures",
+                    "Rising costs of pediatric medications",
+                    "Poor attendance at staff meetings",
+                    "Frequent errors in the hospital billing system"
+                ],
+                correct: 0,
+                rationale: "In the example, a pediatric nurse notices frequent anxiety among children before procedures and then works through the change agent steps from identifying the problem to supporting sustainability."
+            },
+            {
+                id: 11,
+                question: "How many steps does the change agent example list from identifying the problem to supporting sustainability?",
+                options: [
+                    "10",
+                    "5",
+                    "7",
+                    "12"
+                ],
+                correct: 0,
+                rationale: "The change agent example lists 10 steps, ending with evaluating outcomes, sharing results, and supporting sustainability."
+            },
+            {
+                id: 12,
+                question: "Which of the following is a step in the dissemination process?",
+                options: [
+                    "Identify the purpose",
+                    "Secure research funding",
+                    "Recruit study participants",
+                    "Register the research patent"
+                ],
+                correct: 0,
+                rationale: "The dissemination process has 6 steps: identify the evidence, identify the target audience, identify the purpose, select the dissemination method, deliver the evidence, and evaluate the dissemination."
+            },
+            {
+                id: 13,
+                question: "What does the pediatric fever management protocol example specify as its first item?",
+                options: [
+                    "Assessment",
+                    "Intervention",
+                    "Documentation",
+                    "Reassessment"
+                ],
+                correct: 0,
+                rationale: "The pediatric fever management protocol example specifies assessment, temperature measurement, warning signs, intervention, documentation, and reassessment, in that order."
+            },
+            {
+                id: 14,
+                question: "Successful evidence-based practice implementation usually requires engagement, communication, and collaboration.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that successful evidence-based practice implementation usually requires engagement plus communication plus collaboration."
+            },
+            {
+                id: 15,
+                question: "Which approval does the dissemination plan mention securing before publicly sharing data?",
+                options: [
+                    "Institutional review board review or departmental sign-offs",
+                    "A vote from all patients currently admitted to the hospital",
+                    "A license from the national nursing examination board",
+                    "A trademark registration from the ministry of commerce"
+                ],
+                correct: 0,
+                rationale: "The dissemination plan includes securing necessary institutional clearances, such as institutional review board review or departmental sign-offs, before publicly sharing data."
+            },
+            {
+                id: 16,
+                question: "Which of the following is an advantage of educational sessions as a dissemination strategy?",
+                options: [
+                    "Direct interaction with the audience",
+                    "No time required from staff",
+                    "Guaranteed attendance of all nurses",
+                    "Permanent behavior change after a single session"
+                ],
+                correct: 0,
+                rationale: "Advantages of educational sessions include direct interaction, the ability to answer questions, and usefulness for changing knowledge; limitations include the time required and possibly limited attendance."
+            },
+            {
+                id: 17,
+                question: "What are posters useful for as a dissemination strategy?",
+                options: [
+                    "Key recommendations, clinical reminders, algorithms, and safety practices",
+                    "Detailed statistical tables and full reference lists",
+                    "Personal opinions and informal staff announcements",
+                    "Confidential patient records and incident reports"
+                ],
+                correct: 0,
+                rationale: "Posters are useful for key recommendations, clinical reminders, algorithms, and safety practices, such as the example of 5 steps for safe pediatric medication administration."
+            },
+            {
+                id: 18,
+                question: "Evidence-based practice is complete once healthcare professionals find and evaluate the best available evidence.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Evidence-based practice is not complete when professionals find and evaluate evidence; the evidence must ultimately be communicated, adopted, implemented, evaluated, and sustained in clinical practice."
+            },
+            {
+                id: 19,
+                question: "Which of the following is an example of external dissemination?",
+                options: [
+                    "Publishing an evidence-based practice project in a pediatric nursing journal",
+                    "Presenting new evidence during a unit staff meeting",
+                    "Posting a clinical reminder on a ward notice board",
+                    "Adding a protocol to the hospital intranet"
+                ],
+                correct: 0,
+                rationale: "External dissemination shares information outside the organization, and the lecture gives the example of a nurse publishing an evidence-based practice project in a pediatric nursing journal."
+            },
+            {
+                id: 20,
+                question: "In the evaluation step of the dissemination process, which question is asked?",
+                options: [
+                    "Did their practice change?",
+                    "Did the journal accept the article?",
+                    "Did the hospital profit from the project?",
+                    "Did the researchers receive awards?"
+                ],
+                correct: 0,
+                rationale: "Evaluating the dissemination asks whether people received the information, whether they understood it, whether their knowledge changed, and whether their practice changed."
+            },
+            {
+                id: 21,
+                question: "In the audience table, what do physicians need regarding pediatric procedural pain?",
+                options: [
+                    "Clinical evidence and patient outcomes",
+                    "Practical steps for implementation",
+                    "Staffing, resources, and monitoring",
+                    "Cost, quality, and organizational impact"
+                ],
+                correct: 0,
+                rationale: "In the audience table, physicians need clinical evidence and patient outcomes, while staff nurses need practical steps, nurse managers need staffing, resources, and monitoring, and administrators need cost, quality, and organizational impact."
+            },
+            {
+                id: 22,
+                question: "Which of the following is a core purpose of evidence-based practice dissemination?",
+                options: [
+                    "Close the knowledge-practice gap",
+                    "Increase hospital advertising revenue",
+                    "Replace clinical guidelines with opinions",
+                    "Reduce the number of nursing students"
+                ],
+                correct: 0,
+                rationale: "Core purposes of dissemination include advancing patient care, closing the knowledge-practice gap, and sustaining momentum by providing feedback."
+            },
+            {
+                id: 23,
+                question: "Which format does the dissemination plan suggest matching to executives?",
+                options: [
+                    "A policy brief",
+                    "A quick-reference clinical pathway",
+                    "A bedside demonstration",
+                    "A simulation workshop"
+                ],
+                correct: 0,
+                rationale: "The select formats step matches findings to the right medium, such as a policy brief for executives or a quick-reference clinical pathway for staff."
+            },
+            {
+                id: 24,
+                question: "Which of the following is an example of electronic dissemination?",
+                options: [
+                    "Hospital intranet",
+                    "Unit-based councils",
+                    "Nursing rounds",
+                    "Bedside coaching"
+                ],
+                correct: 0,
+                rationale: "Electronic dissemination examples include email, hospital intranet, electronic health records, online learning platforms, webinars, and educational videos."
+            },
+            {
+                id: 25,
+                question: "Healthcare organizations must continuously adapt because healthcare is constantly changing.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Healthcare is constantly changing because of new research evidence, new technologies, changing patient needs, new diseases, patient-safety concerns, updated guidelines, government regulations, and quality-improvement initiatives, so organizations must continuously adapt."
+            },
+            {
+                id: 26,
+                question: "Which of the following is a way a nurse can act as a change agent?",
+                options: [
+                    "Advocating for patients",
+                    "Designing hospital buildings",
+                    "Setting national health budgets",
+                    "Approving pharmacy licenses"
+                ],
+                correct: 0,
+                rationale: "A nurse can act as a change agent by identifying clinical problems, searching for evidence, educating colleagues, advocating for patients, encouraging teamwork, supporting implementation, monitoring outcomes, and providing feedback."
+            },
+            {
+                id: 27,
+                question: "What does internal dissemination use to share project progress within an organization?",
+                options: [
+                    "Staff meetings, local newsletters, brochures, internal web portals, and unit-based councils",
+                    "National television broadcasts and international conferences",
+                    "Commercial advertisements and public billboards",
+                    "International journals and foreign universities"
+                ],
+                correct: 0,
+                rationale: "Internal dissemination shares project progress and findings within the organization using staff meetings, local newsletters, brochures, internal web portals, and unit-based councils."
+            },
+            {
+                id: 28,
+                question: "In the hand-hygiene example, who is listed among the groups the evidence needs to reach?",
+                options: [
+                    "Infection-control teams",
+                    "Medical equipment vendors",
+                    "Health insurance agents",
+                    "Pharmaceutical sales representatives"
+                ],
+                correct: 0,
+                rationale: "The hand-hygiene example lists staff nurses, nurse managers, pediatricians, infection-control teams, hospital administrators, nursing students, and patients and families as groups the evidence needs to reach."
+            },
+            {
+                id: 29,
+                question: "Conferences allow sharing only completed research findings and not quality-improvement projects.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Conferences provide opportunities to share research findings, evidence-based practice projects, quality-improvement projects, and new clinical interventions."
+            },
+            {
+                id: 30,
+                question: "What is the first step of the dissemination process?",
+                options: [
+                    "Identify the evidence",
+                    "Identify the target audience",
+                    "Select the dissemination method",
+                    "Deliver the evidence"
+                ],
+                correct: 0,
+                rationale: "Step 1 of the dissemination process is to identify the evidence, asking what the evidence shows, how strong it is, and whether it is relevant to the clinical population."
+            },
+            {
+                id: 31,
+                question: "Which of the following may organizational change in nursing involve?",
+                options: [
+                    "Documentation systems",
+                    "Cafeteria menus",
+                    "Parking lot layouts",
+                    "Uniform fashion design"
+                ],
+                correct: 0,
+                rationale: "In nursing, organizational change may involve changing medication administration procedures, infection-control practices, documentation systems, staffing procedures, patient education, pain-management protocols, and pediatric safety practices."
+            },
+            {
+                id: 32,
+                question: "In the audience table, what do parents need regarding pediatric procedural pain?",
+                options: [
+                    "Benefits and safety",
+                    "Staffing, resources, and monitoring",
+                    "Clinical evidence and patient outcomes",
+                    "Knowledge and practical skills"
+                ],
+                correct: 0,
+                rationale: "In the audience table, parents need benefits and safety."
+            },
+            {
+                id: 33,
+                question: "High-quality evidence has limited value if it remains in research articles, academic presentations, or individual clinical decisions.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The introduction states that even high-quality evidence has limited value if it remains in research articles, academic presentations, or individual clinical decisions."
+            },
+            {
+                id: 34,
+                question: "Which of the following is an active dissemination example?",
+                options: [
+                    "Discussion groups",
+                    "Sending an email",
+                    "Publishing an article",
+                    "Placing posters in the clinical area"
+                ],
+                correct: 0,
+                rationale: "Active dissemination actively engages the audience, with examples including workshops, demonstrations, simulation, interactive training, discussion groups, bedside coaching, and feedback sessions."
+            },
+            {
+                id: 35,
+                question: "What do clinical guidelines do as a dissemination strategy?",
+                options: [
+                    "They translate evidence into practical recommendations",
+                    "They replace the need for any staff education",
+                    "They document the hospital's financial performance",
+                    "They record the personal opinions of senior nurses"
+                ],
+                correct: 0,
+                rationale: "Clinical guidelines translate evidence into practical recommendations, following the chain from evidence to clinical guideline to nursing practice."
+            },
+            {
+                id: 36,
+                question: "Which of the following is a limitation of educational sessions?",
+                options: [
+                    "Attendance may be limited",
+                    "Questions cannot be answered",
+                    "Interaction is impossible",
+                    "Knowledge cannot change"
+                ],
+                correct: 0,
+                rationale: "Limitations of educational sessions include that they require time and attendance may be limited."
+            },
+            {
+                id: 37,
+                question: "What do protocols provide as a dissemination strategy?",
+                options: [
+                    "Standardized instructions for clinical practice",
+                    "Flexible suggestions that change daily",
+                    "Marketing material for hospital services",
+                    "Financial reports for hospital executives"
+                ],
+                correct: 0,
+                rationale: "Protocols provide standardized instructions for clinical practice."
+            },
+            {
+                id: 38,
+                question: "Poster presentations use visual display boards to summarize the clinical decision-making process and prompt bedside adoption.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Poster presentations use visual display boards as a direct tool to summarize the clinical decision-making process, impact care delivery, and prompt bedside adoption."
+            },
+            {
+                id: 39,
+                question: "Which of the following is listed as a clinical stakeholder?",
+                options: [
+                    "Quality-improvement teams",
+                    "Medical equipment suppliers",
+                    "Insurance company agents",
+                    "Journal printing companies"
+                ],
+                correct: 0,
+                rationale: "Clinical stakeholders include patients, families, nurses, physicians, pharmacists, nurse educators, nurse managers, hospital administrators, and quality-improvement teams."
+            },
+            {
+                id: 40,
+                question: "In the dissemination plan, the first step is to identify what?",
+                options: [
+                    "The stakeholders who need the information",
+                    "The journal that will publish the project",
+                    "The budget for printing brochures",
+                    "The date of the next conference"
+                ],
+                correct: 0,
+                rationale: "The first step to build a dissemination plan is to identify stakeholders, determining who needs the information and tailoring the message to their communication preferences."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
