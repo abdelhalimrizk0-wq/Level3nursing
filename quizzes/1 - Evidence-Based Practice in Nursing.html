@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Evidence-Based Practice in Nursing</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "What is a clinical trial?",
+                options: [
+                    "A research study that tests if a medicine, procedure, or other treatment is safe and effective",
+                    "A hospital audit that checks whether nursing documentation meets accreditation standards",
+                    "A classroom program that teaches nursing students how to use medical equipment",
+                    "A follow-up visit that measures how satisfied patients are with their care"
+                ],
+                correct: 0,
+                rationale: "The lecture defines a clinical trial as a research study that tests if a medicine, procedure, or other treatment is safe and effective."
+            },
+            {
+                id: 2,
+                question: "In what year did Dr. David Sackett and colleagues publish their landmark definition of evidence-based medicine?",
+                options: [
+                    "1996",
+                    "1986",
+                    "2004",
+                    "2010"
+                ],
+                correct: 0,
+                rationale: "The historical background section states that in 1996 Dr. David Sackett and colleagues published a landmark definition framing evidence-based medicine as the conscientious, explicit, and judicious use of current best evidence."
+            },
+            {
+                id: 3,
+                question: "Which of the following is one of the 3 core elements of evidence-based practice?",
+                options: [
+                    "Research evidence",
+                    "Hospital budget",
+                    "Staff seniority",
+                    "Equipment availability"
+                ],
+                correct: 0,
+                rationale: "The 3 core elements of evidence-based practice are research evidence, clinical expertise, and patient values."
+            },
+            {
+                id: 4,
+                question: "What is the main goal of research in the comparison between research and evidence-based practice?",
+                options: [
+                    "To generate evidence",
+                    "To improve practice and patient outcomes",
+                    "To apply evidence to patient care",
+                    "To integrate evidence into practice"
+                ],
+                correct: 0,
+                rationale: "The comparison table states that the main goal of research is to generate evidence, while the main goal of evidence-based practice is to improve practice and patient outcomes."
+            },
+            {
+                id: 5,
+                question: "A clinical trial tests whether a medicine, procedure, or other treatment is safe and effective.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture defines a clinical trial as a research study that tests if a medicine, procedure, or other treatment is safe and effective."
+            },
+            {
+                id: 6,
+                question: "What happens during the Acquire step of evidence-based practice?",
+                options: [
+                    "The nurse searches for and gathers the best and most current research evidence",
+                    "The nurse combines research findings with expertise and patient preferences",
+                    "The nurse reviews outcomes to see whether the intervention worked",
+                    "The nurse turns a practical problem into an answerable question"
+                ],
+                correct: 0,
+                rationale: "Acquire is the second of the 5 steps and means searching for and gathering the best and most current research evidence."
+            },
+            {
+                id: 7,
+                question: "During the expansion of the early 2000s, the paradigm moved beyond physician-centric medicine into nursing, physical therapy, psychology, and which other field?",
+                options: [
+                    "Occupational therapy",
+                    "Clinical pharmacy",
+                    "Diagnostic radiology",
+                    "Dental surgery"
+                ],
+                correct: 0,
+                rationale: "In the early 2000s the paradigm expanded past physician-centric medicine into nursing, physical therapy, psychology, and occupational therapy, leading to the broader term evidence-based practice."
+            },
+            {
+                id: 8,
+                question: "Patient values as a core element of evidence-based practice refer to what?",
+                options: [
+                    "The personal goals, concerns, expectations, and cultural beliefs of the person receiving care",
+                    "The financial resources and insurance coverage of the person receiving care",
+                    "The medical history and genetic profile of the person receiving care",
+                    "The hospital preferences and discharge plans of the person receiving care"
+                ],
+                correct: 0,
+                rationale: "Patient values are defined as the personal goals, concerns, expectations, and cultural beliefs of the person receiving care."
+            },
+            {
+                id: 9,
+                question: "The Assess step comes before the Apply step in the 5 steps of evidence-based practice.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The order of the 5 steps is Ask, Acquire, Appraise, Apply, then Assess, so assessment comes after application."
+            },
+            {
+                id: 10,
+                question: "Staffing and scheduling, leadership, and communication are listed under which area of evidence-based practice in nursing?",
+                options: [
+                    "Nursing management",
+                    "Clinical nursing practice",
+                    "Nursing education",
+                    "Community and public health nursing"
+                ],
+                correct: 0,
+                rationale: "The areas section lists staffing and scheduling, leadership, communication, staff development, quality improvement, and patient safety under nursing management."
+            },
+            {
+                id: 11,
+                question: "According to the 1996 definition, evidence-based medicine is the conscientious, explicit, and judicious use of what?",
+                options: [
+                    "Current best evidence",
+                    "Hospital policies",
+                    "Senior staff opinions",
+                    "Traditional care routines"
+                ],
+                correct: 0,
+                rationale: "The 1996 definition by Dr. David Sackett framed evidence-based medicine as the conscientious, explicit, and judicious use of current best evidence combined with clinical judgment and patient values."
+            },
+            {
+                id: 12,
+                question: "Which of the following will the study team explain to a patient before taking part in a clinical trial?",
+                options: [
+                    "The risks and benefits of being involved, such as side effects",
+                    "The salary the patient will receive after the study ends",
+                    "The guaranteed cure that the tested treatment will provide",
+                    "The names of all other patients enrolled in the study"
+                ],
+                correct: 0,
+                rationale: "The study team explains what they are trying to find out, what the patient is expected to do, how long participation lasts, and the risks and benefits of being involved, such as side effects."
+            },
+            {
+                id: 13,
+                question: "How does the lecture describe the effect of evidence-based practice on healthcare costs?",
+                options: [
+                    "It reduces healthcare costs by preventing complications",
+                    "It increases healthcare costs by funding new equipment",
+                    "It fixes healthcare costs by standardizing salaries",
+                    "It removes healthcare costs by shortening admissions"
+                ],
+                correct: 0,
+                rationale: "One of the listed benefits of evidence-based practice in nursing is that it reduces healthcare costs by preventing complications."
+            },
+            {
+                id: 14,
+                question: "Evidence-based practice bridges the gap between research and clinical care.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The definition section states that evidence-based practice bridges the gap between research and clinical care, ensuring that nursing interventions are grounded in the most current and robust evidence."
+            },
+            {
+                id: 15,
+                question: "Teaching strategies, simulation, and clinical training belong to which area of evidence-based practice in nursing?",
+                options: [
+                    "Nursing education",
+                    "Nursing management",
+                    "Clinical nursing practice",
+                    "Community and public health nursing"
+                ],
+                correct: 0,
+                rationale: "The areas section lists teaching strategies, simulation, clinical training, student assessment, and educational technology under nursing education."
+            },
+            {
+                id: 16,
+                question: "How many steps does the lecture describe in the evidence-based practice process?",
+                options: [
+                    "5",
+                    "3",
+                    "7",
+                    "10"
+                ],
+                correct: 0,
+                rationale: "The lecture presents the 5 steps of evidence-based practice: Ask, Acquire, Appraise, Apply, and Assess."
+            },
+            {
+                id: 17,
+                question: "In the comparison between research and evidence-based practice, who mainly applies evidence-based practice?",
+                options: [
+                    "Nurses and healthcare professionals",
+                    "Full-time laboratory researchers",
+                    "Hospital finance administrators",
+                    "Pharmaceutical company scientists"
+                ],
+                correct: 0,
+                rationale: "The comparison states that researchers are mainly involved in research, while nurses and healthcare professionals apply evidence-based practice."
+            },
+            {
+                id: 18,
+                question: "The broader term evidence-based practice emerged during the expansion of the early 2000s.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "In the early 2000s the paradigm expanded past physician-centric medicine into other disciplines, leading to the broader term evidence-based practice."
+            },
+            {
+                id: 19,
+                question: "Which item is listed under clinical nursing practice as an area of evidence-based practice?",
+                options: [
+                    "Prevention of pressure injuries",
+                    "Student assessment",
+                    "Staff development",
+                    "Disease prevention campaigns"
+                ],
+                correct: 0,
+                rationale: "Clinical nursing practice includes infection prevention and control, pain management, wound care, medication administration, patient education, prevention of pressure injuries, and prevention of falls."
+            },
+            {
+                id: 20,
+                question: "In the Appraise step, the nurse critically judges which qualities of the gathered evidence?",
+                options: [
+                    "Validity, reliability, and usefulness",
+                    "Cost, popularity, and novelty",
+                    "Length, language, and publication date",
+                    "Authorship, funding, and journal ranking"
+                ],
+                correct: 0,
+                rationale: "Appraise is the third step and means critically judging the validity, reliability, and usefulness of the gathered evidence."
+            },
+            {
+                id: 21,
+                question: "Which of the following is an advantage of evidence-based practice for the organization?",
+                options: [
+                    "Promotes standardized practice",
+                    "Increases nurse autonomy",
+                    "Develops critical-thinking skills",
+                    "Encourages lifelong learning"
+                ],
+                correct: 0,
+                rationale: "Advantages for the organization include improving quality of care, promoting patient safety, supporting quality improvement, reducing unnecessary costs, and promoting standardized practice, while the other options are advantages for nurses."
+            },
+            {
+                id: 22,
+                question: "The 1996 definition of evidence-based medicine excluded patient values from decision-making.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The 1996 definition framed evidence-based medicine as the use of current best evidence combined with clinical judgment and patient values, so patient values were included."
+            },
+            {
+                id: 23,
+                question: "In the modern era, evidence-based practice is embedded globally into clinical guidelines, interdisciplinary healthcare frameworks, and what else?",
+                options: [
+                    "Accreditation standards",
+                    "Insurance contracts",
+                    "Hospital architecture",
+                    "Licensing examinations"
+                ],
+                correct: 0,
+                rationale: "The modern era section states that evidence-based practice is now embedded globally into clinical guidelines, accreditation standards, and interdisciplinary healthcare frameworks."
+            },
+            {
+                id: 24,
+                question: "In the Apply step, the research findings are combined with which 2 things to make a decision?",
+                options: [
+                    "Professional expertise and patient preferences",
+                    "Hospital policies and insurance rules",
+                    "Colleague opinions and staffing levels",
+                    "Budget limits and equipment availability"
+                ],
+                correct: 0,
+                rationale: "Apply is the fourth step and means combining the research findings with professional expertise and the patient's preferences to make a decision."
+            },
+            {
+                id: 25,
+                question: "Why does the participation of people of different ages, sexes, backgrounds, races, and ethnicities matter in clinical trials?",
+                options: [
+                    "Because not everybody responds the same to a medicine or treatment",
+                    "Because regulations require equal numbers in every age group",
+                    "Because it lowers the cost of running the study for sponsors",
+                    "Because it guarantees the treatment will work for everyone"
+                ],
+                correct: 0,
+                rationale: "The lecture explains that not everybody responds the same to a medicine or treatment, so researchers understand more when people of different ages, sexes, backgrounds, races, and ethnicities take part."
+            },
+            {
+                id: 26,
+                question: "Health promotion and disease prevention are listed under which area of evidence-based practice in nursing?",
+                options: [
+                    "Community and public health nursing",
+                    "Clinical nursing practice",
+                    "Nursing management",
+                    "Nursing education"
+                ],
+                correct: 0,
+                rationale: "Community and public health nursing includes health promotion, disease prevention, patient education, and community interventions."
+            },
+            {
+                id: 27,
+                question: "Evidence-based practice ensures that nursing practice stays relevant with new interventions and care protocols.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "One of the listed benefits of evidence-based practice in nursing is that it ensures relevancy of nursing practice with new interventions and care protocols."
+            },
+            {
+                id: 28,
+                question: "Which of the following is an advantage of evidence-based practice for nurses?",
+                options: [
+                    "Develops critical-thinking skills",
+                    "Promotes standardized practice",
+                    "Supports quality improvement",
+                    "Reduces unnecessary costs"
+                ],
+                correct: 0,
+                rationale: "Advantages for nurses include improving clinical knowledge, increasing confidence, developing critical-thinking skills, encouraging lifelong learning, improving clinical decision-making, and promoting professional development, while the other options are organizational advantages."
+            },
+            {
+                id: 29,
+                question: "How long does the lecture say many clinical studies take?",
+                options: [
+                    "Months or years",
+                    "Hours or days",
+                    "Days or weeks",
+                    "Several decades"
+                ],
+                correct: 0,
+                rationale: "When explaining how to get involved, the study team explains how long the patient will be expected to take part in the study, noting that many studies take months or years."
+            },
+            {
+                id: 30,
+                question: "In the comparison table, what does evidence-based practice mainly do?",
+                options: [
+                    "Uses the best available evidence",
+                    "Generates new knowledge",
+                    "Conducts a systematic study",
+                    "Produces research findings"
+                ],
+                correct: 0,
+                rationale: "The comparison table contrasts research, which generates new knowledge and conducts a systematic study, with evidence-based practice, which uses the best available evidence and integrates it into practice."
+            },
+            {
+                id: 31,
+                question: "In the research versus evidence-based practice comparison, research answers a clinical practice question.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "Research answers a research question, while evidence-based practice answers a clinical or practice question."
+            },
+            {
+                id: 32,
+                question: "What is the first of the 5 steps of evidence-based practice?",
+                options: [
+                    "Turning a practical problem or clinical issue into an answerable question",
+                    "Searching for the best and most current research evidence",
+                    "Combining research findings with patient preferences",
+                    "Reviewing outcomes to decide what can be improved"
+                ],
+                correct: 0,
+                rationale: "The first step is Ask, which means turning a practical problem or clinical issue into an answerable question."
+            },
+            {
+                id: 33,
+                question: "What does evidence-based practice increase for nurses in decision-making?",
+                options: [
+                    "Autonomy and confidence",
+                    "Workload and overtime",
+                    "Paperwork and reporting",
+                    "Hierarchy and supervision"
+                ],
+                correct: 0,
+                rationale: "One of the listed benefits of evidence-based practice in nursing is that it increases nurse autonomy and confidence in decision-making."
+            },
+            {
+                id: 34,
+                question: "Clinical expertise as a core element of evidence-based practice is defined as what?",
+                options: [
+                    "The practical skills, knowledge, and judgment that professionals build through years of experience",
+                    "The academic degrees, certificates, and licenses that professionals collect during training",
+                    "The technical manuals, drug guides, and protocols that professionals keep at work",
+                    "The personal opinions, habits, and routines that professionals develop during practice"
+                ],
+                correct: 0,
+                rationale: "Clinical expertise is defined as the practical skills, knowledge, and judgment that professionals build through years of experience."
+            },
+            {
+                id: 35,
+                question: "Which of the following is a way evidence-based practice positively affects patients?",
+                options: [
+                    "Reducing complications",
+                    "Increasing medication prices",
+                    "Extending hospital stays",
+                    "Limiting patient involvement"
+                ],
+                correct: 0,
+                rationale: "Evidence-based practice positively affects patients by improving patient safety, improving quality of care, improving clinical outcomes, and reducing complications."
+            },
+            {
+                id: 36,
+                question: "Research generates new evidence, while evidence-based practice uses the best available evidence.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The comparison section states that research generates new knowledge, whereas evidence-based practice uses the best available evidence and applies it to patient care."
+            },
+            {
+                id: 37,
+                question: "What is the purpose of the Assess step of evidence-based practice?",
+                options: [
+                    "To review the results to see if the intervention worked and what can be improved next time",
+                    "To judge the validity and reliability of the evidence before applying it",
+                    "To search databases for the best and most current research evidence",
+                    "To turn a practical clinical problem into an answerable question"
+                ],
+                correct: 0,
+                rationale: "Assess, also called Evaluate, is the fifth step and means reviewing the results or outcomes to see if the intervention worked and determine what can be improved next time."
+            },
+            {
+                id: 38,
+                question: "Research evidence as a core element of evidence-based practice consists of what?",
+                options: [
+                    "Data and findings from scientific studies, systematic reviews, and clinical trials",
+                    "Opinions and habits gathered from senior staff and long-serving colleagues",
+                    "Rules and targets issued by hospital managers and insurance companies",
+                    "News and trends collected from media reports and social platforms"
+                ],
+                correct: 0,
+                rationale: "Research evidence is defined as data and findings from scientific studies, systematic reviews, and clinical trials."
+            },
+            {
+                id: 39,
+                question: "Which benefit of evidence-based practice relates to the patient's role in care planning?",
+                options: [
+                    "It fosters shared decision-making with patients in care planning",
+                    "It reduces the need for patient consent forms",
+                    "It replaces patient preferences with standard protocols",
+                    "It shortens every hospital stay to a fixed length"
+                ],
+                correct: 0,
+                rationale: "One of the listed benefits of evidence-based practice in nursing is that it fosters shared decision-making with patients in care planning."
+            },
+            {
+                id: 40,
+                question: "Which item belongs to nursing management rather than clinical nursing practice?",
+                options: [
+                    "Quality improvement",
+                    "Wound care",
+                    "Pain management",
+                    "Medication administration"
+                ],
+                correct: 0,
+                rationale: "Nursing management includes staffing and scheduling, leadership, communication, staff development, quality improvement, and patient safety, while wound care, pain management, and medication administration are listed under clinical nursing practice."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
