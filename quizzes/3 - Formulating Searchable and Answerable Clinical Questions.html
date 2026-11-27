@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Formulating Searchable and Answerable Clinical Questions</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "The classical evidence-based approach to formulating a question uses which framework?",
+                options: [
+                    "The population, intervention, comparison, and outcome framework",
+                    "The sample, phenomenon, design, evaluation, and research framework",
+                    "The setting, perspective, intervention, comparison, and evaluation framework",
+                    "The background, foreground, context, and outcome framework"
+                ],
+                correct: 0,
+                rationale: "The classical evidence-based approach to formulating a question uses the PICO framework, consisting of population, intervention, comparison, and outcome."
+            },
+            {
+                id: 2,
+                question: "In the timeframe element of the framework, which example does the lecture give?",
+                options: [
+                    "During the first 48 hours after surgery",
+                    "Within the first week after discharge",
+                    "Throughout the entire pregnancy period",
+                    "Across 5 years of follow-up visits"
+                ],
+                correct: 0,
+                rationale: "The timeframe element asks for the specific duration or time period and gives the example of during the first 48 hours after surgery."
+            },
+            {
+                id: 3,
+                question: "Background questions usually include which key question words?",
+                options: [
+                    "What, why, and how",
+                    "Who, when, and where",
+                    "Which, whose, and whom",
+                    "If, then, and whether"
+                ],
+                correct: 0,
+                rationale: "Background questions ask about general knowledge and usually include the key question words what, why, and how, as in the example about the causes of headache."
+            },
+            {
+                id: 4,
+                question: "Truncation allows searching for different forms of a word.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture notes that truncation allows searching for different forms of a word, and gives the example that a truncated root may retrieve nurse, nurses, or nursing."
+            },
+            {
+                id: 5,
+                question: "Foreground questions are best described as questions that do what?",
+                options: [
+                    "Compare interventions, identify risks, assess diagnostic methods, or investigate outcomes",
+                    "Ask about general knowledge of a disease using broad open terms",
+                    "Request definitions of common medical abbreviations and symbols",
+                    "Explore the history and biography of famous researchers"
+                ],
+                correct: 0,
+                rationale: "Foreground questions are specific clinical questions that compare interventions, identify risks, assess diagnostic methods, or investigate outcomes."
+            },
+            {
+                id: 6,
+                question: "In the framework for qualitative and mixed-methods research, what do the letters D and E stand for?",
+                options: [
+                    "Design and evaluation",
+                    "Diagnosis and exposure",
+                    "Duration and effect",
+                    "Data and evidence"
+                ],
+                correct: 0,
+                rationale: "The SPIDER framework, often used for qualitative and mixed-methods research, stands for sample, phenomenon of interest, design, evaluation, and research type."
+            },
+            {
+                id: 7,
+                question: "Which Boolean operator is used to find articles that mention both of the searched topics?",
+                options: [
+                    "AND",
+                    "OR",
+                    "NOT",
+                    "NEAR"
+                ],
+                correct: 0,
+                rationale: "AND is used to find articles that mention both of the searched topics, while OR finds articles mentioning either topic and NOT excludes a term."
+            },
+            {
+                id: 8,
+                question: "Which of the following is one of the characteristics of a good clinical question?",
+                options: [
+                    "Searchable",
+                    "Ambiguous",
+                    "Unlimited",
+                    "Decorative"
+                ],
+                correct: 0,
+                rationale: "Characteristics of a good clinical question are clear, specific, focused, relevant, searchable, answerable, feasible, and clinically important."
+            },
+            {
+                id: 9,
+                question: "The setting element of the SPICE framework asks for whom the question is being answered.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "In the SPICE framework, setting asks where, while perspective asks for whom."
+            },
+            {
+                id: 10,
+                question: "What is the first step in formulating a search strategy according to the 3 steps section?",
+                options: [
+                    "Define what you want the articles you find to be about",
+                    "List all the relevant keywords for the clinical topic",
+                    "Organize how the keywords will be entered in databases",
+                    "Apply truncation symbols to every search term"
+                ],
+                correct: 0,
+                rationale: "The 3 steps in formulating a search strategy are: define what you want the articles you find to be about, list all the relevant keywords, then organize how the keywords will be entered."
+            },
+            {
+                id: 11,
+                question: "In the outcome element of the question framework, which of the following does the lecture list as an example?",
+                options: [
+                    "Quality of life",
+                    "Staffing ratios",
+                    "Insurance coverage",
+                    "Building layout"
+                ],
+                correct: 0,
+                rationale: "The outcome element asks what you are trying to measure, improve, or affect, and gives examples such as quality of life, patient satisfaction, and length of hospital stay."
+            },
+            {
+                id: 12,
+                question: "Which Boolean operator should be used with caution because it may inadvertently exclude relevant references?",
+                options: [
+                    "NOT",
+                    "OR",
+                    "AND",
+                    "WITH"
+                ],
+                correct: 0,
+                rationale: "NOT excludes a search term or concept and should be used with caution, as you may inadvertently exclude relevant references."
+            },
+            {
+                id: 13,
+                question: "A clinical question arises only from the diagnosis of a patient and never from prevention.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "A clinical question arises from the condition of a patient, practice, intervention, diagnosis, prognosis, or prevention for patients."
+            },
+            {
+                id: 14,
+                question: "Which database or citation search engine does the lecture list for citation searching?",
+                options: [
+                    "Scopus",
+                    "Netflix",
+                    "LinkedIn",
+                    "Amazon"
+                ],
+                correct: 0,
+                rationale: "The lecture lists Google Scholar, Web of Science, PubMed, university library databases, the Egyptian Knowledge Bank, and Scopus as sources for citation searching."
+            },
+            {
+                id: 15,
+                question: "What does the letter I stand for in the classical question framework?",
+                options: [
+                    "Intervention, issue, treatment, or exposure",
+                    "Inclusion, investigation, or inspection",
+                    "Insurance, income, or infrastructure",
+                    "Intention, instruction, or invitation"
+                ],
+                correct: 0,
+                rationale: "In the PICO framework, I stands for intervention, issue, treatment, or exposure."
+            },
+            {
+                id: 16,
+                question: "What does the building block approach to formulating searchable queries involve?",
+                options: [
+                    "Breaking down the topic into core concepts and linking them using search operators",
+                    "Writing the clinical question into the database as a long sentence",
+                    "Blocking irrelevant databases so a single source can be searched",
+                    "Building a glossary of abbreviations before reading any article"
+                ],
+                correct: 0,
+                rationale: "The building block approach breaks down your topic into core concepts and links them using search operators to create highly effective, searchable queries."
+            },
+            {
+                id: 17,
+                question: "The OR operator finds only articles that mention both of the searched topics.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "OR is used to find articles that mention either of the topics searched for; AND is the operator that finds articles mentioning both."
+            },
+            {
+                id: 18,
+                question: "In the SPICE framework, what does the evaluation element ask?",
+                options: [
+                    "With what result?",
+                    "For whom?",
+                    "Where?",
+                    "Compared with what?"
+                ],
+                correct: 0,
+                rationale: "In the SPICE framework, evaluation asks with what result, while setting asks where, perspective asks for whom, and comparison asks compared with what."
+            },
+            {
+                id: 19,
+                question: "What is the clinical workflow progression described in the lecture?",
+                options: [
+                    "Clinical problem, structured question, search strategy, evidence",
+                    "Evidence, search strategy, structured question, clinical problem",
+                    "Structured question, clinical problem, evidence, search strategy",
+                    "Search strategy, evidence, clinical problem, structured question"
+                ],
+                correct: 0,
+                rationale: "The lecture shows the clinical workflow progressing from clinical problem to structured question to search strategy to evidence."
+            },
+            {
+                id: 20,
+                question: "Which of the following is a related term the lecture suggests when brainstorming synonyms for practice types?",
+                options: [
+                    "Data-driven practice",
+                    "Profit-driven practice",
+                    "Habit-driven practice",
+                    "Rank-driven practice"
+                ],
+                correct: 0,
+                rationale: "When brainstorming synonyms and variations, the lecture lists related terms including empirical practice, data-driven practice, scientific practice, research-based practice, and informed practice."
+            },
+            {
+                id: 21,
+                question: "Database searching is identical to searching the web with a general search engine.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that database searching is different from searching the web with Google or Yahoo, and that learning it leads to better sources."
+            },
+            {
+                id: 22,
+                question: "In the comparison element of the question framework, which of the following does the lecture give as an example?",
+                options: [
+                    "Standard care",
+                    "Expanded funding",
+                    "Longer shifts",
+                    "Newer buildings"
+                ],
+                correct: 0,
+                rationale: "The comparison element asks what the alternative intervention is and gives examples such as standard care or another intervention."
+            },
+            {
+                id: 23,
+                question: "How does the lecture define a searchable question?",
+                options: [
+                    "A clearly formulated question containing specific concepts or keywords used to search electronic databases",
+                    "A general question about disease knowledge that requires no keywords",
+                    "A question that can only be answered by asking a senior colleague",
+                    "A question that searches social media for trending health topics"
+                ],
+                correct: 0,
+                rationale: "A searchable question is a clearly formulated question that contains specific concepts or keywords that can be used to search electronic databases for relevant evidence."
+            },
+            {
+                id: 24,
+                question: "Which of the following is one of the 3 core components of evidence-based practice listed in this lecture?",
+                options: [
+                    "Patient preferences and values",
+                    "Organizational profit margins",
+                    "Government health regulations",
+                    "Pharmaceutical marketing data"
+                ],
+                correct: 0,
+                rationale: "Evidence-based practice integrates 3 core components: best available research evidence, clinical expertise, and patient preferences and values."
+            },
+            {
+                id: 25,
+                question: "The population element of the question framework can include age, gender, disease, or patient characteristics.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The population element asks who the patients are and can include age, gender, disease, or patient characteristics."
+            },
+            {
+                id: 26,
+                question: "Which types of questions does the lecture list alongside the SPICE framework?",
+                options: [
+                    "Prediction, intervention, and exploration questions",
+                    "Background, foreground, and historical questions",
+                    "Diagnostic, financial, and administrative questions",
+                    "Ethical, legal, and philosophical questions"
+                ],
+                correct: 0,
+                rationale: "The lecture lists 3 types of questions with the SPICE framework: prediction questions, intervention questions, and exploration questions."
+            },
+            {
+                id: 27,
+                question: "What is the purpose of the first question formulation step in the evidence-based practice process?",
+                options: [
+                    "To position the practitioner on a clear path to reaching an informed decision",
+                    "To eliminate the need for database searching in later steps",
+                    "To assign research tasks to members of the nursing team",
+                    "To document patient satisfaction after care is delivered"
+                ],
+                correct: 0,
+                rationale: "The evidence-based practice process uses the first question formulation step principally to position the practitioner on a clear path to reaching an informed decision, find authoritative answers, and appraise the utility of those answers."
+            },
+            {
+                id: 28,
+                question: "In the iterative process cycle, answering questions involves which activities?",
+                options: [
+                    "Searching for the best evidence, critically appraising it, and applying it to practice",
+                    "Writing the research grant, hiring staff, and building the research team",
+                    "Interviewing patients, archiving their files, and closing their cases",
+                    "Drafting discharge summaries, billing codes, and insurance claims"
+                ],
+                correct: 0,
+                rationale: "Answering questions means searching for the best evidence, critically appraising it, and applying it to practice using databases, guidelines, and research articles."
+            },
+            {
+                id: 29,
+                question: "The letter C in the classical question framework stands for comparison or control.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The PICO acronym translates to population or patient or participant or problem, intervention or issue or treatment or exposure, comparison or control, and outcome."
+            },
+            {
+                id: 30,
+                question: "Which example of a background question does the lecture give?",
+                options: [
+                    "What are the causes of headache?",
+                    "Which drug lowers blood pressure faster?",
+                    "Does surgery beat medication for reflux?",
+                    "Is screening better than watchful waiting?"
+                ],
+                correct: 0,
+                rationale: "The example of a background question given in the lecture is: what are the causes of headache."
+            },
+            {
+                id: 31,
+                question: "Clinical expertise as a core component of evidence-based practice consists of what?",
+                options: [
+                    "Experience, skills, and professional judgment",
+                    "Funding, staffing, and equipment availability",
+                    "Guidelines, checklists, and reporting forms",
+                    "Rank, seniority, and years of employment"
+                ],
+                correct: 0,
+                rationale: "Clinical expertise is described as experience, skills, and professional judgment in the 3 core components of evidence-based practice."
+            },
+            {
+                id: 32,
+                question: "The timeframe element is a mandatory part of the classical question framework.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The timeframe for data collection or the time taken to demonstrate a clinical outcome is described as an optional model component."
+            },
+            {
+                id: 33,
+                question: "Best available research evidence as a core component consists of what?",
+                options: [
+                    "High-quality studies, current evidence, and systematic reviews",
+                    "Personal anecdotes, unit traditions, and senior opinions",
+                    "Marketing brochures, product leaflets, and advertisements",
+                    "Billing records, staffing rosters, and census reports"
+                ],
+                correct: 0,
+                rationale: "Best available research evidence is described as high-quality studies, current evidence, and systematic reviews."
+            },
+            {
+                id: 34,
+                question: "What is the final step of the 5-step approach to formulating a search strategy?",
+                options: [
+                    "Citation searching and key databases",
+                    "Applying advanced search modifiers and truncation",
+                    "Connecting concepts with Boolean operators",
+                    "Identifying your core concepts"
+                ],
+                correct: 0,
+                rationale: "The 5 steps are identify your core concepts, brainstorm synonyms and variations, connect with Boolean operators, apply advanced search modifiers and truncation, and finally citation searching and key databases."
+            },
+            {
+                id: 35,
+                question: "A well-formulated clinical question is the starting point of evidence-based practice because it does what?",
+                options: [
+                    "It guides the search for relevant evidence and supports appropriate clinical decision-making",
+                    "It removes the need to appraise evidence once an answer is found",
+                    "It guarantees that every database will return identical results",
+                    "It replaces the clinical judgment of experienced nurses"
+                ],
+                correct: 0,
+                rationale: "A well-formulated clinical question is the starting point of evidence-based practice because it guides the search for relevant evidence and supports appropriate clinical decision-making, translating a clinical dilemma into an answerable, search-ready format."
+            },
+            {
+                id: 36,
+                question: "In the framework often used for qualitative and mixed-methods research, what do the letters PI stand for?",
+                options: [
+                    "Phenomenon of interest",
+                    "Population and intervention",
+                    "Patient interview",
+                    "Practice improvement"
+                ],
+                correct: 0,
+                rationale: "In the SPIDER framework, often used for qualitative and mixed-methods research, PI stands for phenomenon of interest, alongside sample, design, evaluation, and research type."
+            },
+            {
+                id: 37,
+                question: "What does the right question lead to, according to the closing line of the lecture?",
+                options: [
+                    "The right evidence, better decisions, and improved patient outcomes",
+                    "Faster documentation, fewer shifts, and lower costs",
+                    "Higher rankings, more funding, and larger teams",
+                    "Shorter stays, bigger wards, and new equipment"
+                ],
+                correct: 0,
+                rationale: "The lecture closes by stating that the right question leads to the right evidence, which leads to better decisions and improved patient outcomes, summarized as better questions, better evidence, better care."
+            },
+            {
+                id: 38,
+                question: "Which step in formulating a search strategy involves considering related terms for practice types?",
+                options: [
+                    "Brainstorming synonyms and variations",
+                    "Connecting with Boolean operators",
+                    "Applying truncation to word roots",
+                    "Defining the article topic"
+                ],
+                correct: 0,
+                rationale: "Step 2 of the search strategy steps is brainstorm synonyms and variations, which involves considering related terms for practice types such as empirical practice and research-based practice."
+            },
+            {
+                id: 39,
+                question: "What is the third of the 3 steps in formulating a search strategy?",
+                options: [
+                    "Organize how the keywords will be entered",
+                    "List all the relevant keywords",
+                    "Define what the articles should be about",
+                    "Register an account with each database"
+                ],
+                correct: 0,
+                rationale: "The 3 steps are: define what you want the articles you find to be about, list all the relevant keywords, and organize how the keywords will be entered."
+            },
+            {
+                id: 40,
+                question: "The search step relies on the well-formulated question to identify what?",
+                options: [
+                    "The main problem and any context needed to construct an effective search strategy",
+                    "The cheapest database subscription for the hospital library",
+                    "The shortest article that can answer the clinical question",
+                    "The most senior researcher available for consultation"
+                ],
+                correct: 0,
+                rationale: "The second search step relies on the well-formulated question to identify the main problem and any context involved that will be needed to construct an effective search strategy."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
