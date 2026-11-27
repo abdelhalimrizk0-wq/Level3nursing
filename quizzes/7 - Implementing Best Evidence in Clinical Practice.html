@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Implementing Best Evidence in Clinical Practice</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "What does implementation of evidence mean?",
+                options: [
+                    "Putting the best available research evidence into actual clinical practice in a systematic and sustainable way",
+                    "Collecting research articles and storing them in the hospital library archive",
+                    "Writing new research studies to create original knowledge for science",
+                    "Translating clinical guidelines into several languages for international readers"
+                ],
+                correct: 0,
+                rationale: "Implementation of evidence means putting the best available research evidence into actual clinical practice in a systematic and sustainable way, translating valid, up-to-date research into daily professional decisions and routine practices."
+            },
+            {
+                id: 2,
+                question: "In the baseline audit example, 100 peripheral IV catheter observations showed that what percentage had incomplete assessment documentation?",
+                options: [
+                    "35%",
+                    "65%",
+                    "50%",
+                    "15%"
+                ],
+                correct: 0,
+                rationale: "The audit of 100 peripheral IV catheter observations showed 65% followed the recommended assessment procedure and 35% had incomplete assessment documentation."
+            },
+            {
+                id: 3,
+                question: "Which of the following is listed as a barrier to implementation?",
+                options: [
+                    "Resistance to change",
+                    "Strong nurse leadership",
+                    "Audit and feedback",
+                    "Motivated nurses"
+                ],
+                correct: 0,
+                rationale: "Barriers include lack of knowledge, lack of skills, resistance to change, staff shortage, and others, while strong leadership, audit and feedback, and motivated nurses are facilitators."
+            },
+            {
+                id: 4,
+                question: "Finding a high-quality research article is enough on its own to change clinical practice.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture stresses that finding a high-quality research article is not enough; the nurse must also assess current practice, educate staff, develop protocols, implement, monitor, and evaluate."
+            },
+            {
+                id: 5,
+                question: "In the 5 A's framework, what does the Acquire step involve?",
+                options: [
+                    "Searching trustworthy databases like PubMed or the Cochrane Library for the strongest study data",
+                    "Converting a clinical problem into an answerable question",
+                    "Integrating the findings into the nursing care plan",
+                    "Evaluating whether infection or injury rates dropped"
+                ],
+                correct: 0,
+                rationale: "Acquire means searching trustworthy medical databases like PubMed or the Cochrane Library to find the strongest study data available."
+            },
+            {
+                id: 6,
+                question: "In the real-world examples table, which scale is used alongside low-bed positioning, non-slip socks, and bed alarms?",
+                options: [
+                    "Morse Fall Scale",
+                    "Braden Scale",
+                    "Glasgow Coma Scale",
+                    "Apgar Score"
+                ],
+                correct: 0,
+                rationale: "For fall prevention, the evidence-based implementation uses validated scoring systems like the Morse Fall Scale alongside targeted interventions such as low-bed positioning, non-slip socks, and bed alarms."
+            },
+            {
+                id: 7,
+                question: "What are the 3 major components of the Johns Hopkins Nursing Evidence-Based Practice Model?",
+                options: [
+                    "Practice question, evidence, and translation",
+                    "Problem, evaluation, and treatment",
+                    "Planning, execution, and termination",
+                    "Population, experiment, and theory"
+                ],
+                correct: 0,
+                rationale: "The Johns Hopkins model is organized around 3 major elements: practice question, evidence, and translation."
+            },
+            {
+                id: 8,
+                question: "What is the strategy suggested for overcoming lack of skills?",
+                options: [
+                    "Demonstration and practice",
+                    "Staff involvement",
+                    "Resource allocation",
+                    "Simplifying the procedure"
+                ],
+                correct: 0,
+                rationale: "The strategies table pairs lack of skills with demonstration and practice, while staff involvement addresses resistance to change, resource allocation addresses lack of equipment, and simplifying the procedure addresses lack of time."
+            },
+            {
+                id: 9,
+                question: "The Iowa Model pilots a change on one unit and scales it hospital-wide if successful.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The Iowa Model is a system-level framework that helps teams identify institutional triggers, pilot a change on one unit, and scale it hospital-wide if successful."
+            },
+            {
+                id: 10,
+                question: "What is the correct order of the goal chain of evidence-based nursing given in the lecture?",
+                options: [
+                    "Research evidence, clinical decision, nursing action, patient outcome",
+                    "Clinical decision, research evidence, patient outcome, nursing action",
+                    "Patient outcome, nursing action, clinical decision, research evidence",
+                    "Nursing action, patient outcome, research evidence, clinical decision"
+                ],
+                correct: 0,
+                rationale: "The goal of evidence-based nursing is to move from research evidence to clinical decision to nursing action to patient outcome."
+            },
+            {
+                id: 11,
+                question: "Which of the following is listed as a facilitator of implementation?",
+                options: [
+                    "Champions of change",
+                    "Staff shortage",
+                    "Limited time",
+                    "Financial limitations"
+                ],
+                correct: 0,
+                rationale: "Facilitators include strong nurse leadership, staff education, adequate resources, supportive management, motivated nurses, champions of change, audit and feedback, teamwork, and continuous monitoring."
+            },
+            {
+                id: 12,
+                question: "In the skin integrity example, which scale is used upon admission to schedule repositioning routines?",
+                options: [
+                    "Braden Scale",
+                    "Morse Fall Scale",
+                    "Numeric Pain Scale",
+                    "Waterlow Score"
+                ],
+                correct: 0,
+                rationale: "For skin integrity, the evidence-based implementation uses the Braden Scale upon admission to preemptively schedule repositioning routines and specialized offloading cushions."
+            },
+            {
+                id: 13,
+                question: "What is Step 4 of the steps for implementing best evidence?",
+                options: [
+                    "Compare evidence with current practice",
+                    "Identify barriers and facilitators",
+                    "Develop an implementation plan",
+                    "Determine the current practice"
+                ],
+                correct: 0,
+                rationale: "Step 4 is comparing evidence with current practice, sometimes called a practice gap analysis."
+            },
+            {
+                id: 14,
+                question: "Establishing a baseline means determining what the unit is doing now before introducing a change.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Step 2 determines the current practice, asking what are we doing now, which is called establishing a baseline."
+            },
+            {
+                id: 15,
+                question: "In the pain assessment gap example, how do nurses currently document pain?",
+                options: [
+                    "As simply mild, moderate, or severe",
+                    "With an age-appropriate validated pain scale",
+                    "With a numeric rating from 0 to 10",
+                    "With a color-coded body diagram"
+                ],
+                correct: 0,
+                rationale: "Current practice is that nurses frequently document pain as simply mild, moderate, or severe, while evidence recommends assessment using an age-appropriate validated pain scale."
+            },
+            {
+                id: 16,
+                question: "Which of the following is one of the implementation activities in Step 7?",
+                options: [
+                    "Demonstration",
+                    "Budget approval",
+                    "Journal submission",
+                    "License renewal"
+                ],
+                correct: 0,
+                rationale: "Important implementation activities include education, demonstration, practice, feedback, and support."
+            },
+            {
+                id: 17,
+                question: "In the hand hygiene improvement project, over what period was implementation planned?",
+                options: [
+                    "A 3-month period",
+                    "A 1-week period",
+                    "A 6-month period",
+                    "A 2-year period"
+                ],
+                correct: 0,
+                rationale: "The hand hygiene improvement project plan set implementation over a 3-month implementation period."
+            },
+            {
+                id: 18,
+                question: "The aim of evidence-based practice is to create new knowledge and validate existing knowledge.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The aim of evidence-based practice is not to create new knowledge or validate existing knowledge; it is to translate the evidence and apply it to clinical decision-making."
+            },
+            {
+                id: 19,
+                question: "In the Ask step example, how often is the patient turned in the intervention being questioned?",
+                options: [
+                    "Every 2 hours",
+                    "Every 30 minutes",
+                    "Every 6 hours",
+                    "Every 12 hours"
+                ],
+                correct: 0,
+                rationale: "The Ask step example asks whether turning the patient every 2 hours reduces pressure injuries compared to using specialized mattresses alone."
+            },
+            {
+                id: 20,
+                question: "Which of the following is one of the roles nurses can act as, according to the lecture?",
+                options: [
+                    "Evidence translators",
+                    "Research funders",
+                    "Journal editors",
+                    "Statistical consultants"
+                ],
+                correct: 0,
+                rationale: "Nurses can act as evidence users, evidence translators, change agents, educators, and leaders; evidence translators convert research findings into understandable clinical recommendations."
+            },
+            {
+                id: 21,
+                question: "Which stage of change management comes immediately after preparation?",
+                options: [
+                    "Implementation",
+                    "Evaluation",
+                    "Maintenance",
+                    "Recognition of need for change"
+                ],
+                correct: 0,
+                rationale: "The stages of change management are current practice, recognition of need for change, preparation, implementation, evaluation, and maintenance."
+            },
+            {
+                id: 22,
+                question: "In the infection control example, chlorhexidine gluconate washes are used with which other measure?",
+                options: [
+                    "Standardized central-line insertion bundles",
+                    "Routine dressing changes at standard intervals",
+                    "General observation of high-risk patients",
+                    "Standard physical restraints"
+                ],
+                correct: 0,
+                rationale: "For infection control, the evidence-based implementation uses chlorhexidine gluconate washes and standardized central-line insertion bundles to significantly drop intensive care unit infection rates."
+            },
+            {
+                id: 23,
+                question: "Evidence should be valid, relevant, and feasible before implementation.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Step 3 states the evidence should be valid, meaning methodologically trustworthy, relevant to the patient population and setting, and feasible to realistically implement."
+            },
+            {
+                id: 24,
+                question: "In the maintenance stage of the pediatric pain assessment example, pain assessment is integrated into what?",
+                options: [
+                    "Routine nursing documentation and orientation of new nurses",
+                    "The hospital financial reporting system and billing codes",
+                    "The yearly budget review and staffing plan",
+                    "The admission physical examination and surgical checklist"
+                ],
+                correct: 0,
+                rationale: "In the maintenance stage, pain assessment is integrated into routine nursing documentation and orientation of new nurses."
+            },
+            {
+                id: 25,
+                question: "Which of the 3 pillars of nursing evidence-based practice consists of data from randomized controlled trials, clinical guidelines, and peer-reviewed journals?",
+                options: [
+                    "Best external evidence",
+                    "Clinical expertise",
+                    "Patient values",
+                    "Organizational culture"
+                ],
+                correct: 0,
+                rationale: "Best external evidence is defined as data from randomized controlled trials, clinical guidelines, and peer-reviewed journals."
+            },
+            {
+                id: 26,
+                question: "What is the strategy suggested for overcoming poor compliance?",
+                options: [
+                    "Audit and feedback",
+                    "Recognize staff achievements",
+                    "Engage managers",
+                    "Education and training"
+                ],
+                correct: 0,
+                rationale: "The strategies table pairs poor compliance with audit and feedback, while recognizing achievements addresses lack of motivation, engaging managers addresses lack of leadership support, and education addresses lack of knowledge."
+            },
+            {
+                id: 27,
+                question: "The Johns Hopkins model is particularly useful for undergraduate nursing students.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The Johns Hopkins model is particularly useful for undergraduate nursing students because it provides a clear, systematic pathway from a clinical question to evidence to practice change to evaluation."
+            },
+            {
+                id: 28,
+                question: "In the translation phase of the pressure injury example, which of the following is implemented?",
+                options: [
+                    "A repositioning schedule",
+                    "A new payroll system",
+                    "A visitor registration form",
+                    "A meal ordering protocol"
+                ],
+                correct: 0,
+                rationale: "Translation implements risk assessment, a repositioning schedule, skin assessment, staff education, documentation, and audit and feedback."
+            },
+            {
+                id: 29,
+                question: "Changing clinical hand-hygiene practice based on evidence from a systematic review is an example of which task?",
+                options: [
+                    "Implementing evidence",
+                    "Finding evidence",
+                    "Appraising evidence",
+                    "Publishing evidence"
+                ],
+                correct: 0,
+                rationale: "In the hand hygiene example, changing clinical hand-hygiene practice based on the evidence is implementation, while finding the article is evidence retrieval and assessing its quality is critical appraisal."
+            },
+            {
+                id: 30,
+                question: "In the pediatric nursing example, evidence shows children experience less procedural distress when nurses use what?",
+                options: [
+                    "Developmentally appropriate preparation and distraction",
+                    "Standard physical restraints and firm verbal commands",
+                    "Longer waiting periods and quieter treatment rooms",
+                    "Higher medication doses and faster procedures"
+                ],
+                correct: 0,
+                rationale: "Evidence shows that children experience less procedural distress when nurses use developmentally appropriate preparation and distraction."
+            },
+            {
+                id: 31,
+                question: "The Appraise step in the 5 A's framework asks whether the study is valid, reliable, and directly applicable to the current patient demographics.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "Appraise means critically evaluating the research gathered and determining if the study is valid, reliable, and directly applicable to the current patient demographics."
+            },
+            {
+                id: 32,
+                question: "Which of the following does an implementation plan answer?",
+                options: [
+                    "Who will implement the intervention?",
+                    "Who wrote the original research article?",
+                    "Which journal will publish the results?",
+                    "Which university will award the degree?"
+                ],
+                correct: 0,
+                rationale: "An implementation plan answers what intervention will be introduced, what problem it solves, who will implement it, where, when, how, and with what resources."
+            },
+            {
+                id: 33,
+                question: "Why is change in clinical practice difficult according to the change management section?",
+                options: [
+                    "Because people may be comfortable with existing routines",
+                    "Because evidence is always impossible to find in databases",
+                    "Because nurses are never allowed to suggest any changes",
+                    "Because guidelines change every single day without notice"
+                ],
+                correct: 0,
+                rationale: "Changing clinical practice can be difficult because people may be comfortable with existing routines."
+            },
+            {
+                id: 34,
+                question: "Which of the following is an advantage of the Johns Hopkins model?",
+                options: [
+                    "It emphasizes translation into improved clinical practice",
+                    "It guarantees funding for every implementation project",
+                    "It removes the need for teamwork during implementation",
+                    "It focuses on publishing research in academic journals"
+                ],
+                correct: 0,
+                rationale: "Advantages of the Johns Hopkins model include being systematic, clinically focused, emphasizing evidence appraisal, emphasizing translation with the ultimate goal of improving clinical practice, and encouraging teamwork."
+            },
+            {
+                id: 35,
+                question: "The Iowa Model sequence ends with adopting, modifying, or rejecting the change.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The simplified Iowa Model sequence runs from clinical problem through piloting and evaluation and ends with adopting, modifying, or rejecting the change."
+            },
+            {
+                id: 36,
+                question: "Which of the following can evidence-based interventions improve, according to the lecture?",
+                options: [
+                    "Nursing efficiency",
+                    "Hospital construction",
+                    "Insurance premiums",
+                    "Advertising reach"
+                ],
+                correct: 0,
+                rationale: "Evidence-based interventions can improve patient safety, quality of care, clinical outcomes, patient satisfaction, nursing efficiency, prevention of complications, and appropriate resource utilization."
+            },
+            {
+                id: 37,
+                question: "What is the strategy suggested for overcoming resistance to change?",
+                options: [
+                    "Staff involvement",
+                    "Simplifying the procedure",
+                    "Resource allocation",
+                    "Modifying the documentation system"
+                ],
+                correct: 0,
+                rationale: "The strategies table pairs resistance to change with staff involvement."
+            },
+            {
+                id: 38,
+                question: "In the hand hygiene project plan, which activity comes first in the how sequence?",
+                options: [
+                    "Baseline audit",
+                    "Staff education",
+                    "Environmental changes",
+                    "Follow-up audits"
+                ],
+                correct: 0,
+                rationale: "The how sequence of the hand hygiene plan is baseline audit, staff education, environmental changes, implementation, follow-up audits, and feedback."
+            },
+            {
+                id: 39,
+                question: "What is the evidence-practice gap?",
+                options: [
+                    "The gap between what research tells us and what actually happens in clinical practice",
+                    "The gap between what nurses earn and what physicians earn in hospitals",
+                    "The gap between what journals publish and what libraries can purchase",
+                    "The gap between what patients request and what insurers will cover"
+                ],
+                correct: 0,
+                rationale: "There is often a gap between what research tells us and what actually happens in clinical practice, and this is called the evidence-practice gap."
+            },
+            {
+                id: 40,
+                question: "In the education activity of Step 7, staff are taught which of the following?",
+                options: [
+                    "Why the change is needed and what the evidence says",
+                    "How to write research grants and publish papers",
+                    "How to design new hospital buildings and wards",
+                    "How to advertise the unit on social media"
+                ],
+                correct: 0,
+                rationale: "Education teaches staff why the change is needed, what the evidence says, what they need to do, and how to perform the intervention."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
