@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Family With Crisis</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which type of family crisis is viewed as a normal transition point where old patterns and roles must be exchanged for new ones?",
+                options: [
+                    "Social crisis",
+                    "Maturational crisis",
+                    "Marital crisis",
+                    "Situational crisis"
+                ],
+                correct: 1,
+                rationale: "The lecture defines the maturational or developmental crisis as a normal transition point where old patterns of communication and old roles must be exchanged for new patterns and roles."
+            },
+            {
+                id: 2,
+                question: "Which type of family crisis occurs when an event is sudden, unexpected, and unpredictable?",
+                options: [
+                    "Situational crisis",
+                    "Maturational crisis",
+                    "Developmental crisis",
+                    "Chronic crisis"
+                ],
+                correct: 0,
+                rationale: "The lecture states that a situational crisis occurs when the family experiences an event that is sudden, unexpected, and unpredictable."
+            },
+            {
+                id: 3,
+                question: "Which of the following is an example of a transition period when a maturational crisis may occur?",
+                options: [
+                    "Accident",
+                    "Parenthood",
+                    "Natural disaster",
+                    "Sudden death"
+                ],
+                correct: 1,
+                rationale: "The lecture gives adolescence, marriage, parenthood, and one's first job as examples of transition periods for maturational crises."
+            },
+            {
+                id: 4,
+                question: "Which of the following is an example of a situational crisis?",
+                options: [
+                    "Adolescence",
+                    "A natural disaster",
+                    "Marriage",
+                    "A first job"
+                ],
+                correct: 1,
+                rationale: "The lecture gives illness, accidents, death, and natural disasters as examples of situational crises."
+            },
+            {
+                id: 5,
+                question: "What is the onset of a developmental crisis, compared with a situational crisis?",
+                options: [
+                    "Gradual",
+                    "Unpredictable",
+                    "Externally imposed",
+                    "Sudden"
+                ],
+                correct: 0,
+                rationale: "In the comparison table, a developmental crisis has a gradual onset, while a situational crisis has a sudden onset."
+            },
+            {
+                id: 6,
+                question: "What precipitates a situational crisis, according to the comparison table?",
+                options: [
+                    "A hazardous event",
+                    "A life transition point",
+                    "Normal growth and development",
+                    "Society's expectations"
+                ],
+                correct: 0,
+                rationale: "In the table, a situational crisis is precipitated by a hazardous event, while a developmental crisis is precipitated by a life transition point."
+            },
+            {
+                id: 7,
+                question: "In how many categories is family crisis classified in the lecture?",
+                options: [
+                    "5",
+                    "6",
+                    "4",
+                    "8"
+                ],
+                correct: 1,
+                rationale: "The lecture lists 6 classifications: related to individual, childbearing, marital problem, abuse and violence, conflict with other systems, and family deprivation."
+            },
+            {
+                id: 8,
+                question: "Which of the following is a family crisis related to the individual?",
+                options: [
+                    "Destitute women",
+                    "Infertility",
+                    "Chronic or terminal illness",
+                    "Domestic violence"
+                ],
+                correct: 2,
+                rationale: "The lecture lists disabled individuals, chronically or terminally ill members, substance abuse, unemployment, and illiteracy as crises related to the individual."
+            },
+            {
+                id: 9,
+                question: "Which of the following is a family crisis related to marital problems?",
+                options: [
+                    "Illiteracy",
+                    "Marital disharmony",
+                    "Unwed motherhood",
+                    "Child abuse"
+                ],
+                correct: 1,
+                rationale: "The lecture lists marital disharmony, domestic violence, and polygyny under crises related to marital problems."
+            },
+            {
+                id: 10,
+                question: "Which of the following is a family crisis of deprivation?",
+                options: [
+                    "Sexual abuse",
+                    "Destitute children",
+                    "Substance abuse",
+                    "Marital disharmony"
+                ],
+                correct: 1,
+                rationale: "The deprivation category lists destitute women, destitute children, and destitute adults and aged."
+            },
+            {
+                id: 11,
+                question: "Who described the four stages of crisis reaction?",
+                options: [
+                    "Maslow",
+                    "Caplan",
+                    "Selye",
+                    "Erikson"
+                ],
+                correct: 1,
+                rationale: "The lecture states that Caplan in 1961 described the four stages of crisis reaction."
+            },
+            {
+                id: 12,
+                question: "According to Caplan, what does unresolved tension result in?",
+                options: [
+                    "Spontaneous resolution",
+                    "Depression",
+                    "Improved coping",
+                    "An initial rise in tension"
+                ],
+                correct: 1,
+                rationale: "In the four stages described by Caplan, unresolved tension results in depression, and failure to resolve the crisis may result in a psychological breakdown."
+            },
+            {
+                id: 13,
+                question: "How does the lecture define stress?",
+                options: [
+                    "A permanent state of illness caused by work",
+                    "A condition that affects only unhealthy people",
+                    "A state of worry or mental tension caused by a difficult situation",
+                    "A reaction that occurs only after a crisis"
+                ],
+                correct: 2,
+                rationale: "The lecture defines stress as a state of worry or mental tension caused by a difficult situation and a natural human response that prompts us to address challenges and threats."
+            },
+            {
+                id: 14,
+                question: "Which of the following is an example of internal stress?",
+                options: [
+                    "Loud noise",
+                    "Poor self-esteem",
+                    "Over stimulation",
+                    "Frustration"
+                ],
+                correct: 1,
+                rationale: "Internal stress includes loneliness and boredom, poor self-esteem, and an anxiety prone personality."
+            },
+            {
+                id: 15,
+                question: "Which of the following is an example of external stress?",
+                options: [
+                    "Boredom",
+                    "Loneliness",
+                    "Frustration",
+                    "Anxiety prone personality"
+                ],
+                correct: 2,
+                rationale: "The lecture lists frustration and over stimulation as external stress."
+            },
+            {
+                id: 16,
+                question: "Which type of stress includes loud noise and nutritional factors such as caffeine?",
+                options: [
+                    "Internal stress",
+                    "External stress",
+                    "Social stress",
+                    "Biological stress"
+                ],
+                correct: 3,
+                rationale: "Biological stress includes environmental stress, such as loud noise, and nutritional stress, such as food high in cholesterol and caffeine."
+            },
+            {
+                id: 17,
+                question: "How many broad subtypes of violence exist, according to the WHO definition in the lecture?",
+                options: [
+                    "4",
+                    "5",
+                    "3",
+                    "2"
+                ],
+                correct: 2,
+                rationale: "The lecture states that three broad subtypes of violence exist: self-directed, interpersonal, and collective."
+            },
+            {
+                id: 18,
+                question: "Which subtype of violence includes suicide and self-abuse?",
+                options: [
+                    "Interpersonal violence",
+                    "Self-directed violence",
+                    "Collective violence",
+                    "Domestic violence"
+                ],
+                correct: 1,
+                rationale: "The lecture states that self-directed violence includes suicide and self-abuse."
+            },
+            {
+                id: 19,
+                question: "Which subtype of violence includes social, political, and economic violence?",
+                options: [
+                    "Self-directed violence",
+                    "Interpersonal violence",
+                    "Collective violence",
+                    "Family violence"
+                ],
+                correct: 2,
+                rationale: "The lecture states that collective violence includes social, political, and economic violence."
+            },
+            {
+                id: 20,
+                question: "According to the lecture, what percentage of marriages end within the first 5 years?",
+                options: [
+                    "40%",
+                    "60%",
+                    "25%",
+                    "10%"
+                ],
+                correct: 0,
+                rationale: "The lecture states that research suggests 40% of marriages end within the first five years."
+            },
+            {
+                id: 21,
+                question: "What percentage of youth in Egypt is affected by unemployment, according to the lecture?",
+                options: [
+                    "50%",
+                    "9%",
+                    "15%",
+                    "29%"
+                ],
+                correct: 3,
+                rationale: "The lecture states that unemployment reaches almost one third of youth in Egypt, at 29 percent."
+            },
+            {
+                id: 22,
+                question: "Which person is usually more affected by unemployment because of the traditional role as breadwinner?",
+                options: [
+                    "The woman",
+                    "The man",
+                    "The eldest child",
+                    "The grandparent"
+                ],
+                correct: 1,
+                rationale: "The lecture states that unemployment usually affects the man more because of his traditional role as breadwinner in the family."
+            },
+            {
+                id: 23,
+                question: "Which of the following is a warning sign of a behavioral or emotional disorder?",
+                options: [
+                    "Social withdrawal and isolation",
+                    "Regular sleep patterns",
+                    "Calm response to frustration",
+                    "Stable personality"
+                ],
+                correct: 0,
+                rationale: "The lecture lists drastic changes in behavior or personality, easily getting annoyed, often appearing angry, frequent tantrums, feelings of sadness, and social withdrawal and isolation."
+            },
+            {
+                id: 24,
+                question: "How is a mental health crisis defined in the lecture?",
+                options: [
+                    "A mild emotional response that resolves without any support",
+                    "A permanent psychiatric condition that is caused by family stress",
+                    "A non-life-threatening situation with an intensive response to a precipitating event",
+                    "A life-threatening situation that always requires a hospital admission"
+                ],
+                correct: 2,
+                rationale: "The lecture defines a mental health crisis as a non-life-threatening situation in which a person experiences an intensive behavioral, emotional, or psychiatric response triggered by a precipitating event."
+            },
+            {
+                id: 25,
+                question: "Which of the following is a skin disease listed among the infectious diseases in the family?",
+                options: [
+                    "Scabies",
+                    "Salmonella",
+                    "Tuberculosis",
+                    "Hepatitis A"
+                ],
+                correct: 0,
+                rationale: "The lecture lists scabies as the skin disease among the common infectious diseases in the family."
+            },
+            {
+                id: 26,
+                question: "What does the A stand for in the first step of the ABC model of crisis intervention?",
+                options: [
+                    "Arranging referral",
+                    "Assessing risk",
+                    "Achieving rapport",
+                    "Advising the family"
+                ],
+                correct: 2,
+                rationale: "In the ABC model, A is achieving rapport, B is beginning of problem identification, and C is coping."
+            },
+            {
+                id: 27,
+                question: "Which type of question is not effective in a crisis interview?",
+                options: [
+                    "Open-ended questions beginning with how",
+                    "Closed-ended questions",
+                    "Open-ended questions beginning with what",
+                    "Questions that encourage personal views"
+                ],
+                correct: 1,
+                rationale: "The lecture states that closed-ended questions are not effective in a crisis interview, and open-ended questions beginning with what and how are recommended."
+            },
+            {
+                id: 28,
+                question: "Which component of the family coping index concerns management of prescribed drugs, diet, exercises, and procedures?",
+                options: [
+                    "Physical independence",
+                    "Emotional competence",
+                    "Health attitude",
+                    "Therapeutic competence"
+                ],
+                correct: 3,
+                rationale: "Therapeutic competence includes management of prescribed drugs, diet, exercises, and procedures."
+            },
+            {
+                id: 29,
+                question: "How many categories does the family coping index consist of?",
+                options: [
+                    "12",
+                    "9",
+                    "7",
+                    "6"
+                ],
+                correct: 1,
+                rationale: "The lecture lists 9 categories, from physical independence to use of community facilities."
+            },
+            {
+                id: 30,
+                question: "Which category of the family coping index concerns the ability to move about and get in and out of bed?",
+                options: [
+                    "Physical environment",
+                    "Therapeutic competence",
+                    "Physical independence",
+                    "Family living"
+                ],
+                correct: 2,
+                rationale: "Physical independence is concerned with the ability to move about, to get in and out of bed, and activities of daily living."
+            },
+            {
+                id: 31,
+                question: "Which of the 4 As of stress management involves changing your expectations and attitude?",
+                options: [
+                    "Alter",
+                    "Adapt",
+                    "Avoid",
+                    "Accept"
+                ],
+                correct: 1,
+                rationale: "Adapt to the stressor means that if you cannot change the stressor, you change yourself by changing expectations and attitude."
+            },
+            {
+                id: 32,
+                question: "Which element of problem identification explores the event that triggered the crisis from the person's point of view?",
+                options: [
+                    "Subjective distress",
+                    "Level of functioning",
+                    "Perception",
+                    "Precipitating event"
+                ],
+                correct: 3,
+                rationale: "In the B step of the ABC model, the precipitating event is the exploration of the event that triggered the crisis from the person's point of view."
+            },
+            {
+                id: 33,
+                question: "A crisis occurs when a family faces a problem that seems irresolvable.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that a crisis occurs when a family faces a problem that seems irresolvable and none of their methods for solving problems work."
+            },
+            {
+                id: 34,
+                question: "Closed-ended questions are the best way to begin a crisis interview.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that closed-ended questions are not effective in a crisis interview."
+            },
+            {
+                id: 35,
+                question: "Violence can occur in any family regardless of race, culture, or social, economic, or educational status.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that violence can occur in any family regardless of race, culture and social, economic or educational status."
+            },
+            {
+                id: 36,
+                question: "The death of a parent is an unexpected stressor that is never a crisis.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the death of a parent is an expected stressor, but it is still a crisis when it actually happens."
+            },
+            {
+                id: 37,
+                question: "Sleeping too much is listed among the unhealthy ways of coping with stress.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists smoking, drinking too much coffee, withdrawing from friends, family and activities, and sleeping too much as unhealthy ways of coping."
+            },
+            {
+                id: 38,
+                question: "Maturational crises are usually unpredictable, so families cannot prepare for them.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that such periods in life are usually predictable, so families can be prepared to use coping mechanisms."
+            },
+            {
+                id: 39,
+                question: "Situational crisis has a gradual onset.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 1,
+                rationale: "A situational crisis has a sudden onset, while a developmental crisis has a gradual onset."
+            },
+            {
+                id: 40,
+                question: "Compromised family coping occurs when a usually supportive primary person provides insufficient or ineffective support.",
+                options: [
+                    "True",
+                    "False"
+                ],
+                correct: 0,
+                rationale: "This is the definition of compromised family coping given in the lecture."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
