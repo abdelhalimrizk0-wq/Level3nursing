@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Wounds and Head Injuries</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 25 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "A wound is defined as:",
+                options: [
+                                "A disruption of the normal structure of tissues caused by application of force to the body",
+                                "Any bleeding from the nose",
+                                "A fracture of bone only",
+                                "A burn of the skin only"
+                ],
+                correct: 0,
+                rationale: "The lecture defines a wound as a disruption of the normal structure of tissues caused by the application of force to the body."
+            },
+            {
+                id: 2,
+                question: "In the legal classification, a dangerous wound:",
+                options: [
+                                "Heals in more than 20 days or leaves permanent infirmity",
+                                "Heals within 20 days with no infirmity",
+                                "Always leads to death",
+                                "Never bleeds"
+                ],
+                correct: 0,
+                rationale: "The lecture states that a dangerous wound heals in more than 20 days or leaves permanent infirmity."
+            },
+            {
+                id: 3,
+                question: "Abrasions involve destruction of:",
+                options: [
+                                "The superficial layers of the epidermis only",
+                                "The whole skin thickness",
+                                "Muscle and bone",
+                                "Blood vessels only"
+                ],
+                correct: 0,
+                rationale: "The lecture states that abrasion is destruction of the skin which involves the superficial layers of the epidermis only."
+            },
+            {
+                id: 4,
+                question: "Scratches are a type of abrasion caused by:",
+                options: [
+                                "Fingernails",
+                                "Rope",
+                                "Car accidents",
+                                "Bites"
+                ],
+                correct: 0,
+                rationale: "The lecture states that scratches are caused by fingernails."
+            },
+            {
+                id: 5,
+                question: "The soft scab of an abrasion falls out after:",
+                options: [
+                                "7 to 12 days",
+                                "1 day",
+                                "20 days",
+                                "1 month"
+                ],
+                correct: 0,
+                rationale: "The lecture states that serosanguineous fluid oozes out and dries to a soft scab in few hours then falls out after 7 to 12 days."
+            },
+            {
+                id: 6,
+                question: "Contusions are caused by:",
+                options: [
+                                "Blunt instruments",
+                                "Sharp instruments",
+                                "Firearms",
+                                "Needles"
+                ],
+                correct: 0,
+                rationale: "The lecture states that contusions are characterized by effusion of blood into the tissue space and are caused by blunt instruments."
+            },
+            {
+                id: 7,
+                question: "A contusion takes about how long to disappear?",
+                options: [
+                                "15 days",
+                                "3 days",
+                                "30 days",
+                                "7 days"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the contusion takes about 15 days to disappear."
+            },
+            {
+                id: 8,
+                question: "Crushed contused wounds are caused by:",
+                options: [
+                                "Heavy mobile instruments as in road traffic accidents",
+                                "An axe",
+                                "A knife",
+                                "A revolving belt of a machine"
+                ],
+                correct: 0,
+                rationale: "The lecture states that crushed wounds occur with heavy mobile instruments, for example road traffic accidents."
+            },
+            {
+                id: 9,
+                question: "A contused wound can simulate an incised wound when it occurs on:",
+                options: [
+                                "Stretched skin over a bone such as the scalp",
+                                "The abdomen",
+                                "The thigh",
+                                "The palm"
+                ],
+                correct: 0,
+                rationale: "The lecture states that a contused wound can simulate an incised wound when it occurs on stretched skin over a bone, such as the scalp."
+            },
+            {
+                id: 10,
+                question: "In a stab wound:",
+                options: [
+                                "The depth is bigger than the length",
+                                "The length is bigger than the depth",
+                                "The edges are ragged",
+                                "There are powder marks"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in a stab wound the depth is bigger than the length and the width equals approximately the breadth of the instrument."
+            },
+            {
+                id: 11,
+                question: "A transfixing stab wound is one that:",
+                options: [
+                                "Has an inlet and an exit",
+                                "Opens a serous cavity",
+                                "Is caused by a blunt instrument",
+                                "Never bleeds"
+                ],
+                correct: 0,
+                rationale: "The lecture states that a transfixing stab wound has an inlet and an exit."
+            },
+            {
+                id: 12,
+                question: "Which of the following is a character of firearm injuries?",
+                options: [
+                                "Powder marks around the inlet",
+                                "Everted edges of the inlet",
+                                "Cleanly cut edges",
+                                "Tissue bridges"
+                ],
+                correct: 0,
+                rationale: "The lecture lists presence of powder marks around the inlet among the characters of firearm injuries."
+            },
+            {
+                id: 13,
+                question: "Neurogenic or primary shock after injury is:",
+                options: [
+                                "A reflex neurovascular disturbance which follows immediately an injury",
+                                "A gradual decrease of capillary tone",
+                                "An infection of wounds",
+                                "A fat embolism"
+                ],
+                correct: 0,
+                rationale: "The lecture states that neurogenic or primary shock is a reflex neurovascular disturbance which follows immediately an injury."
+            },
+            {
+                id: 14,
+                question: "Haematogenic or secondary shock:",
+                options: [
+                                "Develops gradually after injury and leads to decreased capillary tone",
+                                "Follows the injury immediately",
+                                "Is always fatal in minutes",
+                                "Is a type of infection"
+                ],
+                correct: 0,
+                rationale: "The lecture states that haematogenic or secondary shock develops gradually after injury and leads to decreased capillary tone."
+            },
+            {
+                id: 15,
+                question: "The veins of the scalp and face are connected with cerebral sinuses through:",
+                options: [
+                                "Emissary veins which pass through skull foramina",
+                                "The jugular veins",
+                                "The carotid arteries",
+                                "The lymph vessels"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the veins of the scalp and the face are connected with cerebral sinuses through emissary veins which pass through skull foramina."
+            },
+            {
+                id: 16,
+                question: "A fissured skull fracture is caused by:",
+                options: [
+                                "Blunt instruments of low momentum such as a stick",
+                                "Heavy hammers",
+                                "A stone",
+                                "An axe"
+                ],
+                correct: 0,
+                rationale: "The lecture states that a fissured fracture is caused by blunt instruments of low momentum, for example a stick."
+            },
+            {
+                id: 17,
+                question: "A depressed comminuted skull fracture is caused by:",
+                options: [
+                                "A heavy blunt instrument with wide surface area such as a stone",
+                                "An axe",
+                                "A needle",
+                                "A rope"
+                ],
+                correct: 0,
+                rationale: "The lecture states that a depressed comminuted fracture is caused by a heavy blunt instrument with wide surface area, for example a stone."
+            },
+            {
+                id: 18,
+                question: "Concussion is always followed by:",
+                options: [
+                                "Amnesia from the actual moment of the accident",
+                                "Permanent paralysis",
+                                "High fever",
+                                "Blindness"
+                ],
+                correct: 0,
+                rationale: "The lecture states that concussion is always followed by amnesia from the actual moment of the accident."
+            },
+            {
+                id: 19,
+                question: "Which of the following is a sign of concussion rather than compression?",
+                options: [
+                                "Equal dilated pupils",
+                                "Unequal pupils",
+                                "Slow full pulse",
+                                "High blood pressure"
+                ],
+                correct: 0,
+                rationale: "The lecture lists equal dilated pupils in concussion, while unequal pupils, slow full pulse and high blood pressure appear in compression."
+            },
+            {
+                id: 20,
+                question: "Late death in brain compression occurs from:",
+                options: [
+                                "Herniation of the brain and pressure over the respiratory centers",
+                                "Severe external bleeding",
+                                "Heart failure",
+                                "Kidney failure"
+                ],
+                correct: 0,
+                rationale: "The lecture states that later death occurs from herniation of the brain and pressure over the respiratory centers."
+            },
+            {
+                id: 21,
+                question: "Abrasions are caused by sharp cutting instruments.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that abrasions are caused by friction of the skin against a rough surface, by blunt instruments."
+            },
+            {
+                id: 22,
+                question: "In a stab wound, a unibladed instrument produces one acute angle while a bibladed instrument produces 2 acute angles.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that unibladed instruments produce one acute angle and bibladed instruments produce 2 acute angles."
+            },
+            {
+                id: 23,
+                question: "Infection of a scalp wound may spread widely in the subaponeurotic space.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that if the scalp wound gets infected, the infection may spread widely in the subaponeurotic space."
+            },
+            {
+                id: 24,
+                question: "A cut fracture of the skull is caused by sharp cutting instruments such as an axe.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that a cut fracture is caused by sharp cutting instruments, for example an axe."
+            },
+            {
+                id: 25,
+                question: "In brain compression the pulse is rapid and the blood pressure is low.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture lists slow full pulse and high blood pressure in cerebral irritation of compression; rapid weak pulse and low blood pressure belong to concussion."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
