@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Death and Sudden Death</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 20 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Clinical death means:",
+                options: [
+                                "Stopping of different body systems",
+                                "Cessation of cell function",
+                                "Dissolution of tissues",
+                                "Loss of body heat"
+                ],
+                correct: 0,
+                rationale: "The lecture states that clinical death is the stopping of different body systems."
+            },
+            {
+                id: 2,
+                question: "Which of the following is an early sure sign of death in the cardiovascular system?",
+                options: [
+                                "Trucking of blood in retinal vessels",
+                                "Dilated pupils",
+                                "Skin pallor",
+                                "High fever"
+                ],
+                correct: 0,
+                rationale: "The lecture lists trucking of blood in retinal vessels as an early sign among the cardiovascular sure signs of death."
+            },
+            {
+                id: 3,
+                question: "To test for water vapor of expired air after death, we put in front of the nose:",
+                options: [
+                                "A mirror",
+                                "A thermometer",
+                                "A stethoscope",
+                                "A piece of cotton"
+                ],
+                correct: 0,
+                rationale: "The lecture states that no water vapor is noticed if we put a mirror in front of the nose."
+            },
+            {
+                id: 4,
+                question: "Primary flaccidity means:",
+                options: [
+                                "Loss of muscle tone",
+                                "Rigidity of all muscles",
+                                "Contraction of voluntary muscles",
+                                "Freezing of tissues"
+                ],
+                correct: 0,
+                rationale: "The lecture describes primary flaccidity as loss of muscle tone."
+            },
+            {
+                id: 5,
+                question: "Postmortem cooling makes the body reach the atmospheric temperature within:",
+                options: [
+                                "12 to 18 hours",
+                                "2 to 4 hours",
+                                "24 to 36 hours",
+                                "1 to 2 hours"
+                ],
+                correct: 0,
+                rationale: "The lecture states that body temperature decreases after death until it reaches the atmospheric temperature within 12 to 18 hours."
+            },
+            {
+                id: 6,
+                question: "Regarding postmortem cooling, heat loss is slower in:",
+                options: [
+                                "Fatty persons",
+                                "Naked bodies",
+                                "Children",
+                                "Cold air currents"
+                ],
+                correct: 0,
+                rationale: "The lecture states that heat loss is slower in fatty persons because of subcutaneous fat."
+            },
+            {
+                id: 7,
+                question: "The body of a feverish person after death loses heat:",
+                options: [
+                                "Slower than normal",
+                                "Faster than normal",
+                                "Like any body",
+                                "Instantly"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the body of feverish persons loses heat slower than normal ones."
+            },
+            {
+                id: 8,
+                question: "Hypostasis becomes obvious after how long and is completed after how long?",
+                options: [
+                                "Obvious after 2 hours and completed after 6 to 8 hours",
+                                "Obvious after 12 hours and completed after 24 hours",
+                                "Obvious at once and completed after 1 hour",
+                                "Obvious after 24 hours and completed after 48 hours"
+                ],
+                correct: 0,
+                rationale: "The lecture states that hypostasis becomes obvious after 2 hours and completed after 6 to 8 hours."
+            },
+            {
+                id: 9,
+                question: "Changing the body position after 6 to 8 hours of death:",
+                options: [
+                                "Would not change the site of hypostasis",
+                                "Removes hypostasis completely",
+                                "Moves hypostasis to the face",
+                                "Causes rigor mortis"
+                ],
+                correct: 0,
+                rationale: "The lecture states that change of body position after 6 to 8 hours would not change the site of hypostasis."
+            },
+            {
+                id: 10,
+                question: "Rigor mortis starts first in the small muscles of the:",
+                options: [
+                                "Eye lids and face",
+                                "Lower limbs",
+                                "Abdomen",
+                                "Back"
+                ],
+                correct: 0,
+                rationale: "The lecture states that rigor mortis starts in small muscles of the eye lids and face, then spreads to chest, upper limbs, abdomen and lower limbs."
+            },
+            {
+                id: 11,
+                question: "Rigor mortis is a physicochemical change in the muscle proteins:",
+                options: [
+                                "Actin and myosin",
+                                "Collagen and elastin",
+                                "Keratin and melanin",
+                                "Albumin and globulin"
+                ],
+                correct: 0,
+                rationale: "The lecture states that rigor mortis is a physicochemical change in the muscle proteins actin and myosin."
+            },
+            {
+                id: 12,
+                question: "Cadaveric spasm occurs in cases with:",
+                options: [
+                                "Great emotional tension at the time of death",
+                                "High fever",
+                                "Old age",
+                                "Obesity"
+                ],
+                correct: 0,
+                rationale: "The lecture states that cadaveric spasm occurs in cases with great emotional tension at the time of death, for example drowning."
+            },
+            {
+                id: 13,
+                question: "Heat stiffness results from:",
+                options: [
+                                "Coagulation of muscle proteins at very high temperature",
+                                "Freezing of tissues",
+                                "Bacterial enzymes",
+                                "Loss of muscle tone"
+                ],
+                correct: 0,
+                rationale: "The lecture states that heat stiffness is postmortem stiffening secondary to coagulation of the muscle proteins when the body is exposed to a very high temperature."
+            },
+            {
+                id: 14,
+                question: "Putrefaction is caused mainly by proteolytic enzymes produced by:",
+                options: [
+                                "Bacteria of the respiratory and gastrointestinal tracts",
+                                "Viruses of the skin",
+                                "Fungi of the nails",
+                                "Parasites of blood"
+                ],
+                correct: 0,
+                rationale: "The lecture states that putrefaction is caused mainly by proteolytic and other enzymes produced by bacteria which mainly inhabit the respiratory and gastrointestinal tracts."
+            },
+            {
+                id: 15,
+                question: "Sudden death is defined as instantaneous unexpected death due to natural disease or within how long from the start of illness?",
+                options: [
+                                "24 hours",
+                                "1 week",
+                                "1 hour",
+                                "3 days"
+                ],
+                correct: 0,
+                rationale: "The lecture defines sudden death as instantaneous death that occurs unexpectedly due to natural disease or within 24 hours from the start of illness."
+            },
+            {
+                id: 16,
+                question: "Which of the following is a gastrointestinal cause of sudden death?",
+                options: [
+                                "Bleeding from peptic ulcer",
+                                "Myocarditis",
+                                "Rupture aortic aneurysm",
+                                "Obstruction of respiratory passages"
+                ],
+                correct: 0,
+                rationale: "The lecture lists bleeding from peptic ulcer, rupture tumor, volvulus and strangulated hernia among gastrointestinal causes of sudden death."
+            },
+            {
+                id: 17,
+                question: "The dead body loses 1 to 1.5 degrees of temperature every hour.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the body loses 1 to 1.5 degrees every hour, measured rectally or by thermocouples."
+            },
+            {
+                id: 18,
+                question: "Cadaveric spasm affects all muscles of the body.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture table states that cadaveric spasm affects a group of voluntary muscles, while rigor mortis affects all muscles."
+            },
+            {
+                id: 19,
+                question: "Adipocere needs about 6 months to be complete and preserves the injuries and body features for identification.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that adipocere needs about 6 months to be complete and that it keeps the feature of the body for easy identification and preserves the injuries."
+            },
+            {
+                id: 20,
+                question: "Rigor mortis after prolonged muscular activity, as in battle, is slow in onset and of long duration.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that rigor mortis is rapid in onset and of short duration after prolonged muscle activity, for example battle."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
