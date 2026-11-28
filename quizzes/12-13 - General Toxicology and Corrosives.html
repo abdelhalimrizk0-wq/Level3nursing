@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">General Toxicology and Corrosives</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 53 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Toxicology is the science that studies:",
+                options: [
+                                "Sources of poisons, their action and effect on the body, and methods of diagnosis, detection and treatment",
+                                "Only the treatment of burns",
+                                "Only the classification of wounds",
+                                "Only the chemistry of drugs"
+                ],
+                correct: 0,
+                rationale: "The lecture defines toxicology as the science that studies sources of poisons, their action and effect on the body, as well as methods of diagnosis, detection and treatment."
+            },
+            {
+                id: 2,
+                question: "A poison is a substance that enters the living body by any way and results in:",
+                options: [
+                                "Ill health or even death",
+                                "Improved immunity",
+                                "Rapid healing",
+                                "Better digestion"
+                ],
+                correct: 0,
+                rationale: "The lecture defines a poison as a substance that when enters the living body by any way results in ill health or even death."
+            },
+            {
+                id: 3,
+                question: "Poisons having systemic action only include:",
+                options: [
+                                "Plant poisons and hypnotics",
+                                "Corrosive acids and alkalis",
+                                "Most of the metallic poisons",
+                                "Strong mineral acids"
+                ],
+                correct: 0,
+                rationale: "The lecture states that poisons with systemic action only produce their effect after absorption, for example plant poisons and hypnotics."
+            },
+            {
+                id: 4,
+                question: "Poisons having local action only include:",
+                options: [
+                                "Corrosives such as acids and alkalis",
+                                "Plant poisons",
+                                "Hypnotics",
+                                "Metallic poisons"
+                ],
+                correct: 0,
+                rationale: "The lecture states that poisons having local action only destroy the tissues they come in contact with, such as corrosives like acids and alkalis."
+            },
+            {
+                id: 5,
+                question: "Poisons having double action, local and systemic, include most of the:",
+                options: [
+                                "Metallic poisons",
+                                "Gaseous poisons",
+                                "Plant poisons",
+                                "Hypnotics"
+                ],
+                correct: 0,
+                rationale: "The lecture states that poisons having double action include most of the metallic poisons."
+            },
+            {
+                id: 6,
+                question: "The most dangerous state of a poison because of rapid absorption is the:",
+                options: [
+                                "Gaseous form",
+                                "Solid form",
+                                "Liquid form",
+                                "Powder form"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the gaseous form is the most dangerous because of rapid absorption, followed by liquid then solid poisons."
+            },
+            {
+                id: 7,
+                question: "Among the routes of poison entry, the slowest and least dangerous is:",
+                options: [
+                                "Intact skin",
+                                "Ingestion",
+                                "Intramuscular injection",
+                                "Intravenous injection"
+                ],
+                correct: 0,
+                rationale: "Inhalation and intravenous injection act fastest, followed by intramuscular injection, ingestion and lastly intact skin."
+            },
+            {
+                id: 8,
+                question: "The route of administration with the quickest and most dangerous effect is:",
+                options: [
+                                "Inhalation and intravenous injection",
+                                "Ingestion",
+                                "Intact skin",
+                                "Rectal route"
+                ],
+                correct: 0,
+                rationale: "The lecture states that inhalation and intravenous injection have the quickest thus most dangerous effect."
+            },
+            {
+                id: 9,
+                question: "The toxicity of barbiturates is increased when taken with:",
+                options: [
+                                "Alcohol",
+                                "Milk",
+                                "Water",
+                                "Charcoal"
+                ],
+                correct: 0,
+                rationale: "The lecture gives the example of increased toxicity of barbiturates when taken with alcohol under drug interaction."
+            },
+            {
+                id: 10,
+                question: "A fatty meal in the stomach facilitates the absorption of:",
+                options: [
+                                "Organophosphorous poisons",
+                                "Corrosive acids",
+                                "Alkalis",
+                                "Carbon monoxide"
+                ],
+                correct: 0,
+                rationale: "The lecture states that a fatty meal facilitates absorption of organophosphorous poisons."
+            },
+            {
+                id: 11,
+                question: "A poisoned patient who is unconscious and responds only to maximal stimuli, with absent superficial reflexes and sluggish deep reflexes, is in:",
+                options: [
+                                "Grade 3",
+                                "Grade 1",
+                                "Grade 2",
+                                "Grade 4"
+                ],
+                correct: 0,
+                rationale: "In the Mathew and Lawson scale, grade 3 is unconscious but responds to maximal stimuli with absent superficial reflexes and sluggish deep reflexes."
+            },
+            {
+                id: 12,
+                question: "In the Mathew and Lawson scale, grade one means the patient is:",
+                options: [
+                                "Drowsy but responds to verbal commands",
+                                "Conscious",
+                                "Unconscious with no response",
+                                "Unconscious responding to maximal stimuli"
+                ],
+                correct: 0,
+                rationale: "The lecture states that grade one is a drowsy patient who responds to verbal commands."
+            },
+            {
+                id: 13,
+                question: "In the Mathew and Lawson scale, grade 4 means:",
+                options: [
+                                "Unconscious with no response",
+                                "Conscious",
+                                "Drowsy",
+                                "Responds to minimal stimuli"
+                ],
+                correct: 0,
+                rationale: "The lecture states that grade 4 is unconscious with no response."
+            },
+            {
+                id: 14,
+                question: "The most important step before administration of any drugs in a poisoned patient is to:",
+                options: [
+                                "Collect blood and urine samples for needed investigations",
+                                "Give the antidote at once",
+                                "Induce vomiting",
+                                "Start physical restraint"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the most important step is to collect blood and urine samples for needed investigations before administration of any drugs."
+            },
+            {
+                id: 15,
+                question: "Shock is suspected in patients over 50 years if the systolic blood pressure is below:",
+                options: [
+                                "90 mm Hg",
+                                "120 mm Hg",
+                                "60 mm Hg",
+                                "140 mm Hg"
+                ],
+                correct: 0,
+                rationale: "The lecture states that shock is suspected in patients over 50 years if systolic blood pressure is below 90 mm Hg and in younger patients if below 80 mm Hg."
+            },
+            {
+                id: 16,
+                question: "In a drowsy or comatose patient, gastric lavage is performed after:",
+                options: [
+                                "Insertion of a cuffed endotracheal tube",
+                                "Giving activated charcoal",
+                                "Giving a cathartic",
+                                "Inducing emesis"
+                ],
+                correct: 0,
+                rationale: "A cuffed endotracheal tube is inserted first to protect against inhalation of gastric contents, which could lead to choking or aspiration pneumonia."
+            },
+            {
+                id: 17,
+                question: "All comatose poisoned patients should receive oxygen, naloxone, dextrose and:",
+                options: [
+                                "Thiamine",
+                                "Atropine",
+                                "Adrenaline",
+                                "Insulin"
+                ],
+                correct: 0,
+                rationale: "The lecture states that all comatose patients should receive oxygen, naloxone 2 mg IV, 100 ml of dextrose 50% and thiamine 100 mg IV."
+            },
+            {
+                id: 18,
+                question: "Convulsions in poisoning are usually controlled with:",
+                options: [
+                                "Diazepam 5 to 10 mg IV",
+                                "Morphine",
+                                "Aspirin",
+                                "Paracetamol"
+                ],
+                correct: 0,
+                rationale: "The lecture states that convulsions are usually treated with diazepam 5 to 10 mg IV."
+            },
+            {
+                id: 19,
+                question: "During gastric lavage, the patient should be placed in:",
+                options: [
+                                "Left lateral decubitus position with head lower than feet",
+                                "Sitting upright",
+                                "Prone position with head elevated",
+                                "Supine with head raised"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the patient should be placed in the left lateral decubitus position with head lower than feet."
+            },
+            {
+                id: 20,
+                question: "The gastric lavage tube is passed through the pharynx till it reaches the stomach at about:",
+                options: [
+                                "50 cm",
+                                "10 cm",
+                                "100 cm",
+                                "25 cm"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the tube is passed till it reaches the stomach, about 50 cm long."
+            },
+            {
+                id: 21,
+                question: "The tube used for gastric lavage should be:",
+                options: [
+                                "A large bore tube with multiple lower openings",
+                                "A standard nasogastric tube",
+                                "A narrow catheter with one opening",
+                                "A short rubber feeding tube"
+                ],
+                correct: 0,
+                rationale: "A large bore tube is used to evacuate particulate matter, and a standard nasogastric tube is inadequate."
+            },
+            {
+                id: 22,
+                question: "Wrong administration of the lavage tube through the larynx causes:",
+                options: [
+                                "Sudden cough and cyanosis",
+                                "Immediate vomiting",
+                                "Severe diarrhea",
+                                "High fever"
+                ],
+                correct: 0,
+                rationale: "The lecture states that wrong administration through the larynx causes sudden cough and cyanosis, and the tube has to be withdrawn rapidly and re-administered correctly."
+            },
+            {
+                id: 23,
+                question: "Which of the following is a contraindication of gastric lavage?",
+                options: [
+                                "Ingestion of corrosives",
+                                "Comatose patient",
+                                "Failure of emesis",
+                                "Drugs with antiemetic effect"
+                ],
+                correct: 0,
+                rationale: "The lecture lists ingestion of corrosives and of kerosene and other petroleum distillates among the contraindications of gastric lavage; the others are indications."
+            },
+            {
+                id: 24,
+                question: "Activated charcoal is ineffective against small ions such as:",
+                options: [
+                                "Alcohol, lithium and iron",
+                                "Barbiturates",
+                                "Salicylates",
+                                "Antidepressants"
+                ],
+                correct: 0,
+                rationale: "The lecture states that activated charcoal is effective for almost all organic and inorganic substances with the exception of small ions such as alcohol, lithium and iron."
+            },
+            {
+                id: 25,
+                question: "The amount of water or saline poured into the funnel in each lavage cycle in adults is:",
+                options: [
+                                "50 to 200 ml",
+                                "10 to 20 ml",
+                                "500 to 1000 ml",
+                                "2 to 3 liters"
+                ],
+                correct: 0,
+                rationale: "The funnel is held higher than the patient and 50 to 200 ml is poured, or 50 to 100 ml in a child, then drained by gravity."
+            },
+            {
+                id: 26,
+                question: "The dose of activated charcoal is:",
+                options: [
+                                "1 g per kg body weight",
+                                "10 mg per kg",
+                                "100 mg per kg",
+                                "5 g per kg"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the dose of activated charcoal is 1 g per kg body weight or a 10 to 1 ratio of activated charcoal to drug."
+            },
+            {
+                id: 27,
+                question: "Magnesium sulfate as a cathartic is not used in:",
+                options: [
+                                "Renal failure",
+                                "Diarrhea",
+                                "Children",
+                                "Elderly"
+                ],
+                correct: 0,
+                rationale: "The lecture states that magnesium cathartics are not used in renal failure."
+            },
+            {
+                id: 28,
+                question: "In skin contamination with a poison, the staff should never:",
+                options: [
+                                "Try to neutralize an acid with a base or vice versa",
+                                "Wear protective gowns",
+                                "Remove contaminated clothing",
+                                "Wash with soap and water"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in skin contamination you should never try to neutralize an acid with a base or vice versa."
+            },
+            {
+                id: 29,
+                question: "In eye contamination, the eye should be washed with copious amounts of water for:",
+                options: [
+                                "20 minutes",
+                                "2 minutes",
+                                "5 minutes",
+                                "1 hour"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the eye should be washed with copious amounts of water for 20 minutes."
+            },
+            {
+                id: 30,
+                question: "Which of the following is a physiological antidote?",
+                options: [
+                                "Naloxone in morphine poisoning",
+                                "Milk in corrosive poisoning",
+                                "Egg white in corrosive poisoning",
+                                "Potassium permanganate in plant poisoning"
+                ],
+                correct: 0,
+                rationale: "The lecture gives naloxone in morphine poisoning and atropine in organophosphorous poisoning as examples of physiological antidotes; milk, egg white and potassium permanganate are local antidotes."
+            },
+            {
+                id: 31,
+                question: "The dose of magnesium sulfate used as a cathartic is:",
+                options: [
+                                "250 mg per kg up to 30 gm",
+                                "1 gm per kg up to 100 gm",
+                                "0.5 to 1 gm per kg",
+                                "10 mg per kg up to 1 gm"
+                ],
+                correct: 0,
+                rationale: "Magnesium sulfate is given at 250 mg per kg up to 30 gm, while sorbitol is given at 0.5 to 1 gm per kg."
+            },
+            {
+                id: 32,
+                question: "Which of the following is an inorganic acid corrosive?",
+                options: [
+                                "Sulphuric acid",
+                                "Carbolic acid",
+                                "Oxalic acid",
+                                "Acetic acid"
+                ],
+                correct: 0,
+                rationale: "The lecture lists hydrochloric, nitric and sulphuric acid as inorganic acids; carbolic, oxalic and acetic are organic acids."
+            },
+            {
+                id: 33,
+                question: "In corrosive poisoning, constipation occurs with acids while diarrhea occurs with:",
+                options: [
+                                "Alkalies",
+                                "Metals",
+                                "Gases",
+                                "Plants"
+                ],
+                correct: 0,
+                rationale: "The lecture states that corrosives lead to constipation with acids and diarrhea with alkalies."
+            },
+            {
+                id: 34,
+                question: "In sulphuric acid poisoning, the vomitus is black because of:",
+                options: [
+                                "Formation of acid hematin",
+                                "Presence of food",
+                                "Bile",
+                                "Charcoal"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the vomitus is black in colour and acidic in reaction due to formation of acid hematin."
+            },
+            {
+                id: 35,
+                question: "Death in the first 12 to 24 hours of sulphuric acid poisoning is due to:",
+                options: [
+                                "Shock and dehydration",
+                                "Esophageal stricture",
+                                "Renal failure",
+                                "Pneumonia"
+                ],
+                correct: 0,
+                rationale: "The lecture states that death may be rapid, 12 to 24 hours, due to shock and dehydration, and delayed due to gastric perforation, esophageal stricture and pulmonary complications."
+            },
+            {
+                id: 36,
+                question: "In carbolic acid poisoning, the urine is dark and turns green on standing because of:",
+                options: [
+                                "Hydroquinolines",
+                                "Acid hematin",
+                                "Calcium oxalate",
+                                "Acid proteinate"
+                ],
+                correct: 0,
+                rationale: "The lecture explains that the urine in phenol poisoning turns green on standing due to the presence of hydroquinolines."
+            },
+            {
+                id: 37,
+                question: "In acid poisoning, neutralizing with alkali is forbidden because:",
+                options: [
+                                "It produces an exothermic reaction with more tissue destruction",
+                                "It causes constipation",
+                                "It dilutes the acid",
+                                "It slows absorption"
+                ],
+                correct: 0,
+                rationale: "The lecture states not to neutralize with alkali as it reacts with the acid in an exothermic reaction with production of heat and more destruction of the tissues."
+            },
+            {
+                id: 38,
+                question: "Alkalies cause tissue damage by:",
+                options: [
+                                "Liquefaction necrosis",
+                                "Coagulative necrosis",
+                                "Charring",
+                                "Freezing"
+                ],
+                correct: 0,
+                rationale: "The lecture states that alkalies combine with proteins and fat resulting in liquefaction necrosis of the esophageal wall."
+            },
+            {
+                id: 39,
+                question: "In carbolic acid poisoning, gastric lavage is done with:",
+                options: [
+                                "Olive oil or castor oil",
+                                "Alcohol",
+                                "Vinegar",
+                                "Plain water"
+                ],
+                correct: 0,
+                rationale: "The lecture states that gastric lavage in carbolic acid poisoning is done with olive oil or castor oil; alcohol is not used as it dissolves the acid and increases its absorption."
+            },
+            {
+                id: 40,
+                question: "Oxalic acid poisoning reduces the available calcium in the body because oxalates combine with ionized calcium to form:",
+                options: [
+                                "Insoluble calcium oxalate",
+                                "Soluble calcium chloride",
+                                "Calcium carbonate",
+                                "Calcium phosphate"
+                ],
+                correct: 0,
+                rationale: "The lecture states that oxalates combine with ionizable calcium to form non-ionized insoluble calcium oxalate, which cannot be utilized by the body."
+            },
+            {
+                id: 41,
+                question: "In alkali poisoning, death from delayed gastric or esophageal perforation occurs within:",
+                options: [
+                                "2 to 4 days",
+                                "24 hours",
+                                "2 to 3 weeks",
+                                "1 to 2 months"
+                ],
+                correct: 0,
+                rationale: "Death within 24 hours is from shock, while death after 2 to 4 days is from delayed gastric or esophageal perforation."
+            },
+            {
+                id: 42,
+                question: "An empty stomach fastens the effect of a poison.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that an empty stomach fastens the effect of poison."
+            },
+            {
+                id: 43,
+                question: "Addicts tolerate high doses of the drugs they are addicted to without suffering major toxic effects.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states under tolerance that addicts tolerate high doses of the drugs they are addicted to without suffering from major toxic effects."
+            },
+            {
+                id: 44,
+                question: "Vasopressors should be used in the initial management of hypotension before fluids.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture notes not to use vasopressors in the initial management of hypotension prior to using fluids."
+            },
+            {
+                id: 45,
+                question: "Samples for toxicological analysis should always be taken after gastric lavage and kept safely.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that samples should always be taken after gastric lavage and kept safely to be sent for toxicological analysis."
+            },
+            {
+                id: 46,
+                question: "Repeated doses of activated charcoal are contraindicated in ileus.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that repeated doses of activated charcoal are contraindicated in ileus."
+            },
+            {
+                id: 47,
+                question: "In oxalic acid poisoning, renal failure is caused by:",
+                options: [
+                                "Blockage of renal tubules by calcium oxalate",
+                                "Coagulative necrosis of the glomeruli",
+                                "Direct corrosion of the renal capsule",
+                                "Hemolysis with hemoglobin casts"
+                ],
+                correct: 0,
+                rationale: "Oxalates combine with calcium and the resulting calcium oxalate blocks the renal tubules, causing renal failure."
+            },
+            {
+                id: 48,
+                question: "Gastric lavage is contraindicated in corrosive poisoning except in organic acids.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that gastric lavage is contraindicated in corrosives except in organic acids."
+            },
+            {
+                id: 49,
+                question: "Homicidal poisoning by carbolic acid is common because it is odorless.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that homicidal carbolic acid poisoning is uncommon due to its characteristic odor."
+            },
+            {
+                id: 50,
+                question: "In oxalic acid poisoning, calcium gluconate is given to precipitate oxalic acid in the gastrointestinal tract and raise the ionized calcium level in blood.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that calcium is given by any route to precipitate oxalic acid in the gastrointestinal tract and to increase ionizable calcium level in the blood, including 10% calcium gluconate slowly IV."
+            },
+            {
+                id: 51,
+                question: "Gastric lavage is contraindicated after ingestion of kerosene and other petroleum distillates.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "Ingestion of corrosives and of kerosene and other petroleum distillates are listed as contraindications of gastric lavage."
+            },
+            {
+                id: 52,
+                question: "Activated charcoal is highly effective in adsorbing small ions such as alcohol, lithium and iron.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "Activated charcoal adsorbs almost all organic and inorganic substances except small ions such as alcohol, lithium and iron."
+            },
+            {
+                id: 53,
+                question: "In alkali poisoning, the alkali should be neutralized with vinegar or lemon juice.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture says not to neutralize an alkali with an acid such as vinegar or lemon juice."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
