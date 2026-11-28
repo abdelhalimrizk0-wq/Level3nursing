@@ -448,7 +448,7 @@ var saving=Promise.resolve();
 function saveDb(msg){
   toast('⏳ جاري الحفظ في GitHub...');
   var snap=JSON.stringify(db,null,2)+'\n';
-  saving=saving.then(function(){return putFile('subjects.json',snap,msg||'تحديث المحتوى من لوحة المسؤول').then(function(){try{localStorage.setItem('app_subj_cache',JSON.stringify(db))}catch(x){}})}).then(function(){toast('✅ تم الحفظ. هيظهر للكل خلال دقيقة')},function(e){toast('❌ فشل الحفظ: '+e.message)});
+  saving=saving.then(function(){return putFile('subjects.json',snap,msg||'تحديث المحتوى من لوحة المسؤول').then(function(){try{var cs=JSON.stringify(db);localStorage.setItem('app_subj_cache',cs);localStorage.setItem('app_subj_pending',JSON.stringify({str:cs,at:Date.now()}))}catch(x){}})}).then(function(){toast('✅ تم الحفظ. هيظهر للكل خلال دقيقة')},function(e){toast('❌ فشل الحفظ: '+e.message)});
   return saving;
 }
 function slug(s){return (s||'').toLowerCase().replace(/[^\w\u0600-\u06FF]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'quiz'}
@@ -559,17 +559,27 @@ window.addEventListener('scroll',function(){var h=document.documentElement.scrol
   $('quote').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];$('yr').textContent=new Date().getFullYear();
   $('n-d').textContent=Object.keys(DEPTS).length;
   syncTheme();loadG();
-  var CK='app_subj_cache',cached=null,raw=null;
+  var CK='app_subj_cache',PK='app_subj_pending',cached=null,raw=null,pend=null;
   function ready(){document.body.classList.add('ready')}
   try{raw=localStorage.getItem(CK);cached=JSON.parse(raw);if(!Array.isArray(cached)||!cached.length)cached=null}catch(e){cached=null}
+  try{pend=JSON.parse(localStorage.getItem(PK)||'null');if(!pend||!pend.str||!pend.at)pend=null}catch(e){pend=null}
   if(cached){db=cached;ready();route()}
-  fetch('subjects.json?'+Date.now()).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
-    var str=JSON.stringify(j);try{localStorage.setItem(CK,str)}catch(e){}
-    var first=!cached,changed=str!==raw;
-    if(first||changed){db=j;var inQ=(location.hash||'').indexOf('#/q/')===0;ready();if(first||!inQ)route()}
-    if(first)autoLogin();
-  })
-  .catch(function(){if(!cached){ready();$('depts').innerHTML='<div class="empty" style="grid-column:1/-1">تعذر تحميل البيانات.</div>';show('home')}});
+  function clearPend(){pend=null;try{localStorage.removeItem(PK)}catch(e){}}
+  (function pull(){
+    fetch('subjects.json?'+Date.now()).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+      var str=JSON.stringify(j);
+      if(pend&&str===pend.str)clearPend();
+      if(pend){
+        if(Date.now()-pend.at<900000){setTimeout(pull,20000);return}
+        clearPend();
+      }
+      try{localStorage.setItem(CK,str)}catch(e){}
+      var first=!cached,changed=str!==raw;
+      if(first||changed){db=j;var inQ=(location.hash||'').indexOf('#/q/')===0;ready();if(first||!inQ)route()}
+      if(first)autoLogin();
+    })
+    .catch(function(){if(!cached){ready();$('depts').innerHTML='<div class="empty" style="grid-column:1/-1">تعذر تحميل البيانات.</div>';show('home')}});
+  })();
   if(cached)autoLogin();
 })();
 </script>
