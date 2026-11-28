@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Pregnancy Abortion and Infanticide</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 43 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "In case of execution, a female may allege pregnancy to:",
+                options: [
+                                "Postpone the capital sentence till delivery",
+                                "Get a driving license",
+                                "Avoid military service",
+                                "Get free housing"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in case of execution the female may allege pregnancy to postpone the capital sentence till delivery."
+            },
+            {
+                id: 2,
+                question: "In case of divorce, a female may allege pregnancy to:",
+                options: [
+                                "Get more alimony",
+                                "Postpone execution",
+                                "Avoid examination",
+                                "Travel abroad"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in case of divorce the female may allege pregnancy to get more alimony."
+            },
+            {
+                id: 3,
+                question: "Which of the following is a sure sign of pregnancy?",
+                options: [
+                                "Auscultation of fetal heart sound",
+                                "Pigmentation of the areola",
+                                "Chloasma on the face",
+                                "Linea nigra"
+                ],
+                correct: 0,
+                rationale: "The lecture lists auscultation of fetal heart sound among the sure signs of pregnancy; pigmentation signs are probable signs."
+            },
+            {
+                id: 4,
+                question: "Fetal movement can be inspected at:",
+                options: [
+                                "18 weeks",
+                                "8 weeks",
+                                "24 weeks",
+                                "36 weeks"
+                ],
+                correct: 0,
+                rationale: "The lecture states that inspection of fetal movement is at 18 weeks."
+            },
+            {
+                id: 5,
+                question: "Fetal heart sound can be auscultated at:",
+                options: [
+                                "24 weeks",
+                                "12 weeks",
+                                "18 weeks",
+                                "40 weeks"
+                ],
+                correct: 0,
+                rationale: "The lecture states that auscultation of fetal heart sound is at 24 weeks."
+            },
+            {
+                id: 6,
+                question: "Chloasma is a probable sign of pregnancy seen as pigmentation on the:",
+                options: [
+                                "Face",
+                                "Hands",
+                                "Feet",
+                                "Back"
+                ],
+                correct: 0,
+                rationale: "The lecture states that pigmentation on the face is called chloasma, and on the abdomen linea nigra."
+            },
+            {
+                id: 7,
+                question: "Which of the following is a genital sign of pregnancy?",
+                options: [
+                                "Soft cervix",
+                                "Chloasma",
+                                "Linea nigra",
+                                "Pigmented areola"
+                ],
+                correct: 0,
+                rationale: "The lecture lists enlargement of the uterus, dark vulva, soft cervix and increased vascularity of the vagina among the genital signs."
+            },
+            {
+                id: 8,
+                question: "Which of the following is a method of general violence used to induce criminal abortion?",
+                options: [
+                                "Jumping and horse riding",
+                                "Insertion of vaginal plugs",
+                                "Use of drugs acting on the uterus",
+                                "Use of protoplasmic poisons"
+                ],
+                correct: 0,
+                rationale: "General violence includes jumping, carrying heavy objects, kicking and horse riding, and it usually fails to cause abortion."
+            },
+            {
+                id: 9,
+                question: "Which of the following is a medicolegal condition in which a female is examined for signs of delivery?",
+                options: [
+                                "Disputed maternity",
+                                "Fever",
+                                "Anemia",
+                                "Headache"
+                ],
+                correct: 0,
+                rationale: "The lecture lists infanticide suspicion, disputed maternity, rape and a widow alleging delivery to inherit among the medicolegal conditions for examining signs of delivery."
+            },
+            {
+                id: 10,
+                question: "After labour, the uterus is at the level of the umbilicus and returns to its normal size in:",
+                options: [
+                                "6 weeks",
+                                "2 weeks",
+                                "6 days",
+                                "6 months"
+                ],
+                correct: 0,
+                rationale: "The lecture states that after labour the uterus is at the level of the umbilicus and decreases gradually to its normal size in 6 weeks."
+            },
+            {
+                id: 11,
+                question: "After recent delivery, the external os closes and becomes button-hole shaped in:",
+                options: [
+                                "2 weeks",
+                                "24 hours",
+                                "4 days",
+                                "6 weeks"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the external os closes in 2 weeks and becomes button-hole shaped."
+            },
+            {
+                id: 12,
+                question: "The discharge after recent delivery is:",
+                options: [
+                                "Bloody within 4 to 5 days, yellowish within 1 week and white within 2 weeks",
+                                "White within 1 day",
+                                "Yellow within 1 month",
+                                "Absent always"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the discharge is bloody within 4 to 5 days, yellowish within one week and white within two weeks."
+            },
+            {
+                id: 13,
+                question: "Which of the following is a sign of remote delivery?",
+                options: [
+                                "Transverse slit external os",
+                                "Congested vulva",
+                                "Bloody discharge",
+                                "Pale exhausted look"
+                ],
+                correct: 0,
+                rationale: "The lecture lists transverse slit external os among the signs of remote delivery; the others are signs of recent delivery."
+            },
+            {
+                id: 14,
+                question: "Medicolegally, abortion is the expulsion of the uterine content:",
+                options: [
+                                "At any time before full term",
+                                "Only in the first month",
+                                "Only at full term",
+                                "Only in the second trimester"
+                ],
+                correct: 0,
+                rationale: "The lecture defines abortion as the expulsion of the uterine content at any time before full term."
+            },
+            {
+                id: 15,
+                question: "Which of the following is a maternal cause of spontaneous abortion?",
+                options: [
+                                "Diabetes",
+                                "Congenital anomalies",
+                                "Placental diseases",
+                                "Foreign body insertion"
+                ],
+                correct: 0,
+                rationale: "The lecture lists general maternal diseases such as fever, diabetes, hyperthyroidism and Rh factor among the causes of spontaneous abortion."
+            },
+            {
+                id: 16,
+                question: "Which of the following is an indication for therapeutic abortion?",
+                options: [
+                                "Uncompensated heart disease",
+                                "Mild headache",
+                                "Simple cold",
+                                "Seasonal allergy"
+                ],
+                correct: 0,
+                rationale: "The lecture lists uncompensated heart diseases, toxemia of pregnancy, chronic kidney diseases, bilateral advanced pulmonary tuberculosis, uncontrolled diabetes and uncontrolled hypertension as indications for therapeutic abortion."
+            },
+            {
+                id: 17,
+                question: "Before therapeutic abortion, a written report is required from:",
+                options: [
+                                "2 specialists stating that continuation of pregnancy endangers the female's life",
+                                "One medical student",
+                                "The hospital porter",
+                                "The pharmacist"
+                ],
+                correct: 0,
+                rationale: "The lecture states that a written report from 2 specialists stating that the continuation of pregnancy endangers the female's life is required before therapeutic abortion."
+            },
+            {
+                id: 18,
+                question: "Therapeutic abortion should be performed:",
+                options: [
+                                "In a maternity or general hospital by an obstetrician",
+                                "At home by a nurse",
+                                "In a pharmacy",
+                                "Anywhere by any doctor"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the abortion should be done in a maternity or general hospital and performed only by an obstetrician."
+            },
+            {
+                id: 19,
+                question: "Which of the following drugs induces criminal abortion by direct uterine muscle contraction?",
+                options: [
+                                "Ergot",
+                                "Castor oil",
+                                "Jalap",
+                                "Croton oil"
+                ],
+                correct: 0,
+                rationale: "The lecture lists quinine, ergot, lead and pituitrin as drugs acting directly through uterine muscle contraction; castor oil, jalap and croton oil act reflexly through purgative effects."
+            },
+            {
+                id: 20,
+                question: "Drugs such as jalap, castor oil and croton oil induce abortion:",
+                options: [
+                                "Reflexly through purgative effects on the intestines",
+                                "Directly on uterine muscle",
+                                "By killing the ovum",
+                                "By dilating the cervix"
+                ],
+                correct: 0,
+                rationale: "The lecture states that these drugs act reflexly through purgative effects on the intestines."
+            },
+            {
+                id: 21,
+                question: "Protoplasmic poisons used in criminal abortion act on:",
+                options: [
+                                "The ovum resulting in its death",
+                                "The intestines",
+                                "The cervix only",
+                                "The breasts"
+                ],
+                correct: 0,
+                rationale: "The lecture states that protoplasmic poisons act on the ovum resulting in its death."
+            },
+            {
+                id: 22,
+                question: "Neurogenic shock as a complication of criminal abortion occurs from:",
+                options: [
+                                "Manipulation done to dilate the os and from vaginal douche",
+                                "Eating heavy meals",
+                                "Walking long distances",
+                                "Lack of sleep"
+                ],
+                correct: 0,
+                rationale: "The lecture states that neurogenic shock occurs from the manipulation done to dilate the os and from vaginal douche."
+            },
+            {
+                id: 23,
+                question: "The weight of a respired lung compared with body weight is about:",
+                options: [
+                                "1 to 35",
+                                "1 to 70",
+                                "1 to 20",
+                                "1 to 100"
+                ],
+                correct: 0,
+                rationale: "Respired lungs weigh about 1 to 35 of body weight, while non respired lungs weigh about 1 to 70."
+            },
+            {
+                id: 24,
+                question: "The most common complication of criminal abortion is:",
+                options: [
+                                "Infection",
+                                "Neurogenic shock",
+                                "Embolism",
+                                "Poisoning"
+                ],
+                correct: 0,
+                rationale: "The lecture states that infection is the most common complication and affects any part of the genital tract such as cervicitis, endometritis, peritonitis and septicemia."
+            },
+            {
+                id: 25,
+                question: "Primary fatal haemorrhage in criminal abortion is due to:",
+                options: [
+                                "Injury to the placental area",
+                                "Sepsis",
+                                "Embolism",
+                                "Shock"
+                ],
+                correct: 0,
+                rationale: "The lecture states that primary fatal haemorrhage is due to injury to the placental area, while secondary haemorrhage is due to infection."
+            },
+            {
+                id: 26,
+                question: "Infanticide is the intentional killing of a newborn, defined as the infant from birth till:",
+                options: [
+                                "2 weeks after birth",
+                                "2 months after birth",
+                                "1 year after birth",
+                                "2 days after birth"
+                ],
+                correct: 0,
+                rationale: "The lecture defines the newborn as the infant from birth till 2 weeks after."
+            },
+            {
+                id: 27,
+                question: "Legally, the child is considered viable if the period of pregnancy is:",
+                options: [
+                                "28 weeks or more",
+                                "20 weeks or more",
+                                "36 weeks or more",
+                                "16 weeks or more"
+                ],
+                correct: 0,
+                rationale: "The lecture states that legally the child is considered viable if the period of pregnancy is 28 weeks or more."
+            },
+            {
+                id: 28,
+                question: "A characteristic of a full-term infant is a length of:",
+                options: [
+                                "45 to 50 cm",
+                                "30 to 35 cm",
+                                "60 to 65 cm",
+                                "25 to 30 cm"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the length of a full-term infant is 45 to 50 cm."
+            },
+            {
+                id: 29,
+                question: "The weight of a full-term infant is:",
+                options: [
+                                "3 to 3.5 kg",
+                                "1 to 1.5 kg",
+                                "5 to 6 kg",
+                                "2 to 2.5 kg"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the weight of a full-term infant is 3 to 3.5 kg."
+            },
+            {
+                id: 30,
+                question: "Which of the following is a sure sign of live birth?",
+                options: [
+                                "Milk in the stomach",
+                                "Closed posterior fontanelle",
+                                "Testes in the scrotum",
+                                "Meconium in the rectum"
+                ],
+                correct: 0,
+                rationale: "The lecture lists milk in the stomach or well-formed stool in the large intestine among the 3 sure signs of live birth."
+            },
+            {
+                id: 31,
+                question: "The vital reaction at the base of the umbilical cord appears at:",
+                options: [
+                                "1 to 2 days after birth",
+                                "1 hour after birth",
+                                "1 week after birth",
+                                "1 month after birth"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the vital reaction at the base of the umbilical cord appears at 1 to 2 days after birth and increases till separation of the cord at 5 to 8 days after birth."
+            },
+            {
+                id: 32,
+                question: "A respired lung is characterized by being:",
+                options: [
+                                "Spongy and pink",
+                                "Firm and dark bluish",
+                                "Small and firm",
+                                "Liver-like"
+                ],
+                correct: 0,
+                rationale: "The lecture table states that the respired lung is pink or mottled, spongy and fills the chest cavity, while the non-respired lung is small, firm and dark bluish like the liver."
+            },
+            {
+                id: 33,
+                question: "The lung floatation test is of limited value because non-respired lungs may float due to:",
+                options: [
+                                "Putrefaction gases or air from resuscitation",
+                                "Excess blood",
+                                "Meconium",
+                                "Milk"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the lung floatation test is of limited value as non-respired lungs may float due to putrefaction gases or air in case of resuscitation."
+            },
+            {
+                id: 34,
+                question: "In criminal head injury of a newborn, the fracture is:",
+                options: [
+                                "Depressed comminuted with brain laceration and hemorrhage",
+                                "Fissured with no bleeding",
+                                "Absent",
+                                "Always linear"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in criminal head injury the fracture is depressed comminuted with brain laceration and hemorrhage."
+            },
+            {
+                id: 35,
+                question: "Spontaneous abortion is of great medicolegal importance.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that spontaneous abortion is not of medicolegal importance."
+            },
+            {
+                id: 36,
+                question: "A written consent from the woman and her husband should be obtained before therapeutic abortion.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that a written consent from the woman and her husband should be obtained before therapeutic abortion."
+            },
+            {
+                id: 37,
+                question: "In newborns, the rate of cooling and rigor mortis is rapid while putrefaction is delayed.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in newborns there is a rapid rate of cooling and rigor mortis, while the rate of putrefaction is delayed."
+            },
+            {
+                id: 38,
+                question: "The umbilical cord of a full-term infant is about 50 cm long.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the umbilical cord of a full-term infant is 50 cm long."
+            },
+            {
+                id: 39,
+                question: "Non respired lungs are firm and dark bluish in color.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "Non respired lungs fill the chest cavity, have sharp borders, are dark bluish and liver-like, and are firm."
+            },
+            {
+                id: 40,
+                question: "In a full-term male infant, the testes are in the scrotum.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in a full-term male infant the testes are in the scrotum, and in females the labia close the vagina."
+            },
+            {
+                id: 41,
+                question: "Abrasions, lacerations and true knots in an umbilical cord of normal length point to accidental strangulation.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that these findings point to criminal strangulation."
+            },
+            {
+                id: 42,
+                question: "In precipitate labour, there is a big caput succedaneum with overmoulding of cranial bones.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that in precipitate labour there is no caput succedaneum; the big caput succedaneum with overmoulding is found in difficult labour."
+            },
+            {
+                id: 43,
+                question: "The weight of the placenta at full term is about 600 gm.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the weight of the placenta at full term is 600 gm."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
