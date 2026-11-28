@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Ethics of Nursing and Medicolegal Duties of the Nurse</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 15 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Nursing is described as an art because it demands:",
+                options: [
+                                "Suitable relations to patients and their families",
+                                "Expensive equipment in every hospital",
+                                "A license from the ministry of justice",
+                                "Daily contact with the forensic doctor"
+                ],
+                correct: 0,
+                rationale: "The lecture states that nursing is an art because it demands having suitable relations to patients and their families."
+            },
+            {
+                id: 2,
+                question: "Which of the following is one of the 4 fundamental responsibilities of nurses?",
+                options: [
+                                "Alleviate suffering",
+                                "Prescribe medications",
+                                "Confirm the cause of death",
+                                "Issue birth certificates"
+                ],
+                correct: 0,
+                rationale: "The lecture lists 4 fundamental responsibilities: to promote health, to prevent illness, to restore health and to alleviate suffering."
+            },
+            {
+                id: 3,
+                question: "Inherent in nursing is respect for human rights, including the right to:",
+                options: [
+                                "Life, dignity and to be treated with respect",
+                                "Free transportation and housing",
+                                "Vote in hospital elections",
+                                "Choose the hospital budget"
+                ],
+                correct: 0,
+                rationale: "The lecture states that inherent in nursing is respect for human rights, including the right to life, to dignity and to be treated with respect."
+            },
+            {
+                id: 4,
+                question: "How many elements does the ICN Code of Ethics for Nurses have?",
+                options: [
+                                "4",
+                                "6",
+                                "8",
+                                "10"
+                ],
+                correct: 0,
+                rationale: "The lecture lists 4 elements of the Code: nurses and people, nurses and practice, nurses and the profession, and nurses and co-workers."
+            },
+            {
+                id: 5,
+                question: "Under the element nurses and people, the nurse holds in confidence:",
+                options: [
+                                "Personal information",
+                                "The hospital prices",
+                                "The drug store keys",
+                                "The staff list"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the nurse holds in confidence personal information and uses judgment in sharing this information."
+            },
+            {
+                id: 6,
+                question: "The nurse shares responsibility to sustain and protect the natural environment from:",
+                options: [
+                                "Depletion, pollution, degradation and destruction",
+                                "Noise and traffic only",
+                                "Overcrowding only",
+                                "Light and heat only"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the nurse also shares responsibility to sustain and protect the natural environment from depletion, pollution, degradation and destruction."
+            },
+            {
+                id: 7,
+                question: "The nurse uses judgment regarding individual competence when:",
+                options: [
+                                "Accepting and delegating responsibility",
+                                "Writing the hospital menu",
+                                "Choosing the uniform color",
+                                "Arranging the parking lot"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the nurse uses judgment regarding individual competence when accepting and delegating responsibility."
+            },
+            {
+                id: 8,
+                question: "The nurse assumes the major role in determining acceptable standards of:",
+                options: [
+                                "Clinical nursing practice, management, research and education",
+                                "Hospital architecture",
+                                "Food supply",
+                                "Medical pricing"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the nurse assumes the major role in determining acceptable standards of clinical nursing practice, management, research and education."
+            },
+            {
+                id: 9,
+                question: "Acting through the professional organization, the nurse participates in creating and maintaining:",
+                options: [
+                                "Equitable social and economic working conditions in nursing",
+                                "New hospital buildings",
+                                "Police records",
+                                "Pharmacy stocks"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the nurse, acting through the professional organization, participates in creating and maintaining equitable social and economic working conditions in nursing."
+            },
+            {
+                id: 10,
+                question: "In the operation room, the nurse should count the surgical instruments and towels:",
+                options: [
+                                "Before and after the operation",
+                                "Only before the operation",
+                                "Only after the operation",
+                                "Once every week"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in the operation room, you should count the surgical instruments and towels before and after the operation."
+            },
+            {
+                id: 11,
+                question: "During injections the nurse should be sure about the type of injection and site, and give it:",
+                options: [
+                                "Only after doctor prescription",
+                                "Before informing the doctor",
+                                "Whenever the patient asks",
+                                "Without checking the site"
+                ],
+                correct: 0,
+                rationale: "The lecture states that during injections you should be sure about the type of injection, site, and give it only after doctor prescription."
+            },
+            {
+                id: 12,
+                question: "In cases of poisoning, the nurse should keep:",
+                options: [
+                                "Vomitus or the fluid taken from gastric lavage",
+                                "The patient's shoes",
+                                "The ambulance report",
+                                "The pharmacy bill"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the nurse should keep vomitus or the fluid taken from gastric lavage in cases of poisoning."
+            },
+            {
+                id: 13,
+                question: "The international code of ethics for nurses was first adopted by the World Health Organization.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the international code of ethics for nurses was first adopted by the International Council of Nurses, not the World Health Organization."
+            },
+            {
+                id: 14,
+                question: "If a nurse is near a dying person, she must call the doctor and write down anything he wants to say or write.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that if you are near a dying person, you must call the doctor and if he wants to say or write anything you should write it."
+            },
+            {
+                id: 15,
+                question: "The nurse may divulge the patient's secret by order of the court.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists among the exceptions: to defend yourself or by the order of the court."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
