@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Poisonous Plants and Opium Poisoning</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 18 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Alkaloidal poisons have mainly which type of action?",
+                options: [
+                                "Remote action after being absorbed",
+                                "Local action only",
+                                "No systemic effect",
+                                "Action on skin only"
+                ],
+                correct: 0,
+                rationale: "The lecture states that alkaloidal poisons have mainly remote action after being absorbed."
+            },
+            {
+                id: 2,
+                question: "The atropine group of alkaloids includes atropine, hyoscyamine and:",
+                options: [
+                                "Hyoscine",
+                                "Morphine",
+                                "Codeine",
+                                "Papaverine"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the active principles in this group are atropine, hyoscyamine and hyoscine."
+            },
+            {
+                id: 3,
+                question: "Therapeutically, atropine is used as a preanaesthetic medication to:",
+                options: [
+                                "Decrease secretion and abolish the effect of the vagus nerve on the heart",
+                                "Raise the blood pressure",
+                                "Cause sleep",
+                                "Relax skeletal muscle"
+                ],
+                correct: 0,
+                rationale: "The lecture states that atropine is used as a preanaesthetic medication to decrease secretion, counteract the effect of morphine on the respiratory center and abolish the effect of the vagus nerve on the heart."
+            },
+            {
+                id: 4,
+                question: "Accidental atropine poisoning commonly occurs in children who:",
+                options: [
+                                "Eat the seeds of datura in mistake for edible ones",
+                                "Drink milk",
+                                "Play in the sun",
+                                "Eat sweets"
+                ],
+                correct: 0,
+                rationale: "The lecture states that accidental poisoning occurs in children who eat the seeds of datura in mistake for edible ones or from overdosage during therapy."
+            },
+            {
+                id: 5,
+                question: "In atropine poisoning, the skin is described as:",
+                options: [
+                                "Dry, hot and flushed",
+                                "Cold and sweaty",
+                                "Pale and moist",
+                                "Cyanosed"
+                ],
+                correct: 0,
+                rationale: "The lecture states that dilation of peripheral blood vessels leads to flushing, so the skin is dry, hot and flushed."
+            },
+            {
+                id: 6,
+                question: "A patient with atropine poisoning is classically described as:",
+                options: [
+                                "Blind as a bat, red as a beet, dry as a bone, hot as a hare, mad as a hen",
+                                "Pale, cold, sweating and sleepy",
+                                "Calm, cyanosed and comatose",
+                                "Weak, slow and cold"
+                ],
+                correct: 0,
+                rationale: "The lecture describes the patient with atropine poisoning as blind as a bat, red as a beet, dry as a bone, hot as a hare, mad as a hen."
+            },
+            {
+                id: 7,
+                question: "The central stimulation stage of atropine poisoning includes delirium, hallucination and:",
+                options: [
+                                "Occupational purposeless movements such as catching imaginary objects",
+                                "Deep coma",
+                                "Slow pulse",
+                                "Pinpoint pupils"
+                ],
+                correct: 0,
+                rationale: "The lecture lists occupational purposeless movements such as catching imaginary objects among the central stimulation signs."
+            },
+            {
+                id: 8,
+                question: "The adult dose of physostigmine salicylate is 1 to 2 mg repeated every half hour if needed till a maximum of:",
+                options: [
+                                "6 mg",
+                                "2 mg",
+                                "10 mg",
+                                "20 mg"
+                ],
+                correct: 0,
+                rationale: "The lecture states that physostigmine salicylate is given IM or IV slowly in a dose of 1 to 2 mg repeated every half hour if needed till a maximum of 6 mg."
+            },
+            {
+                id: 9,
+                question: "Hyperthermia in atropine poisoning is treated by:",
+                options: [
+                                "Ice packs",
+                                "Warm blankets",
+                                "Hot drinks",
+                                "Sauna"
+                ],
+                correct: 0,
+                rationale: "The lecture lists treatment of hyperthermia by ice packs."
+            },
+            {
+                id: 10,
+                question: "Opium has a characteristic smell due to the presence of:",
+                options: [
+                                "Meconic acid",
+                                "Acetic acid",
+                                "Sulphuric acid",
+                                "Lactic acid"
+                ],
+                correct: 0,
+                rationale: "The lecture states that opium has a characteristic smell due to the presence of meconic acid."
+            },
+            {
+                id: 11,
+                question: "Morphine is contraindicated in children under 12 years because:",
+                options: [
+                                "The respiratory system is very sensitive",
+                                "It causes hyperactivity",
+                                "It damages the teeth",
+                                "It stops growth"
+                ],
+                correct: 0,
+                rationale: "The lecture states that morphine is contraindicated in children under 12 years old as the respiratory system is very sensitive."
+            },
+            {
+                id: 12,
+                question: "The pinpoint pupils in opium poisoning result from stimulation of:",
+                options: [
+                                "The third nerve nucleus",
+                                "The vagus nerve nucleus",
+                                "The vomiting center",
+                                "The cerebral cortex"
+                ],
+                correct: 0,
+                rationale: "The lecture states that opiates cause stimulation of the third nerve nucleus leading to pinpoint pupils."
+            },
+            {
+                id: 13,
+                question: "Hypothermia in opium poisoning is due to depression of:",
+                options: [
+                                "The heat regulation center",
+                                "The cough center",
+                                "The vomiting center",
+                                "The motor cortex"
+                ],
+                correct: 0,
+                rationale: "The lecture states that opiates depress the heat regulation center leading to hypothermia."
+            },
+            {
+                id: 14,
+                question: "The specific physiological antidote in opium poisoning is:",
+                options: [
+                                "Naloxone",
+                                "Physostigmine",
+                                "Atropine",
+                                "Pralidoxime"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the physiological antidote is naloxone in a dose of 0.4 to 0.8 mg for adults IV or IM, repeated after 20 to 60 minutes."
+            },
+            {
+                id: 15,
+                question: "Hyoscine has a central stimulant effect followed by depression.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that the central effect is stimulation followed by depression except hyoscine which has a depressant effect only."
+            },
+            {
+                id: 16,
+                question: "In atropine poisoning, the test for alcohol is positive.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture table states that the test for alcohol is negative in atropine poisoning and positive in alcohol poisoning."
+            },
+            {
+                id: 17,
+                question: "Codeine is used in cough mixtures because opiates depress the cough center.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that opiates depress the cough center so codeine is used in cough mixtures."
+            },
+            {
+                id: 18,
+                question: "Naloxone can be used in coma and respiratory depression of non-opiate drugs because it does not cause respiratory depression.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that naloxone can be used in cases of coma and respiratory depression of opiate or non-opiate drugs as it does not cause respiratory depression."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
