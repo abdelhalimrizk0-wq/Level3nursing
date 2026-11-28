@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Violent Asphyxia</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 23 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Violent asphyxia is defined as:",
+                options: [
+                                "Mechanical interference of respiration as a result of violence",
+                                "Any natural stoppage of the heart",
+                                "A slow poisoning by drugs",
+                                "A sudden rise of blood pressure"
+                ],
+                correct: 0,
+                rationale: "The lecture defines violent asphyxia as mechanical interference of respiration as a result of violence."
+            },
+            {
+                id: 2,
+                question: "Choking results from:",
+                options: [
+                                "Closure of air passage by foreign body impaction",
+                                "External pressure on the chest",
+                                "Fluid in the air passages",
+                                "Pressure on the neck by a rope"
+                ],
+                correct: 0,
+                rationale: "The lecture states that closure of the air passage by foreign body impaction results in choking."
+            },
+            {
+                id: 3,
+                question: "Traumatic asphyxia results from:",
+                options: [
+                                "External pressure on the chest preventing breathing movements",
+                                "Fluid in air passages",
+                                "Foreign body in the larynx",
+                                "Pressure on the neck by hand"
+                ],
+                correct: 0,
+                rationale: "The lecture states that external pressure on the chest which prevents breathing movements results in traumatic asphyxia."
+            },
+            {
+                id: 4,
+                question: "Cyanosis in asphyxia is seen at the lips, under the nails and at the:",
+                options: [
+                                "Lobule of the ear",
+                                "Palm of the hand",
+                                "Sole of the foot",
+                                "Back of the neck"
+                ],
+                correct: 0,
+                rationale: "The lecture lists the site of cyanosis as the lips, under the nails and the lobule of the ear."
+            },
+            {
+                id: 5,
+                question: "Petechial hemorrhage in asphyxia is typically seen at the:",
+                options: [
+                                "Eye lids and face",
+                                "Abdomen",
+                                "Back",
+                                "Feet"
+                ],
+                correct: 0,
+                rationale: "The lecture lists the site of petechial hemorrhage as the eye lid and face."
+            },
+            {
+                id: 6,
+                question: "Tardieu spots in asphyxia are:",
+                options: [
+                                "Petechial haemorrhages on the pericardium",
+                                "Bruises of the neck muscles",
+                                "Rope marks on the neck",
+                                "Scars of the skin"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in the cardiovascular system there are petechial haemorrhages on the pericardium called Tardieu spots."
+            },
+            {
+                id: 7,
+                question: "Rupture of alveoli in asphyxia is due to:",
+                options: [
+                                "Increased intrathoracic pressure",
+                                "Bacterial infection",
+                                "Severe coughing before death",
+                                "Old age"
+                ],
+                correct: 0,
+                rationale: "The lecture states that rupture of alveoli occurs due to increased intrathoracic pressure, producing silvery spots."
+            },
+            {
+                id: 8,
+                question: "An accidental circumstance of smothering is:",
+                options: [
+                                "Young infants covered with blankets",
+                                "Assault on a weak adult",
+                                "Infanticide",
+                                "Legal execution"
+                ],
+                correct: 0,
+                rationale: "The lecture lists accidental smothering in young infants who are covered with blankets."
+            },
+            {
+                id: 9,
+                question: "Choking is commonly homicidal in cases of:",
+                options: [
+                                "Infanticide",
+                                "Robbery",
+                                "Road accidents",
+                                "Legal execution"
+                ],
+                correct: 0,
+                rationale: "The lecture states that homicidal choking is common in infanticide."
+            },
+            {
+                id: 10,
+                question: "An accidental circumstance of choking is:",
+                options: [
+                                "Children putting foreign bodies such as coins in their mouths",
+                                "Blankets covering infants",
+                                "Quarrels",
+                                "Diving into water"
+                ],
+                correct: 0,
+                rationale: "The lecture lists accidental choking during anesthesia and in children by putting foreign bodies in their mouths, such as coins."
+            },
+            {
+                id: 11,
+                question: "Throttling is defined as:",
+                options: [
+                                "Manual pressure to the neck by one or both hands",
+                                "Constriction of the neck by a rope",
+                                "Suspension of the body by a ligature",
+                                "Obstruction of the mouth by a hand"
+                ],
+                correct: 0,
+                rationale: "The lecture defines throttling as manual pressure to the neck by one or both hands."
+            },
+            {
+                id: 12,
+                question: "Which of the following is a cause of death in throttling?",
+                options: [
+                                "Reflex cardiac arrest",
+                                "Aspiration pneumonia",
+                                "Pulmonary oedema",
+                                "Drowning"
+                ],
+                correct: 0,
+                rationale: "The lecture lists causes of death in throttling: reflex cardiac arrest, syncope due to obstruction of carotid arteries, and asphyxia."
+            },
+            {
+                id: 13,
+                question: "Accidental strangulation may occur in an infant by:",
+                options: [
+                                "The umbilical cord",
+                                "A blanket",
+                                "A pillow",
+                                "A coin"
+                ],
+                correct: 0,
+                rationale: "The lecture lists accidental strangulation of an infant by the umbilical cord."
+            },
+            {
+                id: 14,
+                question: "The rope mark in hanging is:",
+                options: [
+                                "Incomplete, oblique and high",
+                                "Complete, low and single",
+                                "Always horizontal",
+                                "Never present"
+                ],
+                correct: 0,
+                rationale: "The lecture lists among the specific signs of hanging an incomplete, oblique, high rope mark."
+            },
+            {
+                id: 15,
+                question: "Which of the following supports that a hanging is suicidal?",
+                options: [
+                                "Presence of a suicidal note and no signs of resistance",
+                                "Multiple bruises of the neck muscles",
+                                "Signs of a struggle",
+                                "A broken hyoid bone"
+                ],
+                correct: 0,
+                rationale: "The lecture states that suicidal hanging is confirmed by the presence of a suicidal note, history of troubles, other self-inflicted injuries and no signs of resistance."
+            },
+            {
+                id: 16,
+                question: "In hanging, neurogenic shock results from compression of:",
+                options: [
+                                "Both vagus nerves",
+                                "The phrenic nerves",
+                                "The spinal cord",
+                                "The facial nerves"
+                ],
+                correct: 0,
+                rationale: "The lecture states that neurogenic shock in hanging results from the compression of both vagus nerves."
+            },
+            {
+                id: 17,
+                question: "Diatoms in drowning are found in the lungs, liver, brain and:",
+                options: [
+                                "Bone marrow",
+                                "Skin",
+                                "Hair",
+                                "Nails"
+                ],
+                correct: 0,
+                rationale: "The lecture states that diatoms are present in the lungs, liver, brain and bone marrow."
+            },
+            {
+                id: 18,
+                question: "Cadaveric spasm in drowning means the victim:",
+                options: [
+                                "Grasps anything from the water such as weed, mud and sand",
+                                "Has a rigid neck",
+                                "Shows rope marks",
+                                "Has no signs of asphyxia"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in cadaveric spasm the victim tries to grasp anything from the water such as weed, mud and sand."
+            },
+            {
+                id: 19,
+                question: "In violent asphyxia, the blood is dark and more fluid.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists among the postmortem changes of asphyxia that the blood is dark and more fluid due to reduced haemoglobin and increased blood fluidity."
+            },
+            {
+                id: 20,
+                question: "The hyoid bone is usually broken in hanging.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture notes that in hanging the hyoid bone is usually not broken."
+            },
+            {
+                id: 21,
+                question: "Hypostasis in hanging is found in the lower limbs and hands.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists hypostasis in the lower limbs and hands among the specific signs of hanging."
+            },
+            {
+                id: 22,
+                question: "Legal hanging is the method of execution in Egypt.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that legal hanging is the method of execution in Egypt."
+            },
+            {
+                id: 23,
+                question: "The presence of foam at the mouth and nostrils in drowning is a vital reaction.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the foam at the mouth and nostrils in drowning is a vital reaction and a sure sign of drowning."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
