@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Insecticides and Food Poisoning</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 38 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Insecticides are defined as:",
+                options: [
+                                "Groups of chemicals that eradicate insects",
+                                "Drugs that treat fever",
+                                "Plants used as antidotes",
+                                "Vitamins for animals"
+                ],
+                correct: 0,
+                rationale: "The lecture defines insecticides as groups of chemicals that eradicate insects."
+            },
+            {
+                id: 2,
+                question: "Which of the following is a chlorinated hydrocarbon insecticide?",
+                options: [
+                                "DDT",
+                                "Parathion",
+                                "Sevin",
+                                "Baygon"
+                ],
+                correct: 0,
+                rationale: "The lecture lists DDT, gammaxene and toxaphen as chlorinated hydrocarbon insecticides."
+            },
+            {
+                id: 3,
+                question: "Cholinesterase inhibitor insecticides include organophosphorus insecticides and:",
+                options: [
+                                "Carbamate insecticides",
+                                "Chlorinated hydrocarbons",
+                                "Pyrethrum",
+                                "Boric acid"
+                ],
+                correct: 0,
+                rationale: "The lecture classifies cholinesterase inhibitor insecticides into organophosphorus and carbamate insecticides."
+            },
+            {
+                id: 4,
+                question: "Attempted suicide with parathion usually occurs by:",
+                options: [
+                                "Ingestion",
+                                "Injection",
+                                "Inhalation",
+                                "Skin contact"
+                ],
+                correct: 0,
+                rationale: "The lecture states that attempted suicide with organophosphorus insecticides is usually by ingestion."
+            },
+            {
+                id: 5,
+                question: "Organophosphorus insecticides are:",
+                options: [
+                                "Cholinesterase inhibitors",
+                                "Dopamine blockers",
+                                "CNS stimulants only",
+                                "Muscle relaxants"
+                ],
+                correct: 0,
+                rationale: "The lecture states that organophosphorus insecticides are cholinesterase inhibitors."
+            },
+            {
+                id: 6,
+                question: "The muscarinic effect of parathion toxicity is due to:",
+                options: [
+                                "Increased postganglionic parasympathetic activity",
+                                "Persistent depolarization of skeletal muscles",
+                                "Block of dopamine receptors",
+                                "Histamine release"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the muscarinic effect is due to increased postganglionic parasympathetic activity."
+            },
+            {
+                id: 7,
+                question: "Which of the following is a muscarinic sign of parathion toxicity?",
+                options: [
+                                "Constricted pupil",
+                                "Muscle fasciculations",
+                                "Convulsions",
+                                "Paralysis"
+                ],
+                correct: 0,
+                rationale: "The lecture lists constricted pupil and lacrimation among the muscarinic signs; fasciculations are nicotinic."
+            },
+            {
+                id: 8,
+                question: "The nicotinic effect of parathion toxicity is due to:",
+                options: [
+                                "Persistent depolarization of skeletal muscles",
+                                "Increased parasympathetic activity",
+                                "Vagal stimulation",
+                                "Dopamine block"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the nicotinic effect is due to persistent depolarization of skeletal muscles."
+            },
+            {
+                id: 9,
+                question: "Fasciculations in parathion toxicity are seen in the eye lids, tongue, face and:",
+                options: [
+                                "Neck",
+                                "Abdomen",
+                                "Feet",
+                                "Back"
+                ],
+                correct: 0,
+                rationale: "The lecture states that fasciculations occur in the eye lids, tongue, face and neck, even convulsion, followed by neuromuscular block and muscle paralysis."
+            },
+            {
+                id: 10,
+                question: "The cause of death in organophosphorus poisoning is:",
+                options: [
+                                "Respiratory failure",
+                                "Renal failure",
+                                "Hepatic failure",
+                                "Severe hemorrhage"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the cause of death is respiratory failure."
+            },
+            {
+                id: 11,
+                question: "Organophosphorus poisoning is investigated by estimation of:",
+                options: [
+                                "Cholinesterase enzyme level in red cells and plasma",
+                                "Blood sugar",
+                                "Serum calcium",
+                                "Blood urea"
+                ],
+                correct: 0,
+                rationale: "The lecture states that investigations include estimation of cholinesterase enzyme level in red cells and plasma."
+            },
+            {
+                id: 12,
+                question: "Mild organophosphorus toxicity corresponds to a serum cholinesterase activity of:",
+                options: [
+                                "20 to 50% of normal",
+                                "More than 50% of normal",
+                                "10 to 20% of normal",
+                                "Less than 10% of normal"
+                ],
+                correct: 0,
+                rationale: "The lecture states that mild cases have serum cholinesterase activity of 20 to 50% of normal values."
+            },
+            {
+                id: 13,
+                question: "Severe organophosphorus toxicity corresponds to a cholinesterase activity of:",
+                options: [
+                                "Less than 10% of normal",
+                                "20 to 50% of normal",
+                                "10 to 20% of normal",
+                                "More than 50% of normal"
+                ],
+                correct: 0,
+                rationale: "The lecture states that severe toxicity is less than 10% of normal cholinesterase activity."
+            },
+            {
+                id: 14,
+                question: "Atropine sulphate in parathion poisoning is given in a dose of 2 mg IV repeated every:",
+                options: [
+                                "5 to 10 minutes until atropinization",
+                                "1 hour",
+                                "24 hours",
+                                "30 seconds"
+                ],
+                correct: 0,
+                rationale: "The lecture states that atropine sulphate is given 2 mg IV repeated every 5 to 10 minutes until atropinization occurs, shown by dried bronchial secretions."
+            },
+            {
+                id: 15,
+                question: "Atropinization in parathion poisoning is recognized by:",
+                options: [
+                                "Dried bronchial secretions",
+                                "Constricted pupils",
+                                "Slow pulse",
+                                "Increased salivation"
+                ],
+                correct: 0,
+                rationale: "The lecture states that atropine is repeated until atropinization occurs, shown by dried bronchial secretions."
+            },
+            {
+                id: 16,
+                question: "Oximes in organophosphorus poisoning act as:",
+                options: [
+                                "Cholinesterase reactivators",
+                                "Muscarinic blockers",
+                                "Anticonvulsants",
+                                "Diuretics"
+                ],
+                correct: 0,
+                rationale: "The lecture describes oximes as cholinesterase reactivators, such as PAM-DAM and toxogonin."
+            },
+            {
+                id: 17,
+                question: "The dose of toxogonin in organophosphorus poisoning is:",
+                options: [
+                                "250 mg IV repeated if needed after 2 hours",
+                                "2 mg IV every 5 minutes",
+                                "1 gm IM hourly",
+                                "500 mg orally"
+                ],
+                correct: 0,
+                rationale: "The lecture states that toxogonin dose is 250 mg, one ampoule, IV, repeated if needed after 2 hours."
+            },
+            {
+                id: 18,
+                question: "Sevin and Baygon are examples of:",
+                options: [
+                                "Carbamate insecticides",
+                                "Organophosphorus insecticides",
+                                "Chlorinated hydrocarbons",
+                                "Herbicides"
+                ],
+                correct: 0,
+                rationale: "The lecture gives Sevin and Baygon as examples of carbamate insecticides."
+            },
+            {
+                id: 19,
+                question: "Carbamate insecticides are:",
+                options: [
+                                "Reversible cholinesterase inhibitors",
+                                "Irreversible cholinesterase inhibitors",
+                                "Dopamine agonists",
+                                "Anticoagulants"
+                ],
+                correct: 0,
+                rationale: "The lecture states that carbamate insecticides are reversible cholinesterase inhibitors."
+            },
+            {
+                id: 20,
+                question: "Carbamate poisoning differs from parathion poisoning in that carbamates:",
+                options: [
+                                "Do not effectively penetrate the central nervous system, so CNS manifestations are limited",
+                                "Always cause convulsions",
+                                "Are not cholinesterase inhibitors",
+                                "Are treated with oximes"
+                ],
+                correct: 0,
+                rationale: "The lecture states that carbamates do not effectively penetrate the central nervous system so CNS manifestation is limited."
+            },
+            {
+                id: 21,
+                question: "Carbamate poisoning is investigated by detecting increased what in urine?",
+                options: [
+                                "B-naphthol",
+                                "Glucose",
+                                "Albumin",
+                                "Acetone"
+                ],
+                correct: 0,
+                rationale: "The lecture states that investigation shows increase of B-naphthol in urine."
+            },
+            {
+                id: 22,
+                question: "In carbamate poisoning, oximes are:",
+                options: [
+                                "Contraindicated",
+                                "Life saving",
+                                "The first line treatment",
+                                "Given orally"
+                ],
+                correct: 0,
+                rationale: "The lecture states that in carbamate poisoning the antidote is atropine and oxime is contraindicated."
+            },
+            {
+                id: 23,
+                question: "In DDT poisoning, milk and olive oil should be avoided because they:",
+                options: [
+                                "Increase the absorption of fat-soluble insecticides",
+                                "Cause vomiting",
+                                "Neutralize the poison",
+                                "Cause diarrhea"
+                ],
+                correct: 0,
+                rationale: "The lecture notes that milk and olive oil should be avoided because they increase the absorption of fat-soluble insecticides."
+            },
+            {
+                id: 24,
+                question: "Convulsions in DDT poisoning are controlled with:",
+                options: [
+                                "Valium IV",
+                                "Atropine",
+                                "Oximes",
+                                "Adrenaline"
+                ],
+                correct: 0,
+                rationale: "The lecture lists control of convulsion by valium IV in the treatment of DDT toxicity."
+            },
+            {
+                id: 25,
+                question: "Botulism is caused by:",
+                options: [
+                                "The action of botulinum toxin",
+                                "Direct invasion of the intestine",
+                                "A virus",
+                                "A protozoon"
+                ],
+                correct: 0,
+                rationale: "The lecture states that botulism is a clinical syndrome caused by the action of botulinum toxin."
+            },
+            {
+                id: 26,
+                question: "Botulinum toxin acts by:",
+                options: [
+                                "Binding irreversibly to the peripheral neuromuscular junction causing presynaptic block",
+                                "Stimulating the vagus nerve",
+                                "Blocking dopamine receptors",
+                                "Destroying red cells"
+                ],
+                correct: 0,
+                rationale: "The lecture states that botulinum toxin binds irreversibly to the peripheral neuromuscular junction, a presynaptic block."
+            },
+            {
+                id: 27,
+                question: "The clinical picture of botulism appears within how long of ingestion?",
+                options: [
+                                "12 to 48 hours",
+                                "5 hours",
+                                "1 week",
+                                "1 hour"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the clinical picture of botulism appears within 12 to 48 hours of ingestion."
+            },
+            {
+                id: 28,
+                question: "Which of the following is a feature of botulism?",
+                options: [
+                                "Constipation and urine retention",
+                                "High fever",
+                                "Bloody diarrhea",
+                                "Skin rash"
+                ],
+                correct: 0,
+                rationale: "The lecture lists dry mouth, constipation and urine retention among the features of botulism."
+            },
+            {
+                id: 29,
+                question: "Botulism is treated with:",
+                options: [
+                                "Trivalent antitoxin A, B and E",
+                                "Atropine",
+                                "Naloxone",
+                                "Antibiotics only"
+                ],
+                correct: 0,
+                rationale: "The lecture states that trivalent antitoxin A, B and E should be administered in botulism."
+            },
+            {
+                id: 30,
+                question: "Salmonella food poisoning differs from staphylococcus food poisoning in that salmonella poisoning shows:",
+                options: [
+                                "Fever",
+                                "No fever",
+                                "No diarrhea",
+                                "No vomiting"
+                ],
+                correct: 0,
+                rationale: "The lecture states that salmonella food poisoning causes acute gastroenteritis within 6 to 24 hours with fever, while staphylococcus food poisoning occurs within 5 hours with no fever."
+            },
+            {
+                id: 31,
+                question: "Staphylococcus food poisoning is caused by a thermostable enterotoxin.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that staphylococcus food poisoning is caused by thermostable enterotoxins produced by the staphylococcus organism."
+            },
+            {
+                id: 32,
+                question: "Staphylococcus food poisoning appears within 5 hours with no fever.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that staphylococcus food poisoning is an acute gastroenteritis within 5 hours with abdominal pain, nausea, vomiting, diarrhea and no fever."
+            },
+            {
+                id: 33,
+                question: "In staphylococcus and salmonella food poisoning, the treatment is symptomatic.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists symptomatic treatment for both staphylococcus and salmonella food poisoning."
+            },
+            {
+                id: 34,
+                question: "Diplopia, dysarthria and dysphagia are features of botulism.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists visual disturbances such as diplopia, slurred speech and dysphagia among the features of botulism."
+            },
+            {
+                id: 35,
+                question: "Shigellosis is a food poisoning caused by preformed bacterial toxins.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that shigellosis is caused by direct invasion or infection of the intestine by bacteria, not by preformed toxins."
+            },
+            {
+                id: 36,
+                question: "Entamoeba histolytica causes food poisoning as a protozoon.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists protozoa such as Entamoeba histolytica among the causes of food poisoning."
+            },
+            {
+                id: 37,
+                question: "Gastric lavage in parathion poisoning is done with sodium bicarbonate after endotracheal intubation.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that absorption is prevented by gastric lavage with sodium bicarbonate after endotracheal intubation."
+            },
+            {
+                id: 38,
+                question: "Rota virus can cause food poisoning.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists viruses such as Rota virus among the causes of food poisoning."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
