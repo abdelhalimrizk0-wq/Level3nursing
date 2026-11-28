@@ -336,7 +336,11 @@
         "file": "quizzes/23-24 - Insecticides and Food Poisoning.html",
         "questions": 0
       }
-    ]
+    ],
+    "book": {
+      "file": "books/forensic-toxicology-mwzjiqbi77q.pdf",
+      "size": 1722675
+    }
   },
   {
     "id": "family-health",
