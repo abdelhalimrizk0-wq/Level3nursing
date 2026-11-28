@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #ddd6fe; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(109, 40, 217, 0.15); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-violet-200">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-purple-100 rounded-2xl shadow-md p-8 mb-8 text-center border-t-4 border-purple-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-purple-800"></i></div>
+
+            <h1 class="text-3xl font-bold text-purple-950 mb-2 font-cairo text-center" dir="auto">Sedatives Psychotropics and Drug Dependence</h1>
+
+            <div class="flex items-center justify-center gap-2 text-purple-900 font-semibold bg-purple-300/60 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-purple-100 rounded-2xl shadow-lg p-8 text-center mt-8 border border-purple-300">
+            <h2 class="text-2xl font-bold text-purple-950">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-purple-700 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-purple-500" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-purple-800 mb-6"></p>
+            <button onclick="location.reload()" class="bg-purple-700 text-white px-8 py-3 rounded-xl hover:bg-purple-800 transition shadow-lg hover:shadow-purple-300">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE EXACTLY 45 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which of the following is a non-barbiturate hypnotic?",
+                options: [
+                                "Chloral hydrate",
+                                "Phenobarbitone",
+                                "Secobarbital",
+                                "Amobarbital"
+                ],
+                correct: 0,
+                rationale: "The lecture lists chloral hydrate, glutethimide and paraldehyde as non-barbiturate hypnotics."
+            },
+            {
+                id: 2,
+                question: "Barbiturates are derivatives of:",
+                options: [
+                                "Barbituric acid",
+                                "Salicylic acid",
+                                "Acetic acid",
+                                "Lysergic acid"
+                ],
+                correct: 0,
+                rationale: "The lecture states that barbiturates are barbituric acid derivatives."
+            },
+            {
+                id: 3,
+                question: "Phenobarbitone is a long-acting barbiturate with a duration of:",
+                options: [
+                                "6 to 12 hours",
+                                "20 minutes",
+                                "3 hours",
+                                "24 hours"
+                ],
+                correct: 0,
+                rationale: "The lecture states that phenobarbitone is a long-acting barbiturate acting 6 to 12 hours."
+            },
+            {
+                id: 4,
+                question: "An ultra short acting barbiturate acts for about:",
+                options: [
+                                "20 minutes",
+                                "6 hours",
+                                "12 hours",
+                                "3 days"
+                ],
+                correct: 0,
+                rationale: "The lecture states that ultra short acting barbiturates such as hexobarbital act for about 20 minutes."
+            },
+            {
+                id: 5,
+                question: "Which of the following is an intermediate acting barbiturate?",
+                options: [
+                                "Amobarbital",
+                                "Phenobarbitone",
+                                "Secobarbital",
+                                "Hexobarbital"
+                ],
+                correct: 0,
+                rationale: "Amobarbital acts for 3 to 6 hours, phenobarbitone is long acting, secobarbital is short acting and hexobarbital is ultra short acting."
+            },
+            {
+                id: 6,
+                question: "The toxic dose of barbiturates is:",
+                options: [
+                                "3 to 10 gm",
+                                "100 mg",
+                                "500 mg",
+                                "50 gm"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the toxic dose of barbiturates is 3 to 10 gm."
+            },
+            {
+                id: 7,
+                question: "In barbiturate poisoning, the pupil is:",
+                options: [
+                                "Constricted early and dilated late",
+                                "Always dilated",
+                                "Always pinpoint",
+                                "Unaffected"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the pupil is constricted in the early stage and dilated in the late one."
+            },
+            {
+                id: 8,
+                question: "Which skin lesion is characteristic of barbiturate poisoning?",
+                options: [
+                                "Bullous skin lesions",
+                                "Urticaria",
+                                "Petechiae",
+                                "Burns"
+                ],
+                correct: 0,
+                rationale: "The lecture lists bullous skin lesions among the signs of barbiturate toxicity."
+            },
+            {
+                id: 9,
+                question: "The cause of death in barbiturate poisoning is:",
+                options: [
+                                "Respiratory failure and cardiac failure",
+                                "Renal failure only",
+                                "Hepatic failure",
+                                "Severe bleeding"
+                ],
+                correct: 0,
+                rationale: "The lecture lists respiratory failure and cardiac failure as the causes of death in barbiturate poisoning."
+            },
+            {
+                id: 10,
+                question: "Excretion of barbiturates is enhanced by alkalinization of urine with sodium bicarbonate to maintain the pH at:",
+                options: [
+                                "8",
+                                "5",
+                                "6",
+                                "7.4"
+                ],
+                correct: 0,
+                rationale: "The lecture states that excretion is enhanced by alkalinization of urine with sodium bicarbonate to maintain the pH at 8."
+            },
+            {
+                id: 11,
+                question: "Major tranquilizers block dopamine receptors at the:",
+                options: [
+                                "Limbic system and basal ganglion",
+                                "Cerebellum",
+                                "Spinal cord",
+                                "Medulla only"
+                ],
+                correct: 0,
+                rationale: "The lecture states that major tranquilizers block dopamine receptors at the limbic system and basal ganglion."
+            },
+            {
+                id: 12,
+                question: "Masked face, tremors, rigidity and slowness of movements describe:",
+                options: [
+                                "Parkinsonian syndrome",
+                                "Akathisia",
+                                "Tardive dyskinesia",
+                                "Dystonia"
+                ],
+                correct: 0,
+                rationale: "The lecture states that Parkinsonian syndrome includes masked face, tremors, rigidity and slowness of movements."
+            },
+            {
+                id: 13,
+                question: "Oculogyric crises in phenothiazine toxicity are a form of:",
+                options: [
+                                "Dystonia",
+                                "Akathisia",
+                                "Tardive dyskinesia",
+                                "Convulsions"
+                ],
+                correct: 0,
+                rationale: "The lecture states that dystonia includes tonic spasm of the muscles such as dysphagia, dysarthria and oculogyric crises."
+            },
+            {
+                id: 14,
+                question: "Repeated protrusion of the tongue is an example of:",
+                options: [
+                                "Tardive dyskinesia",
+                                "Parkinsonism",
+                                "Akathisia",
+                                "Dystonia"
+                ],
+                correct: 0,
+                rationale: "The lecture states that tardive dyskinesia means stereotyped involuntary movement such as repeated protrusion of the tongue."
+            },
+            {
+                id: 15,
+                question: "Psychotropic drugs include antipsychotics, antianxiety drugs, antidepressants, antihistaminics and:",
+                options: [
+                                "Central nervous system stimulants",
+                                "Opioid analgesics",
+                                "General anesthetics",
+                                "Muscle relaxants"
+                ],
+                correct: 0,
+                rationale: "The lecture lists five groups of psychotropic drugs, the last of which is central nervous system stimulants."
+            },
+            {
+                id: 16,
+                question: "Akathisia means:",
+                options: [
+                                "Feeling of restlessness",
+                                "Masked face",
+                                "Tongue protrusion",
+                                "Muscle spasms"
+                ],
+                correct: 0,
+                rationale: "The lecture states that akathisia is a feeling of restlessness."
+            },
+            {
+                id: 17,
+                question: "Extrapyramidal manifestations of phenothiazine toxicity are treated with:",
+                options: [
+                                "Benztropine mesylate 1 to 2 mg IV",
+                                "Flumazenil",
+                                "Naloxone",
+                                "Atropine"
+                ],
+                correct: 0,
+                rationale: "The lecture states that extrapyramidal manifestations are treated with benztropine mesylate 1 to 2 mg IV."
+            },
+            {
+                id: 18,
+                question: "Arrhythmia in phenothiazine toxicity is treated with:",
+                options: [
+                                "Phenytoin sodium 50 mg IV",
+                                "Digoxin",
+                                "Quinidine",
+                                "Verapamil"
+                ],
+                correct: 0,
+                rationale: "The lecture states that arrhythmia is treated with phenytoin sodium 50 mg IV."
+            },
+            {
+                id: 19,
+                question: "The physiological antidote of minor tranquilizers is:",
+                options: [
+                                "Flumazenil 0.3 mg IV",
+                                "Naloxone",
+                                "Physostigmine",
+                                "Atropine"
+                ],
+                correct: 0,
+                rationale: "The lecture states that antidotal therapy for minor tranquilizers is flumazenil IV in a dose of 0.3 mg."
+            },
+            {
+                id: 20,
+                question: "Minor tranquilizers are used therapeutically for anxiety, insomnia and as:",
+                options: [
+                                "Anticonvulsant drugs",
+                                "Antibiotics",
+                                "Analgesics",
+                                "Antipyretics"
+                ],
+                correct: 0,
+                rationale: "The lecture states that minor tranquilizers are used for treatment of anxiety and insomnia and as anticonvulsant drugs."
+            },
+            {
+                id: 21,
+                question: "The 3 stages of drug dependence are preoccupation/anticipation, binge/intoxication and:",
+                options: [
+                                "Withdrawal/negative effect",
+                                "Recovery",
+                                "Tolerance only",
+                                "Remission"
+                ],
+                correct: 0,
+                rationale: "The lecture categorizes drug dependence into 3 stages: preoccupation/anticipation, binge/intoxication and withdrawal/negative effect."
+            },
+            {
+                id: 22,
+                question: "A drug of abuse is any substance that alters:",
+                options: [
+                                "The mood, the level of perception or brain functioning",
+                                "Only the blood pressure",
+                                "Only the heart rate",
+                                "Only the appetite"
+                ],
+                correct: 0,
+                rationale: "The lecture defines a drug of abuse as any substance, taken through any route, that alters the mood, the level of perception or brain functioning."
+            },
+            {
+                id: 23,
+                question: "Tolerance is defined as:",
+                options: [
+                                "Loss of an effect of a particular dose or the need to increase the dose to achieve the desired effect",
+                                "Craving for the drug",
+                                "Withdrawal symptoms",
+                                "Allergy to the drug"
+                ],
+                correct: 0,
+                rationale: "The lecture defines tolerance as the loss of an effect of a particular dose, or the need to increase a dose to achieve the desired effect."
+            },
+            {
+                id: 24,
+                question: "Physical dependence is an adaptation at the cellular level such that abrupt stopping of the drug causes:",
+                options: [
+                                "Withdrawal or abstinence syndrome",
+                                "Tolerance",
+                                "Craving",
+                                "Euphoria"
+                ],
+                correct: 0,
+                rationale: "The lecture defines physical dependence as adaptation at the cellular level such that when the drug is abruptly stopped there is a characteristic set of signs and symptoms called withdrawal or abstinence syndrome."
+            },
+            {
+                id: 25,
+                question: "The active ingredient of nutmeg, chemically related to mescaline, is:",
+                options: [
+                                "Myristicin",
+                                "Cathinone",
+                                "Lysergic acid",
+                                "Belladonna alkaloids"
+                ],
+                correct: 0,
+                rationale: "Nutmeg contains myristicin, which is chemically related to mescaline."
+            },
+            {
+                id: 26,
+                question: "The progression of compulsive drug use in psychological dependence is:",
+                options: [
+                                "Need, mild desire, craving, compulsion",
+                                "Craving, need, desire, compulsion",
+                                "Compulsion, craving, desire, need",
+                                "Desire, compulsion, need, craving"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the compulsive use is progressive: need, mild desire, craving, compulsion."
+            },
+            {
+                id: 27,
+                question: "Which of the following is a behavioral characteristic of drug abuse?",
+                options: [
+                                "Abrupt change in work or school attendance",
+                                "Improved grades",
+                                "Better discipline",
+                                "Stable weight"
+                ],
+                correct: 0,
+                rationale: "The lecture lists abrupt change in work or school attendance among the behavioral characteristics of drug abuse."
+            },
+            {
+                id: 28,
+                question: "The most common drug addictions are to legal substances such as:",
+                options: [
+                                "Caffeine, nicotine and alcohol",
+                                "Heroin and cocaine",
+                                "LSD and PCP",
+                                "Ketamine and GHB"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the most common drug addictions are to legal substances such as caffeine, nicotine in tobacco and alcohol."
+            },
+            {
+                id: 29,
+                question: "Acute drug use causes release and prolonged action of which neurotransmitters within the reward circuit?",
+                options: [
+                                "Dopamine and serotonin",
+                                "Acetylcholine and histamine",
+                                "Insulin and glucagon",
+                                "Cortisol and adrenaline"
+                ],
+                correct: 0,
+                rationale: "The lecture states that acute drug use causes the release and prolonged action of dopamine and serotonin within the reward circuit."
+            },
+            {
+                id: 30,
+                question: "Synesthesia in hallucinogen use means:",
+                options: [
+                                "Abnormal perception such as seeing sounds and hearing colors",
+                                "Loss of hearing",
+                                "Double vision",
+                                "Blindness"
+                ],
+                correct: 0,
+                rationale: "The lecture states that synesthesia is abnormal perception, such as seeing sounds and hearing colors."
+            },
+            {
+                id: 31,
+                question: "Flashback episodes are:",
+                options: [
+                                "Spontaneous recurrence of the sensation that occurred during a previous drug experience",
+                                "Dreams during sleep",
+                                "Seizures",
+                                "Memory loss of childhood"
+                ],
+                correct: 0,
+                rationale: "The lecture states that flashback episodes are a spontaneous recurrence of the sensation that occurred during a previous drug experience."
+            },
+            {
+                id: 32,
+                question: "Cross tolerance develops among LSD, mescaline, psilocybin and:",
+                options: [
+                                "DMT",
+                                "Cocaine",
+                                "Heroin",
+                                "Nicotine"
+                ],
+                correct: 0,
+                rationale: "The lecture states that cross tolerance develops among LSD, mescaline, psilocybin and DMT."
+            },
+            {
+                id: 33,
+                question: "The active ingredient of khat is:",
+                options: [
+                                "Cathinone",
+                                "Myristicin",
+                                "Mescaline",
+                                "Caffeine"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the active ingredient of khat is cathinone, it is chewed and common in Yemen with an effect like amphetamine."
+            },
+            {
+                id: 34,
+                question: "The effect of ecstasy starts within how long after swallowing the pill and the euphoric glow lasts how long?",
+                options: [
+                                "Starts within 20 minutes and lasts 4 to 6 hours",
+                                "Starts within 2 hours and lasts 2 days",
+                                "Starts within 5 minutes and lasts 1 hour",
+                                "Starts within 1 hour and lasts 10 days"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the effect of ecstasy starts within 20 minutes after swallowing the pill and the euphoric glow lasts 4 to 6 hours."
+            },
+            {
+                id: 35,
+                question: "Ecstasy is chemically related to both mescaline and:",
+                options: [
+                                "Amphetamine",
+                                "Testosterone",
+                                "Ketamine",
+                                "Barbituric acid"
+                ],
+                correct: 0,
+                rationale: "The lecture states that ecstasy is related to both mescaline and amphetamine."
+            },
+            {
+                id: 36,
+                question: "Sudden sniffing death is a medical consequence of abuse of:",
+                options: [
+                                "Inhalants",
+                                "Barbiturates",
+                                "Salicylates",
+                                "Digitalis"
+                ],
+                correct: 0,
+                rationale: "The lecture lists irregular heart rhythm and sudden sniffing death among the medical consequences of inhalant abuse."
+            },
+            {
+                id: 37,
+                question: "Secobarbital is a short acting barbiturate acting about 3 hours.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that secobarbital is a short acting barbiturate acting about 3 hours."
+            },
+            {
+                id: 38,
+                question: "Pneumonia in barbiturate poisoning is treated with digoxin.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that pneumonia is treated with antibiotics, while digoxin is used for heart failure."
+            },
+            {
+                id: 39,
+                question: "The endocrine effect of phenothiazine toxicity includes amenorrhea in females and impotence in males.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture lists amenorrhea in females and impotence in males among the effects of phenothiazine toxicity."
+            },
+            {
+                id: 40,
+                question: "Hallucinogens produce marked physical dependence and withdrawal symptoms.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 1,
+                rationale: "The lecture states that with hallucinogens there is no physical dependence and no withdrawal symptoms."
+            },
+            {
+                id: 41,
+                question: "LSD is a semi-synthetic alkaloid derived from lysergic acid found in ergot.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that LSD is a semi-synthetic alkaloid derived from lysergic acid, a substance found in ergot."
+            },
+            {
+                id: 42,
+                question: "Ketamine is sometimes given to victims of sexual assaults and is referred to as a rape drug.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that ketamine is sometimes given to victims of sexual assaults, thus referred to as a rape drug."
+            },
+            {
+                id: 43,
+                question: "Anabolic steroids are chemically similar to testosterone and stimulate protein synthesis.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that anabolic steroids are chemically similar to testosterone and have a masculinizing effect as they stimulate protein synthesis."
+            },
+            {
+                id: 44,
+                question: "The depression that follows ecstasy use can last up to 5 days.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that the day-after effect of ecstasy is depression that lasts for up to 5 days."
+            },
+            {
+                id: 45,
+                question: "Inhalants are rarely, if ever, taken by any route other than inhalation.",
+                options: [
+                                "True",
+                                "False"
+                ],
+                correct: 0,
+                rationale: "The lecture states that inhalants are volatile substances rarely taken by any route other than inhalation."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-purple-100 rounded-xl p-6 mb-6 border border-purple-300 shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-purple-200 pb-3">
+                        <span class="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-fuchsia-700 text-white text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-purple-950 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-purple-300 hover:bg-purple-200 hover:border-purple-500 focus:outline-none flex items-center justify-between group bg-purple-50"><span class="font-medium text-purple-900 group-hover:text-purple-950 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 rounded-xl p-5 border animate-fade-in text-left">
+                        <p class="text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct-answer');
+                    btn.innerHTML += '<i class="fas fa-check float-right"></i>';
+                } else if (i === optIndex) {
+                    btn.classList.add('wrong-answer');
+                    btn.innerHTML += '<i class="fas fa-times float-right"></i>';
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+            if (optIndex === q.correct) {
+                score++;
+                feedback.classList.add('correct-answer');
+            } else {
+                feedback.classList.add('wrong-answer');
+            }
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score / quizData.length * 100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
