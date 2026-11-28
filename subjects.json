@@ -270,7 +270,77 @@
     "emoji": "⚖️",
     "color": "#6366f1",
     "department": "common_t1",
-    "lectures": []
+    "lectures": [
+      {
+        "name": "1-2 - Ethics of Nursing and Medicolegal Duties of the Nurse",
+        "file": "quizzes/1-2 - Ethics of Nursing and Medicolegal Duties of the Nurse.html",
+        "questions": 0
+      },
+      {
+        "name": "3 - Identification",
+        "file": "quizzes/3 - Identification.html",
+        "questions": 0
+      },
+      {
+        "name": "4-5 - Death and Sudden Death",
+        "file": "quizzes/4-5 - Death and Sudden Death.html",
+        "questions": 0
+      },
+      {
+        "name": "6-7 - Wounds and Head Injuries",
+        "file": "quizzes/6-7 - Wounds and Head Injuries.html",
+        "questions": 0
+      },
+      {
+        "name": "8 - Violent Asphyxia",
+        "file": "quizzes/8 - Violent Asphyxia.html",
+        "questions": 0
+      },
+      {
+        "name": "9 - Physical Injuries",
+        "file": "quizzes/9 - Physical Injuries.html",
+        "questions": 0
+      },
+      {
+        "name": "10-11 - Pregnancy Abortion and Infanticide",
+        "file": "quizzes/10-11 - Pregnancy Abortion and Infanticide.html",
+        "questions": 0
+      },
+      {
+        "name": "12-13 - General Toxicology and Corrosives",
+        "file": "quizzes/12-13 - General Toxicology and Corrosives.html",
+        "questions": 0
+      },
+      {
+        "name": "14-15 - Ethyl Alcohol and Carbon Monoxide Poisoning",
+        "file": "quizzes/14-15 - Ethyl Alcohol and Carbon Monoxide Poisoning.html",
+        "questions": 0
+      },
+      {
+        "name": "16-17 - Poisonous Plants and Opium Poisoning",
+        "file": "quizzes/16-17 - Poisonous Plants and Opium Poisoning.html",
+        "questions": 0
+      },
+      {
+        "name": "18-19 - Digitalis and Analgesic Antipyretics",
+        "file": "quizzes/18-19 - Digitalis and Analgesic Antipyretics.html",
+        "questions": 0
+      },
+      {
+        "name": "20-22 - Sedatives Psychotropics and Drug Dependence",
+        "file": "quizzes/20-22 - Sedatives Psychotropics and Drug Dependence.html",
+        "questions": 0
+      },
+      {
+        "name": "23-24 - Insecticides and Food Poisoning",
+        "file": "quizzes/23-24 - Insecticides and Food Poisoning.html",
+        "questions": 0
+      }
+    ],
+    "book": {
+      "file": "books/forensic-toxicology-mwzjiqbi77q.pdf",
+      "size": 1722675
+    }
   },
   {
     "id": "family-health",
